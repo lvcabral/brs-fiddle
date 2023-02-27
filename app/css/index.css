@@ -1,0 +1,295 @@
+.index-page {
+    overflow: hidden;
+    height: 100vh;
+    max-height: -moz-available;
+    /* WebKit-based browsers will ignore this. */
+    max-height: -webkit-fill-available;
+    /* Mozilla-based browsers will ignore this. */
+    max-height: fill-available;
+  }
+  .console {
+    width: 100%;
+    background: #f7f7f7;
+  }
+  .console .console-header {
+    background: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+  }
+  .console .console-header h4 {
+    color: #999;
+  }
+  .console .console-header button {
+    padding: 0 8px;
+    height: 24px;
+    vertical-align: middle;
+    border: none;
+    color: white;
+    background: #662D91;
+  }
+  .console .console-header button i {
+    font-size: 18px;
+    vertical-align: text-bottom;
+  }
+  .console .console-header button span {
+    font-size: 14px;
+  }
+  .console iframe {
+    border: none;
+    width: 0;
+    height: 0;
+    visibility: hidden;
+  }
+  .emulator-display {
+    width: 100%;
+    background: #f7f7f7;
+  }
+  .emulator-display .display-header {
+    width: 100%;
+    background: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+  }
+  .emulator-display .display-header h4 {
+    color: #999;
+  }
+  #display {
+    height: 300px;
+    background-color: black;
+    opacity: 1;
+    z-index: 20;
+  }
+  .code {
+    background: #193549;
+    height: calc(100vh - 40px);
+    width: 60%;
+  }
+  .code .code-header {
+    background: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+  }
+  .code .code-header button {
+    padding: 0 8px;
+    height: 24px;
+    vertical-align: middle;
+    border: none;
+    color: white;
+    background: #662D91;
+  }
+  .code .code-header button i {
+    font-size: 18px;
+    vertical-align: text-bottom;
+  }
+  .code .code-header button span {
+    font-size: 14px;
+  }
+  .code .code-header .project-link {
+    display: flex;
+    align-items: center;
+    color: #999;
+  }
+  .code .code-header .project-link span {
+    margin: 0 4px;
+    color: #ddd;
+  }
+  .code .code-header .project-link input {
+    border: none;
+    background: transparent;
+    color: #999;
+    height: 24px;
+    padding: 0 4px;
+  }
+  .code .code-header .project-link input:focus {
+    background: #444;
+  }
+  .code #jsCode {
+    display: block;
+    height: calc(100vh - 76px);
+    width: 100%;
+    border: none;
+    background: #444;
+    color: #fff;
+    font-size: 18px;
+    padding: 16px;
+  }
+  .code #jsCode:focus, .code #jsCode:active {
+    outline: none;
+    box-shadow: none;
+  }
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -10px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  .editor {
+    display: flex;
+    width: 100%;
+  }
+  .editor .console {
+    height: 50%;
+  }
+  .editor .console #console-logs {
+    overflow: auto;
+    height: 50%;
+  }
+  .editor .console #console-logs-empty {
+    overflow: auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 32px;
+    display: flex;
+    visibility: hidden;
+    height: 0;
+    opacity: 0;
+    transition: opacity 300ms ease-in;
+  }
+  .editor .console #console-logs-empty p {
+    color: #999;
+    margin-bottom: 16px;
+  }
+  .editor .console #console-logs-empty button {
+    color: white;
+    background: #662D91;
+    padding: 0px 8px;
+    height: 28px;
+    border: none;
+  }
+  .editor .console #console-logs-empty.active {
+    visibility: visible;
+    height: 50%;
+    opacity: 1;
+  }
+  .editor .console .console-line-item {
+    padding: 4px 8px 4px 44px;
+    font-size: 14px;
+    border-bottom: 1px solid #ddd;
+    animation-name: fadeInDown;
+    animation-duration: 150ms;
+    animation-fill-mode: both;
+    animation-timing-function: ease-in-out;
+    animation-delay: calc(var(--animation-order) * 90ms);
+    white-space: pre-wrap;
+    line-height: 18px;
+  }
+  .editor .console .console-line-item:before {
+    display: inline-block;
+    counter-increment: consoleLogCounter;
+    content: counter(consoleLogCounter);
+    background: #ecead7;
+    color: #666;
+    width: 20px;
+    text-align: center;
+    height: 20px;
+    line-height: 20px;
+    border-radius: 4px;
+    margin-right: 12px;
+    font-size: 10px;
+    position: absolute;
+    left: 6px;
+  }
+  .editor .console .console-line-item span {
+    margin: 0 4px;
+  }
+  .editor .console .console-line-item span.object {
+    color: #34495e;
+  }
+  .editor .console .console-line-item span.string {
+    color: #e74c3c;
+  }
+  .editor .console .console-line-item span.number {
+    color: #2980b9;
+  }
+  .editor .console .console-line-item.error {
+    color: #ce2417;
+    background: #e8a1a145;
+  }
+  @media (max-width: 480px) {
+    .editor {
+      flex-direction: column;
+    }
+    .editor .code, .editor .console {
+      width: 100%;
+    }
+    .editor .code {
+      height: 60%;
+    }
+    .editor .console {
+      height: 40%;
+    }
+  }
+  .console-line-item-switch {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+  .console-line-item-switch + label:before {
+    position: absolute;
+    content: "";
+    width: 0;
+    height: 0;
+    top: 10px;
+    left: 32px;
+    cursor: pointer;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 4px solid #999;
+  }
+  .console-line-item-switch + label + .console-line-item-content {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .console-line-item-switch:checked + label:before {
+    top: 13px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid #333;
+  }
+  .console-line-item-switch:checked + label + .console-line-item-content {
+    white-space: initial;
+    overflow: initial;
+    text-overflow: initial;
+  }
+  .layout-separator {
+    width: 3px;
+    margin: 0 -1px;
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
+    background-color: #232323;
+    opacity: 0;
+    z-index: 4;
+    cursor: col-resize;
+    opacity: 0.8;
+  }
+  .layout-separator:hover {
+    opacity: 0.4;
+  }
+  

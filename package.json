@@ -1,0 +1,75 @@
+{
+  "name": "brs-fiddle",
+  "version": "0.0.1-dev",
+  "description": "BrightScript Fiddle",
+  "author": "Marcelo Lv Cabral <marcelo@lvcabral.com> (https://lvcabral.com/)",
+  "homepage": "https://lvcabral.com/brs/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lvcabral/brs-fiddle"
+  },
+  "keywords": [
+    "brightscript",
+    "roku",
+    "emulator"
+  ],
+  "license": "MIT",
+  "main": "app/index.html",
+  "typings": "./types/index.d.ts",
+  "scripts": {
+    "build": "webpack --env.NODE_ENV=development",
+    "release": "webpack --env.NODE_ENV=production --env.production",
+    "clean": "rimraf ./types",
+    "lint": "tslint --project .",
+    "prettier:write": "prettier --write \"{app,src,test}/**/*.{js,ts}\"",
+    "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
+  },
+  "files": [
+    "app/fonts/",
+    "app/lib/brsEmu.worker.js"
+  ],
+  "dependencies": {
+    "brs-emu": "^0.10.8-dev",
+    "codemirror": "^5.65.12",
+    "toastify-js": "^1.12.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/preset-typescript": "^7.18.6",
+    "@types/codemirror": "^5.60.7",
+    "@types/css-font-loading-module": "^0.0.2",
+    "@types/toastify-js": "^1.11.1",
+    "babel-loader": "^8.3.0",
+    "codemirror": "^5.63.0",
+    "css-loader": "^5.2.7",
+    "lint-staged": ">=8",
+    "npm-run-all": "^4.1.2",
+    "prettier": "2",
+    "raw-loader": "^3.1.0",
+    "rimraf": "^2.6.2",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.4.0",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "4",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "printWidth": 100
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

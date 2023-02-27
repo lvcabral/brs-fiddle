@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>brsFiddle - Brigtscript Code Playground</title>
+    <meta
+      name="description"
+      content="Simple Code Editor for playing with Brigtscript language."
+    />
+    <meta name="author" content="Marcelo Lv Cabral" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://brsfiddle.net/" />
+    <meta
+      property="og:title"
+      content="brsFiddle - Brigtscript Code Playground"
+    />
+    <meta
+      property="og:description"
+      content="Simple Code Editor for playing with Brigtscript language."
+    />
+    <meta
+      property="og:image"
+      content="https://res.cloudinary.com/sivadass/image/upload/v1629370122/jsarena/js-arena-logo-mark.png"
+    />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:url" content="https://brsFiddle.net/" />
+    <meta
+      property="twitter:title"
+      content="brsFiddle - Brigtscript Code Playground"
+    />
+    <meta
+      property="twitter:description"
+      content="Simple Code Editor for playing with Brigtscript language."
+    />
+    <meta
+      property="twitter:image"
+      content="https://res.cloudinary.com/sivadass/image/upload/v1629370122/jsarena/js-arena-logo-mark.png"
+    />
+    <link rel="icon" href="../favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/codemirror.css" />
+    <link rel="stylesheet" href="css/vscode-dark.css" />
+  </head>
+
+  <body id="root" class="index-page">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="/">
+          <img src="./images/logo.svg" alt="brs Console" />
+        </a>
+        <div class="actions">
+          <a
+            href="https://paypal.me/lvcabral"
+            title="Donate"
+            target="_blank"
+            class="donate"
+          >
+            <i class="jsc-icon-coffee-cup"></i>
+            <span>Donate</span>
+          </a>
+          <button title="Share" class="share">
+            <i class="jsc-icon-share"></i>
+            <span>Share</span>
+          </button>
+        </div>
+      </div>
+    </header>
+    <main class="main-container editor">
+      <div class="code">
+        <div class="code-header">
+          <div>
+            <div class="project-link">
+              <span>Source Code</span>
+            </div>
+          </div>
+        </div>
+        <div class="editor-wrapper">
+          <textarea
+            id="brsCode"
+            placeholder="Loading..."
+            spellcheck="false"
+          ></textarea>
+        </div>
+      </div>
+      <div class="layout-separator"></div>
+        <div id="right-container" style="display: flex; flex: 1 1 0%; flex-direction: column">
+        <div class="console">
+        <div class="console-header">
+          <div>
+            <h4>Console</h4>
+          </div>
+          <div>
+            <button title="Run" class="run">
+              <i class="jsc-icon-run"></i>
+              <span></span>
+            </button>
+            <button title="Clear All Logs" class="clear-all">
+              <i class="jsc-icon-clear-all"></i>
+              <span></span>
+            </button>
+          </div>
+        </div>
+        <div id="console-logs-empty" class="active">
+          <div>
+            <p>Hey, please click the run button to view logs here</p>
+            <button title="Run" class="run-empty">Run and View logs</button>
+          </div>
+        </div>
+        <div id="console-logs"></div>
+        <iframe id="output-iframe"></iframe>
+        </div>
+        <div class="emulator-display">
+          <div class="display-header">
+            <div>
+              <h4>Display</h4>
+            </div>
+          </div>
+          <canvas id="display"></canvas>
+        </div>
+      </div>
+    </main>
+    <script type="text/javascript" src="./lib/toast.js"></script>
+    <script type="text/javascript" src="./lib/codemirror/codemirror.js"></script>
+    <script type="text/javascript" src="./lib/codemirror/mode/vbscript/vbscript.js"></script>
+    <script type="text/javascript" src="./lib/codemirror/addon/edit/closebrackets.js"></script>
+    <script type="text/javascript" src="./lib/codemirror/addon/comment/comment.js"></script>
+    <script type="text/javascript" src="./lib/brsEmu.js"></script>
+    <script type="text/javascript" src="./lib/index.js"></script>
+  </body>
+</html>
