@@ -5,8 +5,6 @@
  *
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
-// import * as brsEmu from "./brsEmu";
-// import { CodeMirrorManager } from "./codemirror"
 
 const brsCodeField = document.getElementById("brsCode");
 const runButton = document.querySelector("button.run");
@@ -26,9 +24,49 @@ clearAllButton.addEventListener("click", clearAll);
 shareButton.addEventListener("click", share);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 
+let iframe = document.getElementById("output-iframe");
+let iframeWin = iframe.contentWindow || iframe;
 let consoleLogsContainer = document.getElementById("console-logs");
 let consoleLogsEmpty = document.getElementById("console-logs-empty");
 let panel = parent.document.getElementById("console-logs");
+
+let animationDelay = -1;
+iframeWin.console = {
+    panel: panel,
+    log: function (...m) {
+        let tempId = Math.floor(Math.random() * 10000);
+        let pre = parent.document.createElement("pre");
+        let toggleSwitch = parent.document.createElement("input");
+        let toggleSwitchLabel = parent.document.createElement("label");
+        let logsWrapper = parent.document.createElement("div");
+        animationDelay += 1;
+        pre.setAttribute("class", "console-line-item");
+        pre.style.setProperty("--animation-order", animationDelay);
+        logsWrapper.setAttribute("class", "console-line-item-content");
+        pre.appendChild(toggleSwitch);
+        pre.appendChild(toggleSwitchLabel);
+        pre.appendChild(logsWrapper);
+        toggleSwitch.setAttribute("type", "checkbox");
+        toggleSwitch.setAttribute("id", tempId);
+        toggleSwitch.setAttribute("class", "console-line-item-switch");
+        toggleSwitchLabel.setAttribute("for", tempId);
+        m.forEach((mItem) => {
+            var newSpan = document.createElement("span");
+            newSpan.setAttribute("class", typeof mItem);
+            newSpan.textContent +=
+                typeof mItem === "object" ? JSON.stringify(mItem, null, 1) : mItem;
+            logsWrapper.appendChild(newSpan);
+        });
+        pre.appendChild(logsWrapper);
+        this.panel.append(pre);
+    },
+    error: function (m) {
+        let pre = parent.document.createElement("pre");
+        pre.setAttribute("class", "console-line-item error");
+        pre.textContent = typeof m === "object" ? JSON.stringify(m, null, 2) : m;
+        this.panel.append(pre);
+    },
+};
 
 let isResizing = false;
 let editor;
@@ -51,18 +89,19 @@ function main() {
         lineNumbers: true,
         matchBrackets: true,
         indentUnit: 4,
-        indentWithTabs: true,
         autoCloseTags: true,
         autoCloseBrackets: true,
+        electricChars: false,
+        autofocus: true,
         mode: "vbscript",
     });
     // initializeHeader();
     const { height } = codeColumn.getBoundingClientRect();
-    editor.setSize("100%", `${height - 36}px`);
+    editor.setSize("100%", `${height - 60}px`);
 
     // Initialize Device Emulator
     if (displayCanvas) {
-        brsEmu.initialize({ lowResolutionCanvas: true }, { debugToConsole: true, disableKeys: true }, displayCanvas);
+        brsEmu.initialize({ lowResolutionCanvas: false }, { debugToConsole: true, disableKeys: true }, displayCanvas);
         // Subscribe to Events (optional)
         brsEmu.subscribe("myApp", (event, data) => {
             if (event === "loaded") {
@@ -73,8 +112,34 @@ function main() {
                 console.info(`Execution terminated! ${event}: ${data}`);
             }
         });
-        console.log(brsEmu.getVersion())
+        const rightRect = rightContainer.getBoundingClientRect();
+        brsEmu.redraw(false, rightRect.width, Math.trunc(rightRect.height / 2), window.devicePixelRatio);
+        // Subscribe to Emulator Events
+        brsEmu.subscribe("app", (event, data) => {
+            if (event === "debug") {
+                if (data.level === "error") {
+                    iframeWin.console.error(data.content);
+                } else {
+                    iframeWin.console.log(data.content);
+                }
+                scrollToBottom();
+                if (!hasAnything("#console-logs")) {
+                    consoleLogsEmpty.classList.add("active");
+                } else {
+                    consoleLogsEmpty.classList.remove("active");
+                }
+            }
+        });
     }
+}
+
+function scrollToBottom() {
+    const scrollHeight = consoleLogsContainer.scrollHeight;
+    consoleLogsContainer.scrollTo({
+        top: scrollHeight,
+        left: 0,
+        behavior: "smooth",
+    });
 }
 
 function share() {
@@ -90,20 +155,26 @@ function share() {
     }).showToast();
 }
 
-function showPreview() {  
-    console.log(brsEmu.getVersion())
-    brsEmu.execute("main.brs", editor.getValue(), false);
-    // if (!hasAnything("#console-logs")) {
-    //     consoleLogsEmpty.classList.add("active");
-    // } else {
-    //     consoleLogsEmpty.classList.remove("active");
-    // }
+function showPreview() {
+    try {
+        brsEmu.execute("main.brs", editor.getValue(), false);
+    } catch (e) {
+        console.log(e); // Check EvalError object
+        iframeWin.console.error(`${e.name}: ${e.message}`);
+        scrollToBottom();
+    }
+    if (!hasAnything("#console-logs")) {
+        consoleLogsEmpty.classList.add("active");
+    } else {
+        consoleLogsEmpty.classList.remove("active");
+    }
 }
 
 function clearAll() {
-    // consoleLogsContainer.replaceChildren();
-    // animationDelay = -1;
-    // consoleLogsEmpty.classList.add("active");
+    brsEmu.terminate("EXIT_USER_NAV");
+    consoleLogsContainer.replaceChildren();
+    animationDelay = -1;
+    consoleLogsEmpty.classList.add("active");
 }
 
 function hotKeys(e) {
@@ -139,11 +210,14 @@ function onMouseMove(e) {
             codeColumn.style.width = codeColumnWidth;
             consoleColumn.style.width = rightRect.width.toString();
         }
-
     }
 }
 
 function onMouseUp() {
+    if (isResizing) {
+        const rightRect = rightContainer.getBoundingClientRect();
+        brsEmu.redraw(false, rightRect.width, Math.trunc(rightRect.height / 2) - 10, window.devicePixelRatio);
+    }
     isResizing = false;
 }
 
@@ -161,16 +235,19 @@ const getOS = () => {
     const iosPlatforms = ["iPhone", "iPad", "iPod"];
     let os = null;
     if (macosPlatforms.indexOf(platform) !== -1) {
-      os = "MacOS";
+        os = "MacOS";
     } else if (iosPlatforms.indexOf(platform) !== -1) {
-      os = "iOS";
+        os = "iOS";
     } else if (windowsPlatforms.indexOf(platform) !== -1) {
-      os = "Windows";
+        os = "Windows";
     } else if (/Android/.test(userAgent)) {
-      os = "Android";
+        os = "Android";
     } else if (!os && /Linux/.test(platform)) {
-      os = "Linux";
+        os = "Linux";
     }
     return os;
 };
-  
+
+function hasAnything(selector) {
+    return document.querySelector(selector).innerHTML.trim().length > 0;
+}

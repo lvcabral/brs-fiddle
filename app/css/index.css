@@ -32,7 +32,7 @@
     vertical-align: middle;
     border: none;
     color: white;
-    background: #662D91;
+    background: #449DFF;
   }
   .console .console-header button i {
     font-size: 18px;
@@ -68,7 +68,7 @@
     color: #999;
   }
   #display {
-    height: 300px;
+    height: 480px;
     background-color: black;
     opacity: 1;
     z-index: 20;
@@ -96,7 +96,7 @@
     vertical-align: middle;
     border: none;
     color: white;
-    background: #662D91;
+    background: #449DFF;
   }
   .code .code-header button i {
     font-size: 18px;
@@ -124,7 +124,7 @@
   .code .code-header .project-link input:focus {
     background: #444;
   }
-  .code #jsCode {
+  .code #brsCode {
     display: block;
     height: calc(100vh - 76px);
     width: 100%;
@@ -134,7 +134,7 @@
     font-size: 18px;
     padding: 16px;
   }
-  .code #jsCode:focus, .code #jsCode:active {
+  .code #brsCode:focus, .code #brsCode:active {
     outline: none;
     box-shadow: none;
   }
@@ -153,11 +153,11 @@
     width: 100%;
   }
   .editor .console {
-    height: 50%;
+    height: 45%;
   }
   .editor .console #console-logs {
     overflow: auto;
-    height: 50%;
+    height: 85%;
   }
   .editor .console #console-logs-empty {
     overflow: auto;
@@ -177,27 +177,27 @@
   }
   .editor .console #console-logs-empty button {
     color: white;
-    background: #662D91;
+    background: #449DFF;
     padding: 0px 8px;
     height: 28px;
     border: none;
   }
   .editor .console #console-logs-empty.active {
     visibility: visible;
-    height: 50%;
+    height: 100%;
     opacity: 1;
   }
   .editor .console .console-line-item {
     padding: 4px 8px 4px 44px;
-    font-size: 14px;
+    font-size: 12px;
     border-bottom: 1px solid #ddd;
     animation-name: fadeInDown;
     animation-duration: 150ms;
     animation-fill-mode: both;
     animation-timing-function: ease-in-out;
-    animation-delay: calc(var(--animation-order) * 90ms);
+    animation-delay: calc(var(--animation-order) * 1ms);
     white-space: pre-wrap;
-    line-height: 18px;
+    line-height: 14px;
   }
   .editor .console .console-line-item:before {
     display: inline-block;
@@ -207,8 +207,8 @@
     color: #666;
     width: 20px;
     text-align: center;
-    height: 20px;
-    line-height: 20px;
+    height: 16px;
+    line-height: 16px;
     border-radius: 4px;
     margin-right: 12px;
     font-size: 10px;
@@ -222,7 +222,7 @@
     color: #34495e;
   }
   .editor .console .console-line-item span.string {
-    color: #e74c3c;
+    color: #6a5b7c;
   }
   .editor .console .console-line-item span.number {
     color: #2980b9;
