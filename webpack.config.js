@@ -1,4 +1,5 @@
 const path = require("path");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = env => {
     const isProduction = env.NODE_ENV === "production";
@@ -18,6 +19,15 @@ module.exports = env => {
             entry: "./src/index.ts",
             target: "web",
             mode: mode,
+            externals: {
+                "brs-emu": "brsEmu"
+            },
+            plugins: [
+                new CopyWebpackPlugin([
+                    { context: "node_modules/brs-emu/app/lib", from: "**" },
+                    { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
+                ])
+            ],
             module: {
                 rules: [
                     {

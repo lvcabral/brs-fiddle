@@ -1,11 +1,11 @@
 .vscode/
-.idea/
+app/lib/
 types/
 node_modules/
 dist/
 out/
-*.pkg
 desktop.ini
 .DS_Store
 .husky
+*.pkg
 *.tgz

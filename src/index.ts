@@ -6,8 +6,8 @@
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
 import Toastify from "toastify-js";
-import { getOS } from "./util";
 import * as brsEmu from "brs-emu";
+import { getOS, hasAnything } from "./util";
 import { CodeMirrorManager } from "./codemirror"
 
 const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
@@ -28,9 +28,52 @@ clearAllButton.addEventListener("click", clearAll);
 shareButton.addEventListener("click", share);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 
-let consoleLogsContainer = document.getElementById("console-logs");
-let consoleLogsEmpty = document.getElementById("console-logs-empty");
-let panel = parent.document.getElementById("console-logs");
+let iframe = document.getElementById("output-iframe") as HTMLIFrameElement;
+let iframeWin = iframe.contentWindow;
+let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
+let consoleLogsEmpty = document.getElementById("console-logs-empty") as HTMLDivElement;
+let panel = parent.document.getElementById("console-logs") as HTMLDivElement;
+
+let animationDelay = -1;
+
+if (iframeWin) {
+    iframeWin.console = {
+        panel: panel,
+        log: function (...m: any[]) {
+            let tempId = Math.floor(Math.random() * 10000);
+            let pre = parent.document.createElement("pre");
+            let toggleSwitch = parent.document.createElement("input");
+            let toggleSwitchLabel = parent.document.createElement("label");
+            let logsWrapper = parent.document.createElement("div");
+            animationDelay += 1;
+            pre.setAttribute("class", "console-line-item");
+            pre.style.setProperty("--animation-order", animationDelay.toString());
+            logsWrapper.setAttribute("class", "console-line-item-content");
+            pre.appendChild(toggleSwitch);
+            pre.appendChild(toggleSwitchLabel);
+            pre.appendChild(logsWrapper);
+            toggleSwitch.setAttribute("type", "checkbox");
+            toggleSwitch.setAttribute("id", tempId.toString());
+            toggleSwitch.setAttribute("class", "console-line-item-switch");
+            toggleSwitchLabel.setAttribute("for", tempId.toString());
+            m.forEach((mItem) => {
+                var newSpan = document.createElement("span");
+                newSpan.setAttribute("class", typeof mItem);
+                newSpan.textContent +=
+                    typeof mItem === "object" ? JSON.stringify(mItem, null, 1) : mItem;
+                logsWrapper.appendChild(newSpan);
+            });
+            pre.appendChild(logsWrapper);
+            this.panel.append(pre);
+        },
+        error: function (m: any) {
+            let pre = parent.document.createElement("pre");
+            pre.setAttribute("class", "console-line-item error");
+            pre.textContent = typeof m === "object" ? JSON.stringify(m, null, 2) : m;
+            this.panel.append(pre);
+        },
+    };   
+}
 
 let isResizing = false;
 let editorManager: CodeMirrorManager;
@@ -51,13 +94,13 @@ function main() {
     }   
     // initializeHeader();
     const { height } = codeColumn.getBoundingClientRect();
-    editorManager.editor.setSize("100%", `${height - 36}px`);
+    editorManager.editor.setSize("100%", `${height - 60}px`);
 
     // Initialize Device Emulator
     if (displayCanvas) {
-        brsEmu.initialize({ lowResolutionCanvas: true }, { debugToConsole: true, disableKeys: true }, displayCanvas);
+        brsEmu.initialize({ lowResolutionCanvas: false }, { debugToConsole: false, disableKeys: false });
         // Subscribe to Events (optional)
-        brsEmu.subscribe("myApp", (event: any, data: any) => {
+        brsEmu.subscribe("brsFiddle", (event: any, data: any) => {
             if (event === "loaded") {
                 console.info(`Source code loaded: ${data.id}`);
             } else if (event === "started") {
@@ -66,8 +109,34 @@ function main() {
                 console.info(`Execution terminated! ${event}: ${data}`);
             }
         });
-        console.log(brsEmu.getVersion())
+        const rightRect = rightContainer.getBoundingClientRect();
+        brsEmu.redraw(false, rightRect.width, Math.trunc(rightRect.height / 2), window.devicePixelRatio);
+        // Subscribe to Emulator Events
+        brsEmu.subscribe("app", (event, data) => {
+            if (event === "debug" && iframeWin !== null) {
+                if (data.level === "error") {
+                    iframeWin.console.error(data.content);
+                } else {
+                    iframeWin.console.log(data.content);
+                }
+                scrollToBottom();
+                if (!hasAnything("#console-logs")) {
+                    consoleLogsEmpty.classList.add("active");
+                } else {
+                    consoleLogsEmpty.classList.remove("active");
+                }
+            }
+        });    
     }
+}
+
+function scrollToBottom() {
+    const scrollHeight = consoleLogsContainer.scrollHeight;
+    consoleLogsContainer.scrollTo({
+        top: scrollHeight,
+        left: 0,
+        behavior: "smooth",
+    });
 }
 
 function share() {
@@ -84,19 +153,27 @@ function share() {
 }
 
 function showPreview() {
-    var jsCode = editorManager.editor.getValue();
-    brsEmu.execute("main.brs", jsCode, false);
-    // if (!hasAnything("#console-logs")) {
-    //     consoleLogsEmpty.classList.add("active");
-    // } else {
-    //     consoleLogsEmpty.classList.remove("active");
-    // }
+    try {
+        brsEmu.execute("main.brs", editorManager.editor.getValue(), false);
+    } catch (e: any) {
+        console.log(e); // Check EvalError object
+        if (iframeWin !== null) {
+            iframeWin.console.error(`${e.name}: ${e.message}`);
+        }
+        scrollToBottom();
+    }
+    if (!hasAnything("#console-logs")) {
+        consoleLogsEmpty.classList.add("active");
+    } else {
+        consoleLogsEmpty.classList.remove("active");
+    }
 }
 
 function clearAll() {
-    // consoleLogsContainer.replaceChildren();
-    // animationDelay = -1;
-    // consoleLogsEmpty.classList.add("active");
+    brsEmu.terminate("EXIT_USER_NAV");
+    consoleLogsContainer.replaceChildren();
+    animationDelay = -1;
+    consoleLogsEmpty.classList.add("active");
 }
 
 function hotKeys(e: any) {
@@ -137,6 +214,10 @@ function onMouseMove(e: any) {
 }
 
 function onMouseUp() {
+    if (isResizing) {
+        const rightRect = rightContainer.getBoundingClientRect();
+        brsEmu.redraw(false, rightRect.width, Math.trunc(rightRect.height / 2) - 10, window.devicePixelRatio);
+    }
     isResizing = false;
 }
 
