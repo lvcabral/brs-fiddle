@@ -29,7 +29,7 @@
     "app/lib/brsEmu.worker.js"
   ],
   "dependencies": {
-    "brs-emu": "^0.10.8-dev",
+    "brs-emu": "^0.10.11-dev",
     "codemirror": "^5.65.12",
     "toastify-js": "^1.12.0"
   },
