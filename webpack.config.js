@@ -2,10 +2,9 @@ const path = require("path");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = env => {
-    const isProduction = env.NODE_ENV === "production";
     let outputLib, mode, distPath;
     let libraryName = "brsFiddle";
-    if (isProduction) {
+    if (env.production) {
         mode = "production";
         outputLib = libraryName + ".min.js";
         distPath = "app/lib"
@@ -23,10 +22,11 @@ module.exports = env => {
                 "brs-emu": "brsEmu"
             },
             plugins: [
-                new CopyWebpackPlugin([
+                new CopyWebpackPlugin({patterns: [
                     { context: "node_modules/brs-emu/app/lib", from: "**" },
+                    { context: "node_modules/brs-emu/app/", from: "audio/**", to: ".." },
                     { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
-                ])
+                ]})
             ],
             module: {
                 rules: [

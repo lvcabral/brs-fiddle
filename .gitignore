@@ -1,5 +1,6 @@
 .vscode/
 app/lib/
+app/audio/
 app/fonts/
 types/
 node_modules/
