@@ -12,7 +12,7 @@ class WasmHandler(SimpleHTTPRequestHandler):
         SimpleHTTPRequestHandler.end_headers(self)
 
 if __name__ == '__main__':
-    PORT = 6502
+    PORT = 6510
     with socketserver.TCPServer(("", PORT), WasmHandler) as httpd:
         print("Listening on port {}. Press Ctrl+C to stop.".format(PORT))
         httpd.serve_forever()

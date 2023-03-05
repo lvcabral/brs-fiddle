@@ -98,7 +98,10 @@ function main() {
 
     // Initialize Device Emulator
     if (displayCanvas) {
-        brsEmu.initialize({ lowResolutionCanvas: false }, { debugToConsole: false, disableKeys: false });
+        const customKeys = new Map();
+        customKeys.set("Control+KeyC", "ignore");
+        customKeys.set("Control+Pause", "break");
+        brsEmu.initialize({}, { debugToConsole: false, customKeys: customKeys });
         // Subscribe to Events (optional)
         brsEmu.subscribe("brsFiddle", (event: any, data: any) => {
             if (event === "loaded") {
@@ -116,7 +119,7 @@ function main() {
             if (event === "debug" && iframeWin !== null) {
                 if (data.level === "error") {
                     iframeWin.console.error(data.content);
-                } else {
+                } else if (data.level !== "beacon") {
                     iframeWin.console.log(data.content);
                 }
                 scrollToBottom();
