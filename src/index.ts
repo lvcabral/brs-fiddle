@@ -5,8 +5,8 @@
  *
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
-import Toastify from "toastify-js";
 import * as brsEmu from "brs-emu";
+import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
 import { getOS } from "./util";
 import { CodeMirrorManager } from "./codemirror"
@@ -87,10 +87,10 @@ function main() {
         // Subscribe to Emulator Events
         brsEmu.subscribe("brsFiddle", (event: any, data: any) => {
             if (event === "loaded") {
-                console.info(`Source code loaded: ${data.id}`);
-            } else if (event === "started") {
-                console.info(`Source code executing: ${data.id}`);
+                terminal.output(`<br />Starting Emulator...<br /><br />`);
                 terminal.idle();
+            } else if (event === "started") {
+                console.info(`Started ${data.id}`);
             } else if (event === "debug") {
                 if (data.level === "stop") {
                     terminal.output("<br />");
@@ -104,6 +104,8 @@ function main() {
                         if (output.slice(-promptLen) === `${prompt}> `) {
                             output = output.slice(0, output.length - promptLen);
                         }
+                    } else if (data.level === "warning") {
+                        output = "<span style='color: #d7ba7d;'>" + output + "</span>";
                     } else if (data.level === "error") {
                         output = "<span style='color: #e95449;'>" + output + "</span>";
                     }
