@@ -15,7 +15,7 @@ export class CodeMirrorManager {
         theme: "vscode-dark",
         lineNumbers: true,
         indentUnit: 4,
-        indentWithTabs: false,
+        indentWithTabs: true,
         matchBrackets: true,
         autoCloseBrackets: true,
         mode: 'brightscript',

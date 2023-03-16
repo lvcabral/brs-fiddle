@@ -1,9 +1,5 @@
 
 
-export function hasAnything(selector: any) {
-  return document.querySelector(selector).innerHTML.trim().length > 0;
-}
-
 export const getOS = () => {
     const userAgent = window.navigator.userAgent;
     const platform = window.navigator.platform;

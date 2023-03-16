@@ -7,13 +7,14 @@
  *--------------------------------------------------------------------------------------------*/
 import Toastify from "toastify-js";
 import * as brsEmu from "brs-emu";
-import { getOS, hasAnything } from "./util";
+import VanillaTerminal from "vanilla-terminal";
+import { getOS } from "./util";
 import { CodeMirrorManager } from "./codemirror"
 
 const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
-const runButtonEmpty = document.querySelector("button.run-empty") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
+const breakButton = document.querySelector("button.break") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
 const layoutContainer = document.querySelector("main.editor");
 const layoutSeparator = document.querySelector("div.layout-separator") as HTMLDivElement;
@@ -21,59 +22,31 @@ const codeColumn = document.querySelector("div.code") as HTMLDivElement;
 const consoleColumn = document.querySelector("div.console") as HTMLDivElement;
 const rightContainer = document.getElementById("right-container") as HTMLDivElement;
 const displayCanvas = document.getElementById("display") as HTMLCanvasElement;
+const prompt = "Brightscript Debugger";
+const commands = {
+    help: (terminal: any) => {
+        brsEmu.debug("help");
+    },
+    version: (terminal: any) => {
+        terminal.output(`<br />Brightscript Emulator v${brsEmu.getVersion()}<br />`);
+    }
+}
+const terminal = new VanillaTerminal({ 
+    welcome: "Brightscript Emulator Terminal",
+    container: "console-logs", 
+    commands: commands,
+    prompt: prompt 
+});
+terminal.idle();
 
 runButton.addEventListener("click", showPreview);
-runButtonEmpty.addEventListener("click", showPreview);
 clearAllButton.addEventListener("click", clearAll);
+breakButton.addEventListener("click", startDebug);
+
 shareButton.addEventListener("click", share);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 
-let iframe = document.getElementById("output-iframe") as HTMLIFrameElement;
-let iframeWin = iframe.contentWindow;
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
-let consoleLogsEmpty = document.getElementById("console-logs-empty") as HTMLDivElement;
-let panel = parent.document.getElementById("console-logs") as HTMLDivElement;
-
-let animationDelay = -1;
-
-if (iframeWin) {
-    iframeWin.console = {
-        panel: panel,
-        log: function (...m: any[]) {
-            let tempId = Math.floor(Math.random() * 10000);
-            let pre = parent.document.createElement("pre");
-            let toggleSwitch = parent.document.createElement("input");
-            let toggleSwitchLabel = parent.document.createElement("label");
-            let logsWrapper = parent.document.createElement("div");
-            animationDelay += 1;
-            pre.setAttribute("class", "console-line-item");
-            pre.style.setProperty("--animation-order", animationDelay.toString());
-            logsWrapper.setAttribute("class", "console-line-item-content");
-            pre.appendChild(toggleSwitch);
-            pre.appendChild(toggleSwitchLabel);
-            pre.appendChild(logsWrapper);
-            toggleSwitch.setAttribute("type", "checkbox");
-            toggleSwitch.setAttribute("id", tempId.toString());
-            toggleSwitch.setAttribute("class", "console-line-item-switch");
-            toggleSwitchLabel.setAttribute("for", tempId.toString());
-            m.forEach((mItem) => {
-                var newSpan = document.createElement("span");
-                newSpan.setAttribute("class", typeof mItem);
-                newSpan.textContent +=
-                    typeof mItem === "object" ? JSON.stringify(mItem, null, 1) : mItem;
-                logsWrapper.appendChild(newSpan);
-            });
-            pre.appendChild(logsWrapper);
-            this.panel.append(pre);
-        },
-        error: function (m: any) {
-            let pre = parent.document.createElement("pre");
-            pre.setAttribute("class", "console-line-item error");
-            pre.textContent = typeof m === "object" ? JSON.stringify(m, null, 2) : m;
-            this.panel.append(pre);
-        },
-    };   
-}
 
 let isResizing = false;
 let editorManager: CodeMirrorManager;
@@ -88,58 +61,84 @@ function main() {
         clearAllButton.getElementsByTagName("span")[0].innerText =
             OS === "MacOS" ? "CMD+L" : "CTRL+L";
     }
+    if (breakButton) {
+        breakButton.getElementsByTagName("span")[0].innerText =
+            OS === "MacOS" ? "CTRL+C" : "CTRL+BREAK";
+    }
     // Initialize the manager
     if (brsCodeField) {
         editorManager = new CodeMirrorManager(brsCodeField);
-    }   
+    }
     // initializeHeader();
     const { height } = codeColumn.getBoundingClientRect();
-    editorManager.editor.setSize("100%", `${height - 60}px`);
+    editorManager.editor.setSize("100%", `${height - 40}px`);
 
     // Initialize Device Emulator
     if (displayCanvas) {
         const customKeys = new Map();
+        customKeys.set("Backspace", "ignore");
+        customKeys.set("Delete", "ignore");
+        customKeys.set("Control+KeyA", "ignore");
+        customKeys.set("Control+KeyZ", "ignore");
         customKeys.set("Control+KeyC", "ignore");
         customKeys.set("Control+Pause", "break");
         brsEmu.initialize({}, { debugToConsole: false, customKeys: customKeys });
-        // Subscribe to Events (optional)
+
+        // Subscribe to Emulator Events
         brsEmu.subscribe("brsFiddle", (event: any, data: any) => {
             if (event === "loaded") {
                 console.info(`Source code loaded: ${data.id}`);
             } else if (event === "started") {
                 console.info(`Source code executing: ${data.id}`);
-            } else if (event === "closed" || event === "error") {
-                console.info(`Execution terminated! ${event}: ${data}`);
-            }
-        });
-        const rightRect = rightContainer.getBoundingClientRect();
-        brsEmu.redraw(false, rightRect.width, Math.trunc(rightRect.height / 2), window.devicePixelRatio);
-        // Subscribe to Emulator Events
-        brsEmu.subscribe("app", (event, data) => {
-            if (event === "debug" && iframeWin !== null) {
-                if (data.level === "error") {
-                    iframeWin.console.error(data.content);
+                terminal.idle();
+            } else if (event === "debug") {
+                if (data.level === "stop") {
+                    terminal.output("<br />");
+                    terminal.setPrompt();
+                } else if (data.level === "continue") {
+                    terminal.idle();
                 } else if (data.level !== "beacon") {
-                    iframeWin.console.log(data.content);
+                    let output = data.content.replace("<", '&lt;');
+                    if (data.level === "print") {
+                        const promptLen = `${prompt}> `.length;
+                        if (output.slice(-promptLen) === `${prompt}> `) {
+                            output = output.slice(0, output.length - promptLen);
+                        }
+                    } else if (data.level === "error") {
+                        output = "<span style='color: #e95449;'>" + output + "</span>";
+                    }
+                    terminal.output(`<pre>${output}</pre>`);
                 }
                 scrollToBottom();
-                if (!hasAnything("#console-logs")) {
-                    consoleLogsEmpty.classList.add("active");
-                } else {
-                    consoleLogsEmpty.classList.remove("active");
-                }
+            } else if (event === "closed" || event === "error") {
+                console.info(`Execution terminated! ${event}: ${data}`);
+                terminal.idle();
             }
-        });    
+        });
+
+        // Resize the display canvas
+        const rightRect = rightContainer.getBoundingClientRect();
+        brsEmu.redraw(false, rightRect.width, Math.trunc(rightRect.height / 2), window.devicePixelRatio);
+
+        // Handle console commands
+        terminal.onInput((command: string, parameters: string[], handled: boolean) => {
+            if (!handled) {
+                brsEmu.debug(`${command} ${parameters.join(" ")}`);
+            }
+        });
     }
 }
 
 function scrollToBottom() {
-    const scrollHeight = consoleLogsContainer.scrollHeight;
-    consoleLogsContainer.scrollTo({
-        top: scrollHeight,
-        left: 0,
-        behavior: "smooth",
-    });
+    if (consoleLogsContainer.children.length) {
+        const console = consoleLogsContainer.children[0];
+        const scrollHeight = console.scrollHeight;
+        console.scrollTo({
+            top: scrollHeight,
+            left: 0,
+            behavior: "smooth",
+        });
+    }
 }
 
 function share() {
@@ -160,23 +159,17 @@ function showPreview() {
         brsEmu.execute("main.brs", editorManager.editor.getValue(), false);
     } catch (e: any) {
         console.log(e); // Check EvalError object
-        if (iframeWin !== null) {
-            iframeWin.console.error(`${e.name}: ${e.message}`);
-        }
+        terminal.output(`${e.name}: ${e.message}`);
         scrollToBottom();
-    }
-    if (!hasAnything("#console-logs")) {
-        consoleLogsEmpty.classList.add("active");
-    } else {
-        consoleLogsEmpty.classList.remove("active");
     }
 }
 
-function clearAll() {
-    brsEmu.terminate("EXIT_USER_NAV");
-    consoleLogsContainer.replaceChildren();
-    animationDelay = -1;
-    consoleLogsEmpty.classList.add("active");
+function startDebug() {
+    brsEmu.debug("break");
+}
+
+function clearAll() {    
+    terminal.clear();
 }
 
 function hotKeys(e: any) {
@@ -228,3 +221,4 @@ window.addEventListener("load", main, false);
 window.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
+

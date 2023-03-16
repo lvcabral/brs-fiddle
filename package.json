@@ -29,9 +29,10 @@
     "app/lib/brsEmu.worker.js"
   ],
   "dependencies": {
-    "brs-emu": "^0.10.14-dev",
+    "brs-emu": "^0.10.19-dev",
     "codemirror": "^5.65.12",
-    "toastify-js": "^1.12.0"
+    "toastify-js": "^1.12.0",
+    "vanilla-terminal": "lvcabral/vanilla-terminal"
   },
   "devDependencies": {
     "@types/codemirror": "^5.60.7",

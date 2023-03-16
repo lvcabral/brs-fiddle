@@ -130,7 +130,7 @@ i {
     text-decoration: none;
     color: #999;
   }
-  button, input, select {
+  button, select {
     font-family: inherit;
     font-size: inherit;
     height: 44px;
@@ -243,7 +243,7 @@ i {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 9px 15px;
+    padding: 5px 10px 5px 10px;
   }
   .header .brand img {
     width: 98px;
@@ -302,9 +302,6 @@ i {
     color: #999;
     border: none;
     margin-bottom: 4px;
-  }
-  .main-container {
-    height: calc(100vh - 40px);
   }
   /* Form Controls */
   .form-group {

@@ -6,10 +6,11 @@
     max-height: -webkit-fill-available;
     /* Mozilla-based browsers will ignore this. */
     max-height: fill-available;
+    background: #222222;
   }
   .console {
     width: 100%;
-    background: #f7f7f7;
+    background: #222222;
   }
   .console .console-header {
     background: #333;
@@ -49,7 +50,7 @@
   }
   .emulator-display {
     width: 100%;
-    background: #f7f7f7;
+    background: #222222;
   }
   .emulator-display .display-header {
     width: 100%;
@@ -67,6 +68,29 @@
   .emulator-display .display-header h4 {
     color: #999;
   }
+
+  .emulator-display .display-header button {
+    padding: 0 8px;
+    height: 24px;
+    vertical-align: middle;
+    border: none;
+    color: white;
+    background: #449DFF;
+  }
+  .emulator-display .display-header button i {
+    font-size: 18px;
+    vertical-align: text-bottom;
+  }
+  .emulator-display .display-header button span {
+    font-size: 14px;
+  }
+  #right-container {
+    background: #222222;
+    display: flex; 
+    flex: 1 1 0%; 
+    flex-direction: column;
+    height: calc(100vh - 55px);
+  }
   #display {
     height: 480px;
     background-color: black;
@@ -74,9 +98,10 @@
     z-index: 20;
   }
   .code {
-    background: #193549;
-    height: calc(100vh - 40px);
+    background: #222222;
+    height: calc(100vh - 55px);
     width: 60%;
+    color-scheme: dark;
   }
   .code .code-header {
     background: #333;
@@ -110,6 +135,9 @@
     align-items: center;
     color: #999;
   }
+  .code .code-header h4 {
+    color: #999;
+  }
   .code .code-header .project-link span {
     margin: 0 4px;
     color: #ddd;
@@ -126,7 +154,7 @@
   }
   .code #brsCode {
     display: block;
-    height: calc(100vh - 76px);
+    height: 100%;
     width: 100%;
     border: none;
     background: #444;
@@ -138,16 +166,6 @@
     outline: none;
     box-shadow: none;
   }
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translate3d(0, -10px, 0);
-    }
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-  }
   .editor {
     display: flex;
     width: 100%;
@@ -156,80 +174,10 @@
     height: 45%;
   }
   .editor .console #console-logs {
-    overflow: auto;
-    height: 85%;
-  }
-  .editor .console #console-logs-empty {
-    overflow: auto;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0 32px;
-    display: flex;
-    visibility: hidden;
-    height: 0;
-    opacity: 0;
-    transition: opacity 300ms ease-in;
-  }
-  .editor .console #console-logs-empty p {
-    color: #999;
-    margin-bottom: 16px;
-  }
-  .editor .console #console-logs-empty button {
-    color: white;
-    background: #449DFF;
-    padding: 0px 8px;
-    height: 28px;
-    border: none;
-  }
-  .editor .console #console-logs-empty.active {
-    visibility: visible;
-    height: 100%;
-    opacity: 1;
-  }
-  .editor .console .console-line-item {
-    padding: 4px 8px 4px 44px;
+    color-scheme: dark;
     font-size: 12px;
-    border-bottom: 1px solid #ddd;
-    animation-name: fadeInDown;
-    animation-duration: 150ms;
-    animation-fill-mode: both;
-    animation-timing-function: ease-in-out;
-    animation-delay: calc(var(--animation-order) * 1ms);
-    white-space: pre-wrap;
-    line-height: 14px;
-  }
-  .editor .console .console-line-item:before {
-    display: inline-block;
-    counter-increment: consoleLogCounter;
-    content: counter(consoleLogCounter);
-    background: #ecead7;
-    color: #666;
-    width: 20px;
-    text-align: center;
-    height: 16px;
-    line-height: 16px;
-    border-radius: 4px;
-    margin-right: 12px;
-    font-size: 10px;
-    position: absolute;
-    left: 6px;
-  }
-  .editor .console .console-line-item span {
-    margin: 0 4px;
-  }
-  .editor .console .console-line-item span.object {
-    color: #34495e;
-  }
-  .editor .console .console-line-item span.string {
-    color: #6a5b7c;
-  }
-  .editor .console .console-line-item span.number {
-    color: #2980b9;
-  }
-  .editor .console .console-line-item.error {
-    color: #ce2417;
-    background: #e8a1a145;
+    overflow: auto;
+    height: 92%;
   }
   @media (max-width: 480px) {
     .editor {
@@ -244,39 +192,6 @@
     .editor .console {
       height: 40%;
     }
-  }
-  .console-line-item-switch {
-    display: none;
-    height: 0;
-    width: 0;
-  }
-  .console-line-item-switch + label:before {
-    position: absolute;
-    content: "";
-    width: 0;
-    height: 0;
-    top: 10px;
-    left: 32px;
-    cursor: pointer;
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-    border-left: 4px solid #999;
-  }
-  .console-line-item-switch + label + .console-line-item-content {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .console-line-item-switch:checked + label:before {
-    top: 13px;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 4px solid #333;
-  }
-  .console-line-item-switch:checked + label + .console-line-item-content {
-    white-space: initial;
-    overflow: initial;
-    text-overflow: initial;
   }
   .layout-separator {
     width: 3px;

@@ -21,7 +21,7 @@
   <meta property="twitter:title" content="brsFiddle - Brigtscript Code Playground" />
   <meta property="twitter:description" content="Simple Code Editor for playing with Brigtscript language." />
   <meta property="twitter:image" content="https://lvcabral.com/brs/images/icon.png" />
-  <link rel="icon" href="../favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="./favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/index.css" />
   <link rel="stylesheet" href="css/codemirror.css" />
@@ -50,9 +50,7 @@
     <div class="code">
       <div class="code-header">
         <div>
-          <div class="project-link">
-            <span>Source Code</span>
-          </div>
+          <h4>Source Code</h4>
         </div>
         <div>
           <button title="Run" class="run">
@@ -66,7 +64,21 @@
       </div>
     </div>
     <div class="layout-separator"></div>
-    <div id="right-container" style="display: flex; flex: 1 1 0%; flex-direction: column">
+    <div id="right-container">
+      <div class="emulator-display">
+        <div class="display-header">
+          <div>
+            <h4>Display</h4>
+          </div>
+          <div>
+            <button title="Break" class="break">
+              <i class="jsc-icon-cancel"></i>
+              <span></span>
+            </button>
+          </div> 
+        </div>
+        <canvas id="display"></canvas>
+      </div>
       <div class="console">
         <div class="console-header">
           <div>
@@ -79,23 +91,7 @@
             </button>
           </div>
         </div>
-        <div id="console-logs-empty" class="active">
-          <div>
-            <p>Hey, please click the run button to view logs here</p>
-            <button title="Run" class="run-empty">Run and View logs</button>
-          </div>
-        </div>
-        <div id="console-logs">
-          <iframe id="output-iframe"></iframe>
-        </div>
-      </div>
-      <div class="emulator-display">
-        <div class="display-header">
-          <div>
-            <h4>Display</h4>
-          </div>
-        </div>
-        <canvas id="display"></canvas>
+        <div id="console-logs" class="active"></div>
       </div>
     </div>
   </main>

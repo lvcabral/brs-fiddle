@@ -4,7 +4,7 @@
 import { StringStream } from "codemirror";
 
 /*
-BrightScript Language
+BrightScript Language Mode
 
 https://developer.roku.com/en-gb/docs/references/brightscript/language/brightscript-language-reference.md
 
@@ -20,66 +20,47 @@ export function defineMode(CodeMirror: any) {
         }
 
         var singleOperators = new RegExp("^[\\+\\-\\*/&\\\\\\^<>=]");
-        var doubleOperators = new RegExp("^((<>)|(<=)|(>=))");
-        var singleDelimiters = new RegExp('^[\\.,]');
-        var brackets = new RegExp('^[\\(\\)]');
+        var doubleOperators = new RegExp("^((<>)|(<=)|(>=)|(<<)|(>>))");
+        var singleDelimiters = new RegExp('^[\\.,:]');
+        var brackets = new RegExp('^[\\(\\)\\[\\]\\{\\}]');
         var identifiers = new RegExp("^[A-Za-z][_A-Za-z0-9]*");
 
-        var openingKeywords = ['sub', 'while', 'if', 'function', 'property', 'with', 'for'];
-        var middleKeywords = ['else', 'elseif'];
-        var endKeywords = ['next', 'endif', 'endfor', 'endwhile'];
+        var openingKeywords = ['sub', 'function'];
+        var endKeywords = ['endsub', 'endfunction'];
+
+        var openingControl = ['while', 'if', 'for'];
+        var middleControl = ['else', 'elseif', 'to', 'step', 'in', 'then', 'each', 'as', 'return', 'exit', 'stop'];
+        var endControl = ['next', 'endif', 'endfor', 'endwhile'];
 
         var wordOperators = wordRegexp(['and', 'or', 'not', 'mod']);
-        var commonkeywords = ['dim', 'redim', 'then', 'until', 'randomize',
-            'byval', 'byref', 'new', 'property', 'exit', 'in',
-            'const', 'private', 'public',
-            'get', 'set', 'let', 'stop', 'on error resume next', 'on error goto 0', 'option explicit', 'call', 'me'];
+        var commonkeywords = ['dim', 'print'];
+
+        var commontypes = ['object', 'dynamic', 'boolean', 'string', 'integer', 'longinteger', 'double', 'float', 'void'];
 
         //This list was from: http://msdn.microsoft.com/en-us/library/f8tbc79x(v=vs.84).aspx
-        var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
+        var atomWords = ['true', 'false', 'invalid'];
         //This list was from: http://msdn.microsoft.com/en-us/library/3ca8tfek(v=vs.84).aspx
         var builtinFuncsWords = ['abs', 'array', 'asc', 'atn', 'cbool', 'cbyte', 'ccur', 'cdate', 'cdbl', 'chr', 'cint', 'clng', 'cos', 'csng', 'cstr', 'date', 'dateadd', 'datediff', 'datepart',
             'dateserial', 'datevalue', 'day', 'escape', 'eval', 'execute', 'exp', 'filter', 'formatcurrency', 'formatdatetime', 'formatnumber', 'formatpercent', 'getlocale', 'getobject',
             'getref', 'hex', 'hour', 'inputbox', 'instr', 'instrrev', 'int', 'fix', 'isarray', 'isdate', 'isempty', 'isnull', 'isnumeric', 'isobject', 'join', 'lbound', 'lcase', 'left',
             'len', 'loadpicture', 'log', 'ltrim', 'rtrim', 'trim', 'maths', 'mid', 'minute', 'month', 'monthname', 'msgbox', 'now', 'oct', 'replace', 'rgb', 'right', 'rnd', 'round',
-            'scriptengine', 'scriptenginebuildversion', 'scriptenginemajorversion', 'scriptengineminorversion', 'second', 'setlocale', 'sgn', 'sin', 'space', 'split', 'sqr', 'strcomp',
+            'sleep', 'rebootsystem', 'scriptenginemajorversion', 'scriptengineminorversion', 'second', 'setlocale', 'sgn', 'sin', 'space', 'split', 'sqr', 'strcomp',
             'string', 'strreverse', 'tan', 'time', 'timer', 'timeserial', 'timevalue', 'typename', 'ubound', 'ucase', 'unescape', 'vartype', 'weekday', 'weekdayname', 'year'];
 
         //This list was from: http://msdn.microsoft.com/en-us/library/ydz4cfk3(v=vs.84).aspx
-        var builtinConsts = ['vbBlack', 'vbRed', 'vbGreen', 'vbYellow', 'vbBlue', 'vbMagenta', 'vbCyan', 'vbWhite', 'vbBinaryCompare', 'vbTextCompare',
-            'vbSunday', 'vbMonday', 'vbTuesday', 'vbWednesday', 'vbThursday', 'vbFriday', 'vbSaturday', 'vbUseSystemDayOfWeek', 'vbFirstJan1', 'vbFirstFourDays', 'vbFirstFullWeek',
-            'vbGeneralDate', 'vbLongDate', 'vbShortDate', 'vbLongTime', 'vbShortTime', 'vbObjectError',
-            'vbOKOnly', 'vbOKCancel', 'vbAbortRetryIgnore', 'vbYesNoCancel', 'vbYesNo', 'vbRetryCancel', 'vbCritical', 'vbQuestion', 'vbExclamation', 'vbInformation', 'vbDefaultButton1', 'vbDefaultButton2',
-            'vbDefaultButton3', 'vbDefaultButton4', 'vbApplicationModal', 'vbSystemModal', 'vbOK', 'vbCancel', 'vbAbort', 'vbRetry', 'vbIgnore', 'vbYes', 'vbNo',
-            'vbCr', 'VbCrLf', 'vbFormFeed', 'vbLf', 'vbNewLine', 'vbNullChar', 'vbNullString', 'vbTab', 'vbVerticalTab', 'vbUseDefault', 'vbTrue', 'vbFalse',
-            'vbEmpty', 'vbNull', 'vbInteger', 'vbLong', 'vbSingle', 'vbDouble', 'vbCurrency', 'vbDate', 'vbString', 'vbObject', 'vbError', 'vbBoolean', 'vbVariant', 'vbDataObject', 'vbDecimal', 'vbByte', 'vbArray'];
+        var builtinConsts = ['vbEmpty', 'vbNull', 'vbInteger', 'vbLong', 'vbSingle', 'vbDouble', 'vbCurrency', 'vbDate', 'vbString', 'vbObject', 'vbError', 
+        'vbBoolean', 'vbVariant', 'vbDataObject', 'vbDecimal', 'vbByte', 'vbArray'];
         //This list was from: http://msdn.microsoft.com/en-us/library/hkc375ea(v=vs.84).aspx
         var builtinObjsWords = ['WScript', 'err', 'debug', 'RegExp'];
         var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'source', 'value', 'count'];
-        var knownMethods = ['clear', 'execute', 'raise', 'replace', 'test', 'write', 'writeline', 'close', 'open', 'state', 'eof', 'update', 'addnew', 'end', 'createobject', 'quit'];
-
-        var aspBuiltinObjsWords = ['server', 'response', 'request', 'session', 'application'];
-        var aspKnownProperties = ['buffer', 'cachecontrol', 'charset', 'contenttype', 'expires', 'expiresabsolute', 'isclientconnected', 'pics', 'status', //response
-            'clientcertificate', 'cookies', 'form', 'querystring', 'servervariables', 'totalbytes', //request
-            'contents', 'staticobjects', //application
-            'codepage', 'lcid', 'sessionid', 'timeout', //session
-            'scripttimeout']; //server
-        var aspKnownMethods = ['addheader', 'appendtolog', 'binarywrite', 'end', 'flush', 'redirect', //response
-            'binaryread', //request
-            'remove', 'removeall', 'lock', 'unlock', //application
-            'abandon', //session
-            'getlasterror', 'htmlencode', 'mappath', 'transfer', 'urlencode']; //server
+        var knownMethods = ['clear', 'execute', 'raise', 'push', 'replace', 'test', 'write', 'writeline', 'close', 'open', 'state', 'eof', 'update', 'addnew', 'end', 'createobject', 'quit'];
 
         var knownWords = knownMethods.concat(knownProperties);
 
         builtinObjsWords = builtinObjsWords.concat(builtinConsts);
 
-        if (conf.isASP) {
-            builtinObjsWords = builtinObjsWords.concat(aspBuiltinObjsWords);
-            knownWords = knownWords.concat(aspKnownMethods, aspKnownProperties);
-        };
-
         var keywords = wordRegexp(commonkeywords);
+        var types = wordRegexp(commontypes);
         var atoms = wordRegexp(atomWords);
         var builtinFuncs = wordRegexp(builtinFuncsWords);
         var builtinObjs = wordRegexp(builtinObjsWords);
@@ -87,8 +68,10 @@ export function defineMode(CodeMirror: any) {
         var stringPrefixes = '"';
 
         var opening = wordRegexp(openingKeywords);
-        var middle = wordRegexp(middleKeywords);
         var closing = wordRegexp(endKeywords);
+        var openingCtrl = wordRegexp(openingControl);
+        var middleCtrl = wordRegexp(middleControl);
+        var closingCtrl = wordRegexp(endControl);
         var doubleClosing = wordRegexp(['end']);
         var doOpening = wordRegexp(['do']);
         var noIndentWords = wordRegexp(['on error resume next', 'exit']);
@@ -105,11 +88,9 @@ export function defineMode(CodeMirror: any) {
         function tokenBase(stream: StringStream, state: any) {
             if (stream.eatSpace()) {
                 return 'space';
-                //return null;
             }
 
             var ch = stream.peek();
-
             // Handle Comments
             if (ch === "'") {
                 stream.skipToEnd();
@@ -119,7 +100,6 @@ export function defineMode(CodeMirror: any) {
                 stream.skipToEnd();
                 return 'comment';
             }
-
 
             // Handle Number Literals
             if (stream.match(/^((&H)|(&O))?[0-9\.]/i, false) && !stream.match(/^((&H)|(&O))?[0-9\.]+[a-z_]/i, false)) {
@@ -196,17 +176,34 @@ export function defineMode(CodeMirror: any) {
 
                 return 'keyword';
             }
-            if (stream.match(middle)) {
-                return 'keyword';
-            }
 
+            if (stream.match(openingCtrl)) {
+                if (!state.doInCurrentLine)
+                    indent(stream, state);
+                else
+                    state.doInCurrentLine = false;
+
+                return 'control';
+            }
+            
+            if (stream.match(middleCtrl)) {
+                return 'control';
+            }
 
             if (stream.match(doubleClosing)) {
+                if (stream.peek() === ' ') {
+                    stream.eatSpace();
+                }
+                let style = 'keyword';
+                let result = stream.match(openingCtrl, false);
+                if (result) {
+                    style = 'control';
+                }
                 dedent(stream, state);
                 dedent(stream, state);
-
-                return 'keyword';
+                return style;
             }
+
             if (stream.match(closing)) {
                 if (!state.doInCurrentLine)
                     dedent(stream, state);
@@ -216,6 +213,19 @@ export function defineMode(CodeMirror: any) {
                 return 'keyword';
             }
 
+            if (stream.match(closingCtrl)) {
+                if (!state.doInCurrentLine)
+                    dedent(stream, state);
+                else
+                    state.doInCurrentLine = false;
+
+                return 'control';
+            }
+
+            if (stream.match(types)) {
+                return 'type';
+            }
+    
             if (stream.match(keywords)) {
                 return 'keyword';
             }
@@ -280,7 +290,7 @@ export function defineMode(CodeMirror: any) {
                 style = state.tokenize(stream, state);
 
                 current = stream.current();
-                if (style && (style.substr(0, 8) === 'variable' || style === 'builtin' || style === 'keyword')) {//|| knownWords.indexOf(current.substring(1)) > -1) {
+                if (style && (style.substr(0, 8) === 'variable' || style === 'builtin' || style === 'keyword') || knownWords.indexOf(current.substring(1)) > -1) {
                     if (style === 'builtin' || style === 'keyword') style = 'variable';
                     if (knownWords.indexOf(current.substr(1)) > -1) style = 'variable-2';
 
@@ -325,7 +335,7 @@ export function defineMode(CodeMirror: any) {
 
             indent: function (state: any, textAfter: string) {
                 var trueText = textAfter.replace(/^\s+|\s+$/g, '');
-                if (trueText.match(closing) || trueText.match(doubleClosing) || trueText.match(middle)) return conf.indentUnit * (state.currentIndent - 1);
+                if (trueText.match(closing) || trueText.match(doubleClosing) || trueText.match(middleCtrl)) return conf.indentUnit * (state.currentIndent - 1);
                 if (state.currentIndent < 0) return 0;
                 return state.currentIndent * conf.indentUnit;
             },
@@ -336,6 +346,6 @@ export function defineMode(CodeMirror: any) {
         return external;
     });
 
-    CodeMirror.defineMIME("text/brightscript", "brightscript");
+    CodeMirror.defineMIME("text/brs", "brightscript");
 
 };
