@@ -32,7 +32,7 @@ const commands = {
     }
 }
 const terminal = new VanillaTerminal({ 
-    welcome: "Brightscript Emulator Terminal",
+    welcome: "<span style='color: #2e71ff'>Brightscript Emulator Console</span>",
     container: "console-logs", 
     commands: commands,
     prompt: prompt 
