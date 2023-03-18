@@ -203,7 +203,12 @@ function saveCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         localStorage.setItem(currentId, code);
-        window.location.href = `${getBaseUrl()}/?id=${currentId}&saved=1`;
+        if  (window.location.search === "") {
+            window.location.href = `${getBaseUrl()}/?id=${currentId}&saved=1`;
+        } else {
+            showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
+        }
+        
     } else {
         showToast("There is no Source Code to save", 3000, true);
     }

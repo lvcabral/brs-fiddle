@@ -3156,7 +3156,7 @@ validate-npm-package-license@^3.0.1:
 
 vanilla-terminal@lvcabral/vanilla-terminal:
   version "0.0.12"
-  resolved "https://codeload.github.com/lvcabral/vanilla-terminal/tar.gz/4aaa32b95a426e25bb63d0f9eb5948446f533003"
+  resolved "https://codeload.github.com/lvcabral/vanilla-terminal/tar.gz/2a0ceb44d0e01abd34f2149b79fab1bc12955ed8"
 
 watchpack@^2.4.0:
   version "2.4.0"
