@@ -1,5 +1,3 @@
-
-
 export const getOS = () => {
     const userAgent = window.navigator.userAgent;
     const platform = window.navigator.platform;
@@ -8,27 +6,26 @@ export const getOS = () => {
     const iosPlatforms = ["iPhone", "iPad", "iPod"];
     let os = null;
     if (macosPlatforms.indexOf(platform) !== -1) {
-      os = "MacOS";
+        os = "MacOS";
     } else if (iosPlatforms.indexOf(platform) !== -1) {
-      os = "iOS";
+        os = "iOS";
     } else if (windowsPlatforms.indexOf(platform) !== -1) {
-      os = "Windows";
+        os = "Windows";
     } else if (/Android/.test(userAgent)) {
-      os = "Android";
+        os = "Android";
     } else if (!os && /Linux/.test(platform)) {
-      os = "Linux";
+        os = "Linux";
     }
     return os;
-  };
-  export interface console {
-    panel: HTMLDivElement,
-    log: Function,
-    error: Function
-  }
+};
+export interface console {
+    panel: HTMLDivElement;
+    log: Function;
+    error: Function;
+}
 
-  declare global {
+declare global {
     interface Window {
         console: console;
     }
-  }
-  
+}

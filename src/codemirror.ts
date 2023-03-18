@@ -1,4 +1,4 @@
-import * as CodeMirror from 'codemirror';
+import * as CodeMirror from "codemirror";
 // import 'codemirror/lib/codemirror.css';
 import "codemirror/addon/comment/comment.js";
 import "codemirror/addon/edit/closebrackets.js";
@@ -7,7 +7,6 @@ import { defineMode } from "./brightscript";
 // import 'styles/vscode-dark.css';
 
 export class CodeMirrorManager {
-
     public editor: CodeMirror.Editor;
 
     config: CodeMirror.EditorConfiguration = {
@@ -18,7 +17,7 @@ export class CodeMirrorManager {
         indentWithTabs: true,
         matchBrackets: true,
         autoCloseBrackets: true,
-        mode: 'brightscript',
+        mode: "brightscript",
     };
 
     // CTOR
@@ -30,6 +29,5 @@ export class CodeMirrorManager {
                 cm.toggleComment();
             },
         });
-
     }
 }
