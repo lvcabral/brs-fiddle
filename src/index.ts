@@ -45,16 +45,16 @@ const terminal = new VanillaTerminal({
 });
 terminal.idle();
 
+// Buttons Events
 saveButton.addEventListener("click", saveCode);
-runButton.addEventListener("click", showPreview);
+runButton.addEventListener("click", runCode);
 clearAllButton.addEventListener("click", clearAll);
 breakButton.addEventListener("click", startDebug);
-
-shareButton.addEventListener("click", share);
+shareButton.addEventListener("click", shareCode);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 
+let currentChannel = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
-
 let isResizing = false;
 let editorManager: CodeMirrorManager;
 let currentId = nanoid(10);
@@ -102,15 +102,7 @@ function main() {
             editorManager.editor.setValue(code);
             currentId = id;
             if (getParameterByName("saved")) {
-                Toastify({
-                    text: "Code saved in your local storage!\nTo share use the Share button.",
-                    duration: 5000,
-                    close: true,
-                    gravity: "bottom",
-                    position: "right",
-                    stopOnFocus: true,
-                    className: "toastify-success",
-                }).showToast();    
+                showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
             }
         }
     }
@@ -127,9 +119,11 @@ function main() {
         // Subscribe to Emulator Events
         brsEmu.subscribe("brsFiddle", (event: any, data: any) => {
             if (event === "loaded") {
+                currentChannel = data;
                 terminal.output(`<br />Starting Emulator...<br /><br />`);
                 terminal.idle();
             } else if (event === "started") {
+                currentChannel = data;
                 console.info(`Started ${data.id}`);
             } else if (event === "debug") {
                 if (data.level === "stop") {
@@ -153,6 +147,7 @@ function main() {
                 }
                 scrollToBottom();
             } else if (event === "closed" || event === "error") {
+                currentChannel = data;
                 console.info(`Execution terminated! ${event}: ${data}`);
                 terminal.idle();
             }
@@ -188,59 +183,69 @@ function scrollToBottom() {
     }
 }
 
-function share() {
-    const data = {
-        id: currentId,
-        code: editorManager.editor.getValue(),
+function shareCode() {
+    const code = editorManager.editor.getValue();
+    if (code && code.trim() !== "") {
+        const data = {
+            id: currentId,
+            code: editorManager.editor.getValue(),
+        }
+        getShareUrl(data).then(function (shareLink: string) {
+            navigator.clipboard.writeText(shareLink);
+            showToast("Share URL copied to clipboard");
+        });
+    } else {
+        showToast("There is no Source Code to share", 3000, true);
     }
-    getShareUrl(data).then(function (shareLink: string) {
-        navigator.clipboard.writeText(shareLink);
-        Toastify({
-            text: "Share URL copied to clipboard",
-            duration: 3000,
-            close: true,
-            gravity: "bottom",
-            position: "right",
-            stopOnFocus: true,
-            className: "toastify-success",
-        }).showToast();
-    });
 }
 
 function saveCode() {
-    localStorage.setItem(currentId, editorManager.editor.getValue());
-    window.location.href = `${getBaseUrl()}/?id=${currentId}&saved=1`;
+    const code = editorManager.editor.getValue();
+    if (code && code.trim() !== "") {
+        localStorage.setItem(currentId, code);
+        window.location.href = `${getBaseUrl()}/?id=${currentId}&saved=1`;
+    } else {
+        showToast("There is no Source Code to save", 3000, true);
+    }
 }
 
-function showPreview() {
-    try {
-        brsEmu.execute("main.brs", editorManager.editor.getValue(), false);
-    } catch (e: any) {
-        console.log(e); // Check EvalError object
-        terminal.output(`${e.name}: ${e.message}`);
-        scrollToBottom();
+function runCode() {
+    const code = editorManager.editor.getValue();
+    if (code && code.trim() !== "") {
+        try {
+            brsEmu.execute("main.brs", editorManager.editor.getValue(), false);
+        } catch (e: any) {
+            console.log(e); // Check EvalError object
+            terminal.output(`${e.name}: ${e.message}`);
+            scrollToBottom();
+        }
+    } else {
+        showToast("There is no Source Code to run", 3000, true);
     }
 }
 
 function startDebug() {
-    brsEmu.debug("break");
+    if (currentChannel.running) {
+        brsEmu.debug("break");
+    } else {
+        showToast("There is nothing running to debug", 3000, true);
+    }
 }
 
 function clearAll() {
     terminal.clear();
 }
 
-function hotKeys(e: any) {
-    let windowEvent = window ? window.event : e;
-    if (
-        (windowEvent.keyCode === 82 && windowEvent.metaKey) ||
-        (windowEvent.keyCode === 82 && windowEvent.ctrlKey)
-    ) {
-        e.preventDefault();
-        showPreview();
-    }
-    if (windowEvent.keyCode === 76 && windowEvent.metaKey) {
-        e.preventDefault();
+function hotKeys(event: KeyboardEvent) {
+    const isMacOS = getOS() === "MacOS";
+    if ((isMacOS && event.code === "KeyR" && event.metaKey) || (event.code === "KeyR" && event.ctrlKey)) {
+        event.preventDefault();
+        runCode();
+    } else if ((isMacOS && event.code === "KeyS" && event.metaKey) || (event.code === "KeyS" && event.ctrlKey)) {
+        event.preventDefault();
+        saveCode();
+    } else if ((isMacOS && event.code === "KeyL" && event.metaKey) || (event.code === "KeyL" && event.ctrlKey)) {
+        event.preventDefault();
         clearAll();
     }
 }
@@ -310,11 +315,27 @@ function getShareUrl(suite: any) {
 }
 
 function getBaseUrl(): string {
-    return window.location.origin;
+    let url = window.location.origin + window.location.pathname;
+    if (url.slice(-1) === "/") {
+        url = url.slice(0, url.length - 1);
+    }
+    return url;
+}
+
+function showToast(message: string, duration = 3000, error = false) {
+    Toastify({
+        text: message,
+        duration: duration,
+        close: false,
+        gravity: "bottom",
+        position: "center",
+        stopOnFocus: true,
+        className: error ? "toastify-error" : "toastify-success",
+    }).showToast();
 }
 
 window.addEventListener("load", main, false);
-window.addEventListener("keydown", hotKeys, false);
+document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
 

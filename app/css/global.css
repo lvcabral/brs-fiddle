@@ -222,11 +222,11 @@ i {
   }
   .toastify-error {
     color: #fff;
-    background-color: red;
+    background-color: rgba(182, 23, 23, 0.5);
   }
   .toastify-success {
     color: #fff;
-    background-color: green;
+    background-color: rgb(19, 185, 116, 0.5);
   }
   /* Scaffolding */
   .header {
