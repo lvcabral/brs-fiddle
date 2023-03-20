@@ -25,6 +25,7 @@
     user-select: none;
   }
   .console .console-header h4 {
+    font-size: 18px;
     color: #999;
   }
   .console .console-header button {
@@ -40,7 +41,7 @@
     vertical-align: text-bottom;
   }
   .console .console-header button span {
-    font-size: 14px;
+    font-size: 16px;
   }
   .console iframe {
     border: none;
@@ -66,6 +67,7 @@
     user-select: none;
   }
   .emulator-display .display-header h4 {
+    font-size: 18px;
     color: #999;
   }
 
@@ -82,7 +84,7 @@
     vertical-align: text-bottom;
   }
   .emulator-display .display-header button span {
-    font-size: 14px;
+    font-size: 16px;
   }
   #right-container {
     background: #222222;
@@ -128,7 +130,7 @@
     vertical-align: text-bottom;
   }
   .code .code-header button span {
-    font-size: 14px;
+    font-size: 16px;
   }
   .code .code-header .project-link {
     display: flex;
@@ -136,6 +138,7 @@
     color: #999;
   }
   .code .code-header h4 {
+    font-size: 18px;
     color: #999;
   }
   .code .code-header .project-link span {
