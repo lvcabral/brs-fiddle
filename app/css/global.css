@@ -112,17 +112,9 @@ i {
     padding: 0;
     box-sizing: border-box;
   }
-  /* pt-mono-regular - latin */
-  @font-face {
-    font-family: "PT Mono";
-    font-style: normal;
-    font-weight: 400;
-    src: url("../fonts/pt-mono/pt-mono-v8-latin-regular.eot");
-    src: local(""), url("../fonts/pt-mono/pt-mono-v8-latin-regular.eot?#iefix") format("embedded-opentype"), url("../fonts/pt-mono/pt-mono-v8-latin-regular.woff2") format("woff2"), url("../fonts/pt-mono/pt-mono-v8-latin-regular.woff") format("woff"), url("../fonts/pt-mono/pt-mono-v8-latin-regular.ttf") format("truetype"), url("../fonts/pt-mono/pt-mono-v8-latin-regular.svg#PTMono") format("svg");
-  }
   body {
-    font-size: 16px;
-    font-family: "PT Mono", monospace;
+    font-size: 14px;
+    font-family: Consolas,'Courier New', Courier, monospace;
     counter-reset: consoleLogCounter;
     background: #f7f7f7;
   }
