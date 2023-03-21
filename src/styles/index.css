@@ -30,18 +30,18 @@
   }
   .console .console-header button {
     padding: 0 8px;
-    height: 24px;
+    height: 26px;
     vertical-align: middle;
     border: none;
     color: white;
     background: #449DFF;
   }
   .console .console-header button i {
-    font-size: 18px;
-    vertical-align: text-bottom;
+    font-size: 16px;
   }
   .console .console-header button span {
     font-size: 16px;
+    margin-right: 0.2em;
   }
   .console iframe {
     border: none;
@@ -73,18 +73,18 @@
 
   .emulator-display .display-header button {
     padding: 0 8px;
-    height: 24px;
+    height: 26px;
     vertical-align: middle;
     border: none;
     color: white;
     background: #449DFF;
   }
   .emulator-display .display-header button i {
-    font-size: 18px;
-    vertical-align: text-bottom;
+    font-size: 16px;
   }
   .emulator-display .display-header button span {
     font-size: 16px;
+    margin-right: 0.2em;
   }
   #right-container {
     background: #222222;
@@ -119,18 +119,18 @@
   }
   .code .code-header button {
     padding: 0 8px;
-    height: 24px;
+    height: 26px;
     vertical-align: middle;
     border: none;
     color: white;
     background: #449DFF;
   }
   .code .code-header button i {
-    font-size: 18px;
-    vertical-align: text-bottom;
+    font-size: 16px;
   }
   .code .code-header button span {
     font-size: 16px;
+    margin-right: 0.2em;
   }
   .code .code-header .project-link {
     display: flex;
@@ -140,20 +140,6 @@
   .code .code-header h4 {
     font-size: 18px;
     color: #999;
-  }
-  .code .code-header .project-link span {
-    margin: 0 4px;
-    color: #ddd;
-  }
-  .code .code-header .project-link input {
-    border: none;
-    background: transparent;
-    color: #999;
-    height: 24px;
-    padding: 0 4px;
-  }
-  .code .code-header .project-link input:focus {
-    background: #444;
   }
   .code #brsCode {
     display: block;

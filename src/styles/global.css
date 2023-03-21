@@ -1,3 +1,7 @@
+@font-face {
+  font-family: "Asap";
+  src: url('../fonts/Asap-Regular.ttf') format("truetype");
+}
 /* CSS Reset */
 * {
     margin: 0;
@@ -23,6 +27,7 @@
     outline: none;
   }
   button {
+    font-family: Asap, Arial, Helvetica, sans-serif;
     background: transparent;
     cursor: pointer;
   }
@@ -105,11 +110,11 @@
   }
   .toastify-error {
     color: #fff;
-    background-color: rgba(182, 23, 23, 0.5);
+    background-color: rgba(182, 23, 23, 0.8);
   }
   .toastify-success {
     color: #fff;
-    background-color: rgb(19, 185, 116, 0.5);
+    background-color: rgb(19, 185, 116, 0.8);
   }
   /* Scaffolding */
   .header {
@@ -135,13 +140,24 @@
   .header .actions a, .header .actions button {
     padding: 0 6px;
     color: #fff;
-    height: 28px;
+    height: 30px;
     vertical-align: middle;
-    background: #666;
+  }
+  .header .actions a {
+    font-family: Asap, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-top: 6px;
+  }
+  .header .actions span {
+    font-family: Asap, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    border-radius: 8px;
+    display: inline-block;
   }
   .header .actions a i, .header .actions button i {
-    font-size: 20px;
-    vertical-align: text-bottom;
+    font-size: 18px;
   }
   .header .actions a.login, .header .actions button.login, .header .actions a.account, .header .actions button.account {
     width: auto;
@@ -156,12 +172,5 @@
     .header .actions a span, .header .actions button span {
       display: none;
     }
-  }
-  .header .actions a, .header .actions span {
-    font-size: 16px;
-    height: 28px;
-    line-height: 28px;
-    border-radius: 8px;
-    display: inline-block;
   }
   

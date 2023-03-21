@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="css/index.css" />
   <link rel="stylesheet" href="css/codemirror.css" />
   <link rel="stylesheet" href="css/vscode-dark.css" />
-  <link rel="stylesheet" href="fonts/jsc-icon/style.css" />
+  <link rel="stylesheet" href="css/fontello.css" />
 </head>
 
 <body id="root" class="index-page">
@@ -35,15 +35,21 @@
       <a class="brand" href="/">
         <img src="./images/logo.svg" alt="brs Console" />
       </a>
+
+      
       <div class="actions">
-        <a href="https://paypal.me/lvcabral" title="Donate" target="_blank" class="donate">
-          <i class="jsc-icon-coffee-cup"></i>
+        <a href="https://paypal.me/lvcabral" title="By me a Coffee!" target="_blank">
+          <i class="icon-donate"></i>
           <span>Donate</span>
         </a>
-        <button title="Share" class="share">
-          <i class="jsc-icon-share"></i>
-          <span>Share</span>
-        </button>
+        <a href="https://join.slack.com/t/rokudevelopers/shared_invite/zt-1fwucni9w-WizAcwB_rhL8nTctkO7trQ" title="Roku Developers Slack" target="_blank">
+          <i class="icon-slack"></i>
+          <span>Community</span>
+        </a>
+        <a href="https://github.com/lvcabral/brs-emu#readme" title="Code Repository" target="_blank">
+          <i class="icon-github"></i>
+          <span>Code</span>
+        </a>
       </div>
     </div>
   </header>
@@ -54,13 +60,17 @@
           <h4>Source Code</h4>
         </div>
         <div>
-          <button title="Save the Code" class="save">
-            <i class="jsc-icon-save"></i>
-            <span></span>
-          </button>
           <button title="Run the Code" class="run">
-            <i class="jsc-icon-run"></i>
-            <span></span>
+            <i class="icon-play"></i>
+            <span>RUN</span>
+          </button>
+          <button title="Save the Code" class="save">
+            <i class="icon-save"></i>
+            <span>SAVE</span>
+          </button>
+          <button title="Share the Code" class="share">
+            <i class="icon-share"></i>
+            <span>SHARE</span>
           </button>
         </div>
       </div>
@@ -76,9 +86,13 @@
             <h4>Display</h4>
           </div>
           <div>
-            <button title="Break and Debug" class="break">
-              <i class="jsc-icon-cancel"></i>
-              <span></span>
+            <button title="Pause and Debug" class="break">
+              <i class="icon-pause"></i>
+              <span>DEBUG</span>
+            </button>
+            <button title="End the Execution" class="end">
+              <i class="icon-stop"></i>
+              <span>END</span>
             </button>
           </div>
         </div>
@@ -91,8 +105,8 @@
           </div>
           <div>
             <button title="Clear All Logs" class="clear-all">
-              <i class="jsc-icon-clear-all"></i>
-              <span></span>
+              <i class="icon-trash"></i>
+              <span>CLEAR</span>
             </button>
           </div>
         </div>

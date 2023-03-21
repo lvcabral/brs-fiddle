@@ -1,10 +1,8 @@
 import * as CodeMirror from "codemirror";
-// import 'codemirror/lib/codemirror.css';
 import "codemirror/addon/comment/comment.js";
 import "codemirror/addon/edit/closebrackets.js";
 import "codemirror/addon/edit/matchbrackets.js";
 import { defineMode } from "./brightscript";
-// import 'styles/vscode-dark.css';
 
 export class CodeMirrorManager {
     public editor: CodeMirror.Editor;
@@ -15,8 +13,9 @@ export class CodeMirrorManager {
         lineNumbers: true,
         indentUnit: 4,
         indentWithTabs: true,
+        electricChars: false,
         matchBrackets: true,
-        autoCloseBrackets: true,
+        autoCloseBrackets: "()[]{}``\"\"",
         mode: "brightscript",
     };
 

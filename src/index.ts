@@ -19,6 +19,7 @@ const saveButton = document.querySelector("button.save") as HTMLButtonElement;
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
 const breakButton = document.querySelector("button.break") as HTMLButtonElement;
+const endButton = document.querySelector("button.end") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
 const layoutContainer = document.querySelector("main.editor");
 const layoutSeparator = document.querySelector("div.layout-separator") as HTMLDivElement;
@@ -50,6 +51,7 @@ saveButton.addEventListener("click", saveCode);
 runButton.addEventListener("click", runCode);
 clearAllButton.addEventListener("click", clearAll);
 breakButton.addEventListener("click", startDebug);
+endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 
@@ -62,18 +64,19 @@ let currentId = nanoid(10);
 function main() {
     const OS = getOS();
     if (saveButton) {
-        saveButton.getElementsByTagName("span")[0].innerText = OS === "MacOS" ? "CMD+S" : "CTRL+S";
+        saveButton.title = OS === "MacOS" ? "CMD+S" : "CTRL+S";
     }
     if (runButton) {
-        runButton.getElementsByTagName("span")[0].innerText = OS === "MacOS" ? "CMD+R" : "CTRL+R";
+        runButton.title = OS === "MacOS" ? "CMD+R" : "CTRL+R";
     }
     if (clearAllButton) {
-        clearAllButton.getElementsByTagName("span")[0].innerText =
-            OS === "MacOS" ? "CMD+L" : "CTRL+L";
+        clearAllButton.title = OS === "MacOS" ? "CMD+L" : "CTRL+L";
+    }
+    if (endButton) {
+        endButton.title = OS === "MacOS" ? "CTRL+ESC" : "HOME";
     }
     if (breakButton) {
-        breakButton.getElementsByTagName("span")[0].innerText =
-            OS === "MacOS" ? "CTRL+C" : "CTRL+BREAK";
+        breakButton.title = OS === "MacOS" ? "CTRL+C" : "CTRL+B";
     }
     // Initialize the manager
     if (brsCodeField) {
@@ -101,8 +104,10 @@ function main() {
         if (code) {
             editorManager.editor.setValue(code);
             currentId = id;
-            if (getParameterByName("saved")) {
+            const saved = localStorage.getItem("saved");
+            if (saved && saved === id) {
                 showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
+                localStorage.removeItem("saved");
             }
         }
     }
@@ -173,12 +178,12 @@ function main() {
 
 function scrollToBottom() {
     if (consoleLogsContainer.children.length) {
-        const console = consoleLogsContainer.children[0];
-        const scrollHeight = console.scrollHeight;
-        console.scrollTo({
+        const terminal = consoleLogsContainer.children[0];
+        const scrollHeight = terminal.scrollHeight;
+        terminal.scrollTo({
             top: scrollHeight,
             left: 0,
-            behavior: "smooth",
+            behavior: "auto",
         });
     }
 }
@@ -204,7 +209,8 @@ function saveCode() {
     if (code && code.trim() !== "") {
         localStorage.setItem(currentId, code);
         if  (window.location.search === "") {
-            window.location.href = `${getBaseUrl()}/?id=${currentId}&saved=1`;
+            localStorage.setItem("saved", currentId);
+            window.location.href = `${getBaseUrl()}/?id=${currentId}`;
         } else {
             showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
         }
@@ -237,6 +243,14 @@ function startDebug() {
     }
 }
 
+function endExecution() {
+    if (currentChannel.running) {
+        brsEmu.terminate("EXIT_USER_NAV");
+    } else {
+        showToast("There is nothing running to terminate", 3000, true);
+    }
+}
+
 function clearAll() {
     terminal.clear();
 }
@@ -252,6 +266,9 @@ function hotKeys(event: KeyboardEvent) {
     } else if ((isMacOS && event.code === "KeyL" && event.metaKey) || (event.code === "KeyL" && event.ctrlKey)) {
         event.preventDefault();
         clearAll();
+    } else if (event.code === "KeyB" && event.ctrlKey) {
+        event.preventDefault();
+        startDebug();
     }
 }
 
@@ -263,6 +280,7 @@ function onMouseMove(e: any) {
     if (!isResizing) {
         return;
     }
+    e.preventDefault();
     if (layoutContainer && rightContainer && codeColumn && consoleColumn) {
         const { x, width } = layoutContainer.getBoundingClientRect();
         const separatorPosition = width - (e.clientX - x);

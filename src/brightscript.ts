@@ -20,8 +20,9 @@ export function defineMode(CodeMirror: any) {
 
         var singleOperators = new RegExp("^[\\+\\-\\*/&\\\\\\^<>=]");
         var doubleOperators = new RegExp("^((<>)|(<=)|(>=)|(<<)|(>>))");
-        var singleDelimiters = new RegExp("^[\\.,:]");
+        var singleDelimiters = new RegExp("^[\\.,;:$%!#&@?]");
         var brackets = new RegExp("^[\\(\\)\\[\\]\\{\\}]");
+        var functions = new RegExp("^[A-Za-z][_A-Za-z0-9]+(?=\\()");
         var identifiers = new RegExp("^[A-Za-z][_A-Za-z0-9]*");
 
         var openingKeywords = ["sub", "function"];
@@ -38,14 +39,11 @@ export function defineMode(CodeMirror: any) {
             "each",
             "as",
             "return",
-            "exit",
-            "stop",
+            "stop", 
         ];
         var endControl = ["next", "endif", "endfor", "endwhile"];
-
         var wordOperators = wordRegexp(["and", "or", "not", "mod"]);
-        var commonkeywords = ["dim", "print"];
-
+        var commonkeywords = ["dim", "print", "library"];
         var commontypes = [
             "object",
             "dynamic",
@@ -58,166 +56,81 @@ export function defineMode(CodeMirror: any) {
             "void",
         ];
 
-        //This list was from: http://msdn.microsoft.com/en-us/library/f8tbc79x(v=vs.84).aspx
         var atomWords = ["true", "false", "invalid"];
-        //This list was from: http://msdn.microsoft.com/en-us/library/3ca8tfek(v=vs.84).aspx
         var builtinFuncsWords = [
-            "abs",
-            "array",
+            "box",
+            "createobject",
+            "getglobalaa",
+            "getlastruncompileerror",
+            "getlastrunruntimeerror",
+            "type",
+            "copyfile",
+            "createdirectory",
+            "deletefile",
+            "findmemberfunction",
+            "formatdrive",
+            "formatjson",
+            "getinterface",
+            "listdir",
+            "matchfiles",
+            "movefile",
+            "parsejson",
+            "readasciifile",
+            "rebootsystem",
+            "rungarbagecollector",
+            "sleep",
+            "strtoi",
+            "uptime",
+            "wait",
+            "writeasciifile",
             "asc",
-            "atn",
-            "cbool",
-            "cbyte",
-            "ccur",
-            "cdate",
-            "cdbl",
             "chr",
-            "cint",
-            "clng",
-            "cos",
-            "csng",
-            "cstr",
-            "date",
-            "dateadd",
-            "datediff",
-            "datepart",
-            "dateserial",
-            "datevalue",
-            "day",
-            "escape",
-            "eval",
-            "execute",
-            "exp",
-            "filter",
-            "formatcurrency",
-            "formatdatetime",
-            "formatnumber",
-            "formatpercent",
-            "getlocale",
-            "getobject",
-            "getref",
-            "hex",
-            "hour",
-            "inputbox",
             "instr",
-            "instrrev",
-            "int",
-            "fix",
-            "isarray",
-            "isdate",
-            "isempty",
-            "isnull",
-            "isnumeric",
-            "isobject",
-            "join",
-            "lbound",
             "lcase",
             "left",
             "len",
-            "loadpicture",
-            "log",
-            "ltrim",
-            "rtrim",
-            "trim",
-            "maths",
             "mid",
-            "minute",
-            "month",
-            "monthname",
-            "msgbox",
-            "now",
-            "oct",
-            "replace",
-            "rgb",
             "right",
-            "rnd",
-            "round",
-            "sleep",
-            "rebootsystem",
-            "scriptenginemajorversion",
-            "scriptengineminorversion",
-            "second",
-            "setlocale",
+            "str",
+            "stri",
+            "string",
+            "stringi",
+            "substitute",
+            "tr",
+            "ucase",
+            "val",
+            "abs",
+            "atn",
+            "cdbl",
+            "cint",
+            "cos",
+            "csng",
+            "exp",
+            "fix",
+            "int",
+            "log",
             "sgn",
             "sin",
-            "space",
-            "split",
             "sqr",
-            "strcomp",
-            "string",
-            "strreverse",
             "tan",
-            "time",
-            "timer",
-            "timeserial",
-            "timevalue",
-            "typename",
-            "ubound",
-            "ucase",
-            "unescape",
-            "vartype",
-            "weekday",
-            "weekdayname",
-            "year",
         ];
-
-        //This list was from: http://msdn.microsoft.com/en-us/library/ydz4cfk3(v=vs.84).aspx
         var builtinConsts = [
-            "vbEmpty",
-            "vbNull",
-            "vbInteger",
-            "vbLong",
-            "vbSingle",
-            "vbDouble",
-            "vbCurrency",
-            "vbDate",
-            "vbString",
-            "vbObject",
-            "vbError",
-            "vbBoolean",
-            "vbVariant",
-            "vbDataObject",
-            "vbDecimal",
-            "vbByte",
-            "vbArray",
+            "LINE_NUM",
         ];
-        //This list was from: http://msdn.microsoft.com/en-us/library/hkc375ea(v=vs.84).aspx
-        var builtinObjsWords = ["WScript", "err", "debug", "RegExp"];
-        var knownProperties = [
-            "description",
-            "firstindex",
-            "global",
-            "helpcontext",
-            "helpfile",
-            "ignorecase",
-            "length",
-            "number",
-            "pattern",
-            "source",
-            "value",
-            "count",
-        ];
-        var knownMethods = [
+        var builtinObjsWords = ["global", "m"];
+        var knownElements = [
+            "getdefaultfont",
             "clear",
-            "execute",
-            "raise",
             "push",
             "replace",
-            "test",
             "write",
             "writeline",
             "close",
             "open",
             "state",
-            "eof",
             "update",
             "addnew",
-            "end",
-            "createobject",
-            "quit",
         ];
-
-        var knownWords = knownMethods.concat(knownProperties);
 
         builtinObjsWords = builtinObjsWords.concat(builtinConsts);
 
@@ -226,7 +139,7 @@ export function defineMode(CodeMirror: any) {
         var atoms = wordRegexp(atomWords);
         var builtinFuncs = wordRegexp(builtinFuncsWords);
         var builtinObjs = wordRegexp(builtinObjsWords);
-        var known = wordRegexp(knownWords);
+        var known = wordRegexp(knownElements);
         var stringPrefixes = '"';
 
         var opening = wordRegexp(openingKeywords);
@@ -336,7 +249,7 @@ export function defineMode(CodeMirror: any) {
             if (stream.match(noIndentWords)) {
                 state.doInCurrentLine = true;
 
-                return "keyword";
+                return "control";
             }
 
             if (stream.match(doOpening)) {
@@ -412,6 +325,10 @@ export function defineMode(CodeMirror: any) {
             }
 
             if (stream.match(builtinObjs)) {
+                return "keyword";
+            }
+
+            if (stream.match(functions)) {
                 return "variable-2";
             }
 
@@ -463,10 +380,10 @@ export function defineMode(CodeMirror: any) {
                         (style.substr(0, 8) === "variable" ||
                             style === "builtin" ||
                             style === "keyword")) ||
-                    knownWords.indexOf(current.substring(1)) > -1
+                            knownElements.indexOf(current.substring(1)) > -1
                 ) {
                     if (style === "builtin" || style === "keyword") style = "variable";
-                    if (knownWords.indexOf(current.substr(1)) > -1) style = "variable-2";
+                    if (knownElements.indexOf(current.substr(1)) > -1) style = "variable-2";
 
                     return style;
                 } else {
