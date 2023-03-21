@@ -29,7 +29,7 @@
     "app/lib/brsEmu.worker.js"
   ],
   "dependencies": {
-    "brs-emu": "^0.10.20-dev",
+    "brs-emu": "^0.10.21",
     "codemirror": "^5.65.12",
     "json-url": "^3.0.0",
     "nanoid": "^4.0.1",
