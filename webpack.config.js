@@ -21,14 +21,27 @@ module.exports = env => {
             externals: {
                 "brs-emu": "brsEmu"
             },
+            devServer: {
+                static: "./app",
+                hot: true,
+                port: 6510,
+                headers: {
+                    "cross-origin-embedder-policy": "require-corp",
+                    "cross-origin-opener-policy": "same-origin",
+                }
+            },
+            devtool: "inline-source-map",
             plugins: [
-                new CopyWebpackPlugin({patterns: [
-                    { context: "node_modules/brs-emu/app/lib", from: "**" },
-                    { context: "node_modules/brs-emu/app/", from: "audio/**", to: ".." },
-                    { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
-                    { context: "src/styles/", from: "**/*", to: "../css/" },
-                    { context: "src/fonts/", from: "**/*", to: "../fonts/" },
-                ]})
+                new CopyWebpackPlugin({
+                    patterns: [
+                        { context: "node_modules/brs-emu/app/lib", from: "**" },
+                        { context: "node_modules/brs-emu/app/", from: "audio/**", to: ".." },
+                        { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
+                        { context: "src/images/", from: "**/*", to: "../css/" },
+                        { context: "src/styles/", from: "**/*", to: "../css/" },
+                        { context: "src/fonts/", from: "**/*", to: "../fonts/" },
+                    ]
+                })
             ],
             module: {
                 rules: [
@@ -48,7 +61,7 @@ module.exports = env => {
                 library: libraryName,
                 path: path.resolve(__dirname, distPath),
                 globalObject: "global",
-            }
+            },
         }
     ];
 };

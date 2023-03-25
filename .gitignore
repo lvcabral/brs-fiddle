@@ -3,6 +3,7 @@ app/css/
 app/lib/
 app/audio/
 app/fonts/
+app/images/
 types/
 node_modules/
 dist/
