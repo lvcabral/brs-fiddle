@@ -37,6 +37,7 @@ module.exports = env => {
                         { context: "node_modules/brs-emu/app/lib", from: "**" },
                         { context: "node_modules/brs-emu/app/", from: "audio/**", to: ".." },
                         { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
+                        { context: "src/pages/", from: "**/*", to: "../" },
                         { context: "src/images/", from: "**/*", to: "../css/" },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
                         { context: "src/fonts/", from: "**/*", to: "../fonts/" },
