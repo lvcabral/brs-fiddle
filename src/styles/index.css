@@ -168,7 +168,7 @@
     overflow: auto;
     height: 92%;
   }
-  @media (max-width: 480px) {
+  @media (max-width: 1060px) {
     .editor {
       flex-direction: column;
     }
@@ -180,6 +180,9 @@
     }
     .editor .console {
       height: 40%;
+    }
+    button {
+      font-size: 14px;
     }
   }
   .layout-separator {
