@@ -25,10 +25,6 @@
     "prettier:write": "prettier --write \"{app,src,test}/**/*.{js,ts}\"",
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
-  "files": [
-    "app/fonts/",
-    "app/lib/brsEmu.worker.js"
-  ],
   "dependencies": {
     "brs-emu": "^0.10.21",
     "codemirror": "^5.65.12",
