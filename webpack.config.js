@@ -2,15 +2,17 @@ const path = require("path");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = env => {
-    let outputLib, mode, distPath;
+    let outputLib, mode, distPath, devtool;
     let libraryName = "brsFiddle";
     if (env.production) {
         mode = "production";
-        outputLib = libraryName + ".min.js";
+        outputLib = libraryName + ".js";
+        devtool = "source-map";
         distPath = "app/lib"
     } else {
         mode = "development";
         outputLib = libraryName + ".js";
+        devtool = "inline-source-map";
         distPath = "app/lib"
     }
     return [
@@ -30,7 +32,7 @@ module.exports = env => {
                     "cross-origin-opener-policy": "same-origin",
                 }
             },
-            devtool: "inline-source-map",
+            devtool: devtool,
             plugins: [
                 new CopyWebpackPlugin({
                     patterns: [
