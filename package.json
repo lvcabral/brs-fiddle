@@ -1,6 +1,6 @@
 {
   "name": "brs-fiddle",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "BrightScript Fiddle",
   "author": "Marcelo Lv Cabral <marcelo@lvcabral.com> (https://lvcabral.com/)",
   "homepage": "https://lvcabral.com/brs/",
@@ -20,13 +20,13 @@
     "build": "webpack --env development",
     "release": "webpack --env production",
     "start": "webpack serve --open",
-    "clean": "rimraf ./types",
+    "clean": "rimraf ./types ./app",
     "lint": "tslint --project .",
     "prettier:write": "prettier --write \"{app,src,test}/**/*.{js,ts}\"",
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
-    "brs-emu": "^0.10.22",
+    "brs-emu": "0.11.5-dev",
     "codemirror": "^5.65.12",
     "json-url": "^3.0.0",
     "nanoid": "^4.0.1",
@@ -39,6 +39,7 @@
     "@types/toastify-js": "^1.11.1",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^5.2.7",
+    "html-webpack-plugin": "^5.5.3",
     "lint-staged": ">=8",
     "npm-run-all": "^4.1.2",
     "prettier": "2",

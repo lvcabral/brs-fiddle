@@ -1,17 +1,22 @@
 const path = require("path");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = env => {
-    let outputLib, mode, distPath, devtool;
-    let libraryName = "brsFiddle";
+    const libraryName = "brsFiddle";
+    const brsLibName = "brsEmu"
     if (env.production) {
         mode = "production";
-        outputLib = libraryName + ".js";
+        outputLib = libraryName + ".min.js";
+        apiLib = brsLibName + ".min.js";
+        wrkLib = brsLibName + ".worker.min.js";
         devtool = "source-map";
         distPath = "app/lib"
     } else {
         mode = "development";
         outputLib = libraryName + ".js";
+        apiLib = brsLibName + ".js";
+        wrkLib = brsLibName + ".worker.js";
         devtool = "inline-source-map";
         distPath = "app/lib"
     }
@@ -34,12 +39,17 @@ module.exports = env => {
             },
             devtool: devtool,
             plugins: [
+                new HtmlWebpackPlugin({
+                    filename: "../index.html",
+                    templateParameters: { brsApi: apiLib },
+                }),
                 new CopyWebpackPlugin({
                     patterns: [
-                        { context: "node_modules/brs-emu/app/lib", from: "**" },
+                        { context: "node_modules/brs-emu/app/lib", from: apiLib },
+                        { context: "node_modules/brs-emu/app/lib", from: wrkLib },
                         { context: "node_modules/brs-emu/app/", from: "audio/**", to: ".." },
                         { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
-                        { context: "src/pages/", from: "**/*", to: "../" },
+                        { context: "src/", from: "web.config", to: ".." },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
                         { context: "src/images/", from: "**/*", to: "../images/" },
                         { context: "src/fonts/", from: "**/*", to: "../fonts/" },
