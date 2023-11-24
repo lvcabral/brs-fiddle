@@ -37,7 +37,7 @@ const commands = {
     },
 };
 const terminal = new VanillaTerminal({
-    welcome: "<span style='color: #2e71ff'>Brightscript Emulator Console</span>",
+    welcome: `<span style='color: #2e71ff'>Brightscript Emulator Console - Library v${brsEmu.getVersion()}</span>`,
     container: "console-logs",
     commands: commands,
     prompt: prompt,
@@ -208,13 +208,12 @@ function saveCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         localStorage.setItem(currentId, code);
-        if  (window.location.search === "") {
+        if (window.location.search === "") {
             localStorage.setItem("saved", currentId);
             window.location.href = `${getBaseUrl()}/?id=${currentId}`;
         } else {
             showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
         }
-        
     } else {
         showToast("There is no Source Code to save", 3000, true);
     }
@@ -224,7 +223,7 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brsEmu.execute("main.brs", editorManager.editor.getValue(), false);
+            brsEmu.execute("main.brs", editorManager.editor.getValue(), { clearDisplayOnExit: false });
         } catch (e: any) {
             console.log(e); // Check EvalError object
             terminal.output(`${e.name}: ${e.message}`);

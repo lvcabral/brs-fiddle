@@ -122,6 +122,7 @@ export function defineMode(CodeMirror: any) {
             "getdefaultfont",
             "clear",
             "push",
+            "next",
             "replace",
             "write",
             "writeline",
