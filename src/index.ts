@@ -5,7 +5,7 @@
  *
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as brsEmu from "brs-emu";
+import * as brs from "brs-engine";
 import Codec from "json-url";
 import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
@@ -30,14 +30,14 @@ const displayCanvas = document.getElementById("display") as HTMLCanvasElement;
 const prompt = "Brightscript Debugger";
 const commands = {
     help: (terminal: any) => {
-        brsEmu.debug("help");
+        brs.debug("help");
     },
     version: (terminal: any) => {
-        terminal.output(`<br />Brightscript Emulator v${brsEmu.getVersion()}<br />`);
+        terminal.output(`<br />Brightscript Simulation Engine v${brs.getVersion()}<br />`);
     },
 };
 const terminal = new VanillaTerminal({
-    welcome: `<span style='color: #2e71ff'>Brightscript Emulator Console - Library v${brsEmu.getVersion()}</span>`,
+    welcome: `<span style='color: #2e71ff'>Brightscript Console - brs-engine v${brs.getVersion()}</span>`,
     container: "console-logs",
     commands: commands,
     prompt: prompt,
@@ -111,7 +111,7 @@ function main() {
             }
         }
     }
-    // Initialize Device Emulator
+    // Initialize Device Simulator
     if (displayCanvas) {
         const customKeys = new Map();
         customKeys.set("Home", "ignore");
@@ -119,13 +119,13 @@ function main() {
         customKeys.set("Delete", "ignore");
         customKeys.set("Control+KeyA", "ignore");
         customKeys.set("Control+KeyZ", "ignore");
-        brsEmu.initialize({}, { debugToConsole: false, customKeys: customKeys });
+        brs.initialize({}, { debugToConsole: false, customKeys: customKeys });
 
-        // Subscribe to Emulator Events
-        brsEmu.subscribe("brsFiddle", (event: any, data: any) => {
+        // Subscribe to Engine Events
+        brs.subscribe("brsFiddle", (event: any, data: any) => {
             if (event === "loaded") {
                 currentChannel = data;
-                terminal.output(`<br />Starting Emulator...<br /><br />`);
+                terminal.output(`<br />Executing source code...<br /><br />`);
                 terminal.idle();
             } else if (event === "started") {
                 currentChannel = data;
@@ -160,7 +160,7 @@ function main() {
 
         // Resize the display canvas
         const rightRect = rightContainer.getBoundingClientRect();
-        brsEmu.redraw(
+        brs.redraw(
             false,
             rightRect.width,
             Math.trunc(rightRect.height / 2),
@@ -170,7 +170,7 @@ function main() {
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
-                brsEmu.debug(`${command} ${parameters.join(" ")}`);
+                brs.debug(`${command} ${parameters.join(" ")}`);
             }
         });
     }
@@ -223,7 +223,7 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brsEmu.execute("main.brs", editorManager.editor.getValue(), { clearDisplayOnExit: false });
+            brs.execute("main.brs", editorManager.editor.getValue(), { clearDisplayOnExit: false, debugOnCrash: true });
         } catch (e: any) {
             console.log(e); // Check EvalError object
             terminal.output(`${e.name}: ${e.message}`);
@@ -236,7 +236,7 @@ function runCode() {
 
 function startDebug() {
     if (currentChannel.running) {
-        brsEmu.debug("break");
+        brs.debug("break");
     } else {
         showToast("There is nothing running to debug", 3000, true);
     }
@@ -244,7 +244,7 @@ function startDebug() {
 
 function endExecution() {
     if (currentChannel.running) {
-        brsEmu.terminate("EXIT_USER_NAV");
+        brs.terminate("EXIT_USER_NAV");
     } else {
         showToast("There is nothing running to terminate", 3000, true);
     }
@@ -296,7 +296,7 @@ function onMouseMove(e: any) {
 function onMouseUp() {
     if (isResizing) {
         const rightRect = rightContainer.getBoundingClientRect();
-        brsEmu.redraw(
+        brs.redraw(
             false,
             rightRect.width,
             Math.trunc(rightRect.height / 2) - 10,
