@@ -11,7 +11,8 @@
   "keywords": [
     "brightscript",
     "roku",
-    "emulator"
+    "simulator",
+    "sandbox"
   ],
   "license": "MIT",
   "main": "app/index.html",
@@ -26,7 +27,7 @@
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
-    "brs-emu": "0.11.6-dev",
+    "brs-engine": "^1.0.0",
     "codemirror": "^5.65.12",
     "json-url": "^3.0.0",
     "nanoid": "^4.0.1",

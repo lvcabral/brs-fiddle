@@ -5,7 +5,7 @@ Simple Code Editor for playing with BrightScript language.
 ## Links
 
 - Website: https://brsFiddle.net
-- Emulator: https://lvcabral.com/brs
+- Simulator: https://lvcabral.com/brs
 
 ## Code Samples
 
@@ -14,13 +14,17 @@ Simple Code Editor for playing with BrightScript language.
 - Calculate Easter Day - [Shared Link](https://brsfiddle.net/?code=XQAAAALnAwAAAAAAAABJKohmo_vGH6VeHhw0NA0u7jXQ5mXP9ZN1AWzM0PiRufiEJMb9enJ8-Fi-wVFZGTTpu3PmzKvDZVFq33L_93AZJPhIg6IOwt6LAoZfALbNSD-9F190OkUH5EOYSUHSLXWBpulCV_k83PxQO6WlKqWoMVq5LeUSoPEVV5OpcJLcDiu7O8XjE5KBBMmZgntg8nO44vkyJQNo_zE-k5zryxMYeZGHR71offjEvE3WrtKHLa55DMCeTrUqFoYZgd5t7DsddJ7Rl4ATmDgvrAOU7nY8nDjdrk1b7gccF1Hl_cgfXs1pjWGLzhGdoKrJ-UiokpUZ_p49EZy3-UQbqZ0IhBMNoHViYZJ4sVgZ0rZlexmlSB4zcmcpuHfc3cMRmUrGjr9zTg_Ulbh-OMcf5-DgHQqln58pmHCcCbIefiBntMjwIYn5yckUrS9RCRha1ZxuIYppHGpoj_2ilx1_zC9gs7kqwjCdk4QGJflduepky0fEvBQYvEHsjTHhNIBTRDiiqudQT8-62CokSMQqR1Zt5c-MUM1oFX8vdWennNziWnWoomzuMwQCAER5KYJZhOTKoBzuEM63KwqnZcBLsQoeoSs7tV5kcIXwhBGvUdDKESlfcqa-CwNBpAvENrUp7BBrrQOr6sKOnRUVL44Q4DEZzN_0_9sVDr25lTavElT57Xh2wRpiEsbmuoe66rKJ3cFP4OKVgMLUtPSkayntYNWPZg89PvidJpqOxTIQWf_nfRxV)
 - Download Image and Sound - [Shared Link](https://brsfiddle.net/?code=XQAAAAJqCQAAAAAAAABJKoMnQ-exSUWPG3fpxfwVM0I3_ROH-bzVbB7Jp09rkgEHk97O65LMrkY-ClFix02OAL9aQHdA6uHMp6VomRlb0EzSG23ee59pGlwA2DbEVNpCpCimia_7ffBTl-0p010UxxlLTCoMZ9xkzc-ZK8hxFih-i3P-nRWSdi82_7NwrrNelSDuJOdHfV28SNUbhHOULHLQ7f1EwhvrFr_vgpoksK6d-YKwnX6XWlNIlZrwulg0tclDcoxtRQawghOcZ3oTzmLTy0FuSIagck0NdcmdD-GAqqynbbR7Pb0jhFa4IK7RBM2lcVTjoH69laKA_CBKux6zj3VYBGAnz2lXtkI6dRfT_1XRSN7zkxNIJke8HWFZbyM1uc8s_kq7oPdwYBpvtkEfdHc96hiWZQMRpbdNRFa0Bx_1Jy5k-krINqCIe9489ZrPaend2fS191EBMIaCrzqcBrkNULQET0GcYBPJ5rhnr0sFT_knv4sPfD2HlYLc5h8xOBTxNgR8ex5COmRiI0xnHEgZmWP6fWSktG-gWH9Fk3nYb5xxt8VDvQuAOoeFsyxfucaRl5R2t5jRGN5dX8ECIa3T-Z_M_RIRXr8fWvUmdIwftjlkRYYJw-Imqc0phOMyLJnDIZGEodUavAvT5L7GaI4Qn_hFmxxyHaeMZw2HnDZPshIWfjSxzkcfuJyzx-X8ZeBcEq3ppDLCWkGml-GOSUDbVRd-LvDmSOVEa652DRrwpYskvsXvVxOxo_nbMyJlCyuYdTM0tU0DIXSd6frNSLciud6YrGX0b0JcbLs-c7Fy_flud8htvUNKD4ugdOqZJTxUHi8cjV6nD9aT3v5yj_C99p4r5H-UhK7qrRii9mbQbhHkEMNi4Zb4DIfntBK8p2GIIeaP--Mvo02v8o6ZBj9CbyOM-jpv1SfhZ8tyfXcw_3KoT_VgbuDseShlzToWgbkyBa-SzJFklEZPGteuysyFRSPnmgfFOKTZTpY92mxcQ9C8TZXt6Gbwj79AbplH6d0wKPl_uQiGmXVzj9LvIsYhuY3o-Pr2ZfZGBo4O4sMuQQ5ZA892cRuvrp_XRRKSEunIhWqBIgoSxiI1yp46twsZy2SQXpVISxFdHDJaDHMdMX4VBO33Oy1I8zlfQGPrHQxik8Szk-s6qkOpgaQnNNaLcE1v8LHpRMXSP5KxfwJm6PyWkGQ)
 
-## Author Links
+## Developer Links
 
-- My website is [https://lvcabral.com](https://lvcabral.com)
-- My twitter is [@lvcabral](https://twitter.com/lvcabral)
-- My podcast is [PODebug Podcast](http://podebug.com)
-- Check my other [GitHub repositories ](https://github.com/lvcabral)
+- My website: [https://lvcabral.com](https://lvcabral.com)
+- My threads: [@lvcabral](https://www.threads.net/@lvcabral)
+- My Bluesky: [@lvcabral.com](https://bsky.app/profile/lvcabral.com)
+- My twitter: [@lvcabral](https://twitter.com/lvcabral)
+- My podcast: [PODebug Podcast](http://podebug.com)
+- Check my other [GitHub repositories](https://github.com/lvcabral)
 
 ## License
 
 Copyright © Marcelo Lv Cabral. All rights reserved.
+
+Licensed under the [MIT](LICENSE) license.

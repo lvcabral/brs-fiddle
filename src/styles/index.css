@@ -49,11 +49,11 @@
     height: 0;
     visibility: hidden;
   }
-  .emulator-display {
+  .simulator-display {
     width: 100%;
     background: #222222;
   }
-  .emulator-display .display-header {
+  .simulator-display .display-header {
     width: 100%;
     background: #333;
     display: flex;
@@ -66,12 +66,12 @@
     -o-user-select: none;
     user-select: none;
   }
-  .emulator-display .display-header h4 {
+  .simulator-display .display-header h4 {
     font-size: 18px;
     color: #999;
   }
 
-  .emulator-display .display-header button {
+  .simulator-display .display-header button {
     padding: 0 8px;
     height: 26px;
     vertical-align: middle;
@@ -79,10 +79,10 @@
     color: white;
     background: #449DFF;
   }
-  .emulator-display .display-header button i {
+  .simulator-display .display-header button i {
     font-size: 16px;
   }
-  .emulator-display .display-header button span {
+  .simulator-display .display-header button span {
     font-size: 16px;
     margin-right: 0.2em;
   }

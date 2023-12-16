@@ -4,18 +4,18 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = env => {
     const libraryName = "brsFiddle";
-    const brsLibName = "brsEmu"
+    const brsLibName = "brs"
     if (env.production) {
         mode = "production";
         outputLib = libraryName + ".min.js";
-        apiLib = brsLibName + ".min.js";
-        wrkLib = brsLibName + ".worker.min.js";
+        apiLib = brsLibName + ".api.js";
+        wrkLib = brsLibName + ".worker.js";
         devtool = "source-map";
         distPath = "app/lib"
     } else {
         mode = "development";
         outputLib = libraryName + ".js";
-        apiLib = brsLibName + ".js";
+        apiLib = brsLibName + ".api.js";
         wrkLib = brsLibName + ".worker.js";
         devtool = "inline-source-map";
         distPath = "app/lib"
@@ -26,12 +26,12 @@ module.exports = env => {
             target: "web",
             mode: mode,
             externals: {
-                "brs-emu": "brsEmu"
+                "brs-engine": "brs"
             },
             devServer: {
                 static: "./app",
                 hot: true,
-                port: 6510,
+                port: 8500,
                 headers: {
                     "cross-origin-embedder-policy": "require-corp",
                     "cross-origin-opener-policy": "same-origin",
@@ -45,10 +45,10 @@ module.exports = env => {
                 }),
                 new CopyWebpackPlugin({
                     patterns: [
-                        { context: "node_modules/brs-emu/app/lib", from: apiLib },
-                        { context: "node_modules/brs-emu/app/lib", from: wrkLib },
-                        { context: "node_modules/brs-emu/app/", from: "audio/**", to: ".." },
-                        { context: "node_modules/brs-emu/app/", from: "fonts/**", to: ".." },
+                        { context: "node_modules/brs-engine/app/lib", from: apiLib },
+                        { context: "node_modules/brs-engine/app/lib", from: wrkLib },
+                        { context: "node_modules/brs-engine/app/", from: "audio/**", to: ".." },
+                        { context: "node_modules/brs-engine/app/", from: "fonts/**", to: ".." },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
                         { context: "src/images/", from: "**/*", to: "../images/" },
