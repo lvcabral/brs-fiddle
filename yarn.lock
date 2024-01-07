@@ -805,10 +805,10 @@ browserslist@^4.14.5:
     node-releases "^2.0.14"
     update-browserslist-db "^1.0.13"
 
-brs-engine@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-1.0.0.tgz#3e571513411ff5307bfcdfbff7ace0b00c924699"
-  integrity sha512-O3SGf5a254C7wonxGL5YC6XUwmknbbgV40pA6llQHhL4ToehCw71PXvThAlvnv+JIiDHweYN7N8tMc8q/jFoog==
+brs-engine@^1.1.11:
+  version "1.1.11"
+  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-1.1.11.tgz#8debea942b9cbe7db33a5b21e42527922c18de0b"
+  integrity sha512-ttxsuxAAaQxCFHr5v4v0mtM8OmTUseDFMZIlpI05Hp/+DN3ZfDW17RVeMTo6luWietHwQdwlxzxl39rjWcXq/Q==
   dependencies:
     "@msgpack/msgpack" "^2.8.0"
     chalk "^5.3.0"
@@ -817,6 +817,7 @@ brs-engine@^1.0.0:
     crypto-browserify "^3.12.0"
     dayjs "^1.11.10"
     decode-bmp "^0.1.0"
+    esm-gamecontroller.js "^1.0.2"
     fflate "^0.8.1"
     file-type "^12.4.2"
     howler "^2.2.3"
@@ -1588,6 +1589,11 @@ eslint-scope@5.1.1:
   dependencies:
     esrecurse "^4.3.0"
     estraverse "^4.1.1"
+
+esm-gamecontroller.js@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/esm-gamecontroller.js/-/esm-gamecontroller.js-1.0.2.tgz#34ed9ab3c7bb111f877d81e0812e48e82846c45f"
+  integrity sha512-AY/50V/PWGYgItWpccy/li6cRGElaXy9BVDaWpmMQIJxc7aczuD25TSiZySPsISknxy34aNTxQr9pAVNrtNn2g==
 
 esprima@^4.0.0:
   version "4.0.1"

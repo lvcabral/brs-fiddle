@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  BrightScript Fiddle (https://github.com/lvcabral/brs-fiddle)
  *
- *  Copyright (c) 2023 Marcelo Lv Cabral. All Rights Reserved.
+ *  Copyright (c) 2023-2024 Marcelo Lv Cabral. All Rights Reserved.
  *
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -113,13 +113,7 @@ function main() {
     }
     // Initialize Device Simulator
     if (displayCanvas) {
-        const customKeys = new Map();
-        customKeys.set("Home", "ignore");
-        customKeys.set("Backspace", "ignore");
-        customKeys.set("Delete", "ignore");
-        customKeys.set("Control+KeyA", "ignore");
-        customKeys.set("Control+KeyZ", "ignore");
-        brs.initialize({}, { debugToConsole: false, customKeys: customKeys });
+        brs.initialize({}, { debugToConsole: false, disableKeys: true });
 
         // Subscribe to Engine Events
         brs.subscribe("brsFiddle", (event: any, data: any) => {
@@ -223,7 +217,7 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brs.execute("main.brs", editorManager.editor.getValue(), { clearDisplayOnExit: false, debugOnCrash: true });
+            brs.execute("brsFiddle", editorManager.editor.getValue(), { clearDisplayOnExit: false, debugOnCrash: true });
         } catch (e: any) {
             console.log(e); // Check EvalError object
             terminal.output(`${e.name}: ${e.message}`);
