@@ -7,12 +7,12 @@
     /* Mozilla-based browsers will ignore this. */
     max-height: fill-available;
     background: #222222;
-  }
-  .console {
+}
+.console {
     width: 100%;
     background: #222222;
-  }
-  .console .console-header {
+}
+.console .console-header {
     background: #333;
     display: flex;
     justify-content: space-between;
@@ -23,37 +23,37 @@
     -moz-user-select: none;
     -o-user-select: none;
     user-select: none;
-  }
-  .console .console-header h4 {
+}
+.console .console-header h4 {
     font-size: 18px;
     color: #999;
-  }
-  .console .console-header button {
+}
+.console .console-header button {
     padding: 0 8px;
     height: 26px;
     vertical-align: middle;
     border: none;
     color: white;
-    background: #449DFF;
-  }
-  .console .console-header button i {
+    background: #449dff;
+}
+.console .console-header button i {
     font-size: 16px;
-  }
-  .console .console-header button span {
+}
+.console .console-header button span {
     font-size: 16px;
     margin-right: 0.2em;
-  }
-  .console iframe {
+}
+.console iframe {
     border: none;
     width: 0;
     height: 0;
     visibility: hidden;
-  }
-  .simulator-display {
+}
+.simulator-display {
     width: 100%;
     background: #222222;
-  }
-  .simulator-display .display-header {
+}
+.simulator-display .display-header {
     width: 100%;
     background: #333;
     display: flex;
@@ -65,50 +65,62 @@
     -moz-user-select: none;
     -o-user-select: none;
     user-select: none;
-  }
-  .simulator-display .display-header h4 {
+}
+.simulator-display .display-header h4 {
     font-size: 18px;
     color: #999;
-  }
+}
 
-  .simulator-display .display-header button {
+.simulator-display .display-header button {
     padding: 0 8px;
     height: 26px;
     vertical-align: middle;
     border: none;
     color: white;
-    background: #449DFF;
-  }
-  .simulator-display .display-header button i {
+    background: #449dff;
+}
+.simulator-display .display-header button i {
     font-size: 16px;
-  }
-  .simulator-display .display-header button span {
+}
+.simulator-display .display-header button span {
     font-size: 16px;
     margin-right: 0.2em;
-  }
-  #right-container {
+}
+.simulator-display .display-header label span {
+    font-family: Asap, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    margin-right: 0.2em;
+    color: white;
+}
+.simulator-display .display-header label i {
+    font-size: 20px;
+    vertical-align: middle;
+    color: white;
+}
+
+#right-container {
     background: #222222;
-    display: flex; 
-    flex: 1 1 0%; 
+    display: flex;
+    flex: 1 1 0%;
     flex-direction: column;
     height: calc(100vh - 55px);
-  }
-  #display {
+}
+#display {
     height: 480px;
     background-color: black;
     opacity: 1;
     z-index: 20;
-  }
-  #player {
+}
+#player {
     display: none;
-  }
-  .code {
+}
+.code {
     background: #222222;
     height: calc(100vh - 55px);
     width: 60%;
     color-scheme: dark;
-  }
-  .code .code-header {
+}
+.code .code-header {
     background: #333;
     display: flex;
     justify-content: space-between;
@@ -119,32 +131,32 @@
     -moz-user-select: none;
     -o-user-select: none;
     user-select: none;
-  }
-  .code .code-header button {
+}
+.code .code-header button {
     padding: 0 8px;
     height: 26px;
     vertical-align: middle;
     border: none;
     color: white;
-    background: #449DFF;
-  }
-  .code .code-header button i {
+    background: #449dff;
+}
+.code .code-header button i {
     font-size: 16px;
-  }
-  .code .code-header button span {
+}
+.code .code-header button span {
     font-size: 16px;
     margin-right: 0.2em;
-  }
-  .code .code-header .project-link {
+}
+.code .code-header .project-link {
     display: flex;
     align-items: center;
     color: #999;
-  }
-  .code .code-header h4 {
+}
+.code .code-header h4 {
     font-size: 18px;
     color: #999;
-  }
-  .code #brsCode {
+}
+.code #brsCode {
     display: block;
     height: 100%;
     width: 100%;
@@ -153,42 +165,44 @@
     color: #fff;
     font-size: 18px;
     padding: 16px;
-  }
-  .code #brsCode:focus, .code #brsCode:active {
-    outline: none;
+}
+.code #brsCode:focus,
+.code #brsCode:active {
+    outline-color: transparent;
     box-shadow: none;
-  }
-  .editor {
+}
+.editor {
     display: flex;
     width: 100%;
-  }
-  .editor .console {
+}
+.editor .console {
     height: 45%;
-  }
-  .editor .console #console-logs {
+}
+.editor .console #console-logs {
     color-scheme: dark;
     font-size: 12px;
     overflow: auto;
     height: 92%;
-  }
-  @media (max-width: 1060px) {
+}
+@media (max-width: 1060px) {
     .editor {
-      flex-direction: column;
+        flex-direction: column;
     }
-    .editor .code, .editor .console {
-      width: 100%;
+    .editor .code,
+    .editor .console {
+        width: 100%;
     }
     .editor .code {
-      height: 60%;
+        height: 60%;
     }
     .editor .console {
-      height: 40%;
+        height: 40%;
     }
     button {
-      font-size: 14px;
+        font-size: 14px;
     }
-  }
-  .layout-separator {
+}
+.layout-separator {
     width: 3px;
     margin: 0 -1px;
     border-left: 1px solid transparent;
@@ -198,8 +212,41 @@
     z-index: 4;
     cursor: col-resize;
     opacity: 0.8;
-  }
-  .layout-separator:hover {
+}
+.layout-separator:hover {
     opacity: 0.4;
-  }
-  
+}
+
+input {
+    appearance: none;
+    position: relative;
+    display: inline-block;
+    background: lightgrey;
+    height: 1.45rem;
+    width: 2.75rem;
+    vertical-align: middle;
+    border-radius: 2rem;
+    box-shadow: 0px 1px 3px #0003 inset;
+    transition: 0.25s linear background;
+}
+input::before {
+    content: "";
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: #fff;
+    border-radius: 1.2rem;
+    position: absolute;
+    top: 0.1rem;
+    left: 0.25rem;
+    box-shadow: 0px 1px 3px #0003;
+    transition: 0.25s linear transform;
+    transform: translateX(0rem);
+}
+
+:checked {
+    background: #449dff;
+}
+:checked::before {
+    transform: translateX(1rem);
+}
