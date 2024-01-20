@@ -27,6 +27,10 @@ const codeColumn = document.querySelector("div.code") as HTMLDivElement;
 const consoleColumn = document.querySelector("div.console") as HTMLDivElement;
 const rightContainer = document.getElementById("right-container") as HTMLDivElement;
 const displayCanvas = document.getElementById("display") as HTMLCanvasElement;
+const keyboardSwitch = document.getElementById("keyboard") as HTMLInputElement;
+const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
+const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
+const audioIcon = document.getElementById("audio-icon") as HTMLElement;
 const prompt = "Brightscript Debugger";
 const commands = {
     help: (terminal: any) => {
@@ -106,14 +110,24 @@ function main() {
             currentId = id;
             const saved = localStorage.getItem("saved");
             if (saved && saved === id) {
-                showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
+                showToast(
+                    "Code saved in your browser local storage!\nTo share it use the Share button.",
+                    5000
+                );
                 localStorage.removeItem("saved");
             }
         }
     }
     // Initialize Device Simulator
     if (displayCanvas) {
-        brs.initialize({}, { debugToConsole: false, disableKeys: true });
+        brs.initialize(
+            {},
+            {
+                debugToConsole: false,
+                disableKeys: !keyboardSwitch.checked,
+                disableGamePads: !gamePadSwitch.checked,
+            }
+        );
 
         // Subscribe to Engine Events
         brs.subscribe("brsFiddle", (event: any, data: any) => {
@@ -188,7 +202,7 @@ function shareCode() {
         const data = {
             id: currentId,
             code: editorManager.editor.getValue(),
-        }
+        };
         getShareUrl(data).then(function (shareLink: string) {
             navigator.clipboard.writeText(shareLink);
             showToast("Share URL copied to clipboard");
@@ -206,7 +220,10 @@ function saveCode() {
             localStorage.setItem("saved", currentId);
             window.location.href = `${getBaseUrl()}/?id=${currentId}`;
         } else {
-            showToast("Code saved in your browser local storage!\nTo share it use the Share button.", 5000);
+            showToast(
+                "Code saved in your browser local storage!\nTo share it use the Share button.",
+                5000
+            );
         }
     } else {
         showToast("There is no Source Code to save", 3000, true);
@@ -217,7 +234,11 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brs.execute("brsFiddle", editorManager.editor.getValue(), { clearDisplayOnExit: false, debugOnCrash: true });
+            brs.execute("brsFiddle", editorManager.editor.getValue(), {
+                clearDisplayOnExit: false,
+                debugOnCrash: true,
+                muteSound: !audioSwitch.checked,
+            });
         } catch (e: any) {
             console.log(e); // Check EvalError object
             terminal.output(`${e.name}: ${e.message}`);
@@ -248,15 +269,39 @@ function clearAll() {
     terminal.clear();
 }
 
+audioSwitch.addEventListener("click", (e) => {
+    audioIcon.className = audioSwitch.checked ? "icon-sound-on" : "icon-sound-off";
+    brs.setAudioMute(!audioSwitch.checked);
+});
+
+keyboardSwitch.addEventListener("click", controlModeSwitch);
+gamePadSwitch.addEventListener("click", controlModeSwitch);
+
+function controlModeSwitch() {
+    brs.setControlMode({
+        keyboard: keyboardSwitch.checked,
+        gamePads: gamePadSwitch.checked,
+    });
+}
+
 function hotKeys(event: KeyboardEvent) {
     const isMacOS = getOS() === "MacOS";
-    if ((isMacOS && event.code === "KeyR" && event.metaKey) || (event.code === "KeyR" && event.ctrlKey)) {
+    if (
+        (isMacOS && event.code === "KeyR" && event.metaKey) ||
+        (event.code === "KeyR" && event.ctrlKey)
+    ) {
         event.preventDefault();
         runCode();
-    } else if ((isMacOS && event.code === "KeyS" && event.metaKey) || (event.code === "KeyS" && event.ctrlKey)) {
+    } else if (
+        (isMacOS && event.code === "KeyS" && event.metaKey) ||
+        (event.code === "KeyS" && event.ctrlKey)
+    ) {
         event.preventDefault();
         saveCode();
-    } else if ((isMacOS && event.code === "KeyL" && event.metaKey) || (event.code === "KeyL" && event.ctrlKey)) {
+    } else if (
+        (isMacOS && event.code === "KeyL" && event.metaKey) ||
+        (event.code === "KeyL" && event.ctrlKey)
+    ) {
         event.preventDefault();
         clearAll();
     } else if (event.code === "KeyB" && event.ctrlKey) {
@@ -354,4 +399,3 @@ window.addEventListener("load", main, false);
 document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
-
