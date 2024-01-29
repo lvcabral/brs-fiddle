@@ -145,7 +145,7 @@ function main() {
                 } else if (data.level === "continue") {
                     terminal.idle();
                 } else if (data.level !== "beacon") {
-                    let output = data.content.replace("<", "&lt;");
+                    let output = data.content.replace(/</g, "&lt;").replace(/>/g, '&gt;');
                     if (data.level === "print") {
                         const promptLen = `${prompt}> `.length;
                         if (output.slice(-promptLen) === `${prompt}> `) {

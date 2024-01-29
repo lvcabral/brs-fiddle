@@ -805,10 +805,10 @@ browserslist@^4.14.5:
     node-releases "^2.0.14"
     update-browserslist-db "^1.0.13"
 
-brs-engine@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-1.2.1.tgz#853b48ad124214b523dea08b381846af88a3bd81"
-  integrity sha512-dGlmuqW4/MhRzIGiUW9nwF6r9GIb5N0VIfVly3apGNEp+/2w7mTiiNIfDlK+jztD/h6WAqOOnCMqsOWK/qo9+w==
+brs-engine@^1.2.6:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-1.2.6.tgz#bd9b5fa196268d6c86537a904fa188de133a9dbd"
+  integrity sha512-DUvBeE11dHXAhXhEuPdBwAxcPX+BWeGP/7R6Bxrj2URRwoCSaZeFzVnhvym54nRfes9Ih1EVP17rFSRBeK33qg==
   dependencies:
     "@msgpack/msgpack" "^2.8.0"
     chalk "^5.3.0"
