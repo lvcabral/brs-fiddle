@@ -34,6 +34,10 @@ const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
 const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
 const audioIcon = document.getElementById("audio-icon") as HTMLElement;
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
+const codeDialog = document.getElementById("code-dialog") as HTMLDialogElement;
+const codeForm = document.getElementById("code-form") as HTMLFormElement;
+const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement;
+
 const prompt = "Brightscript Debugger";
 const commands = {
     help: (terminal: any) => {
@@ -57,7 +61,7 @@ terminal.idle();
 saveButton.addEventListener("click", saveCode);
 deleteButton.addEventListener("click", deleteCode);
 runButton.addEventListener("click", runCode);
-clearAllButton.addEventListener("click", clearAll);
+clearAllButton.addEventListener("click", clearTerminal);
 breakButton.addEventListener("click", startDebug);
 endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
@@ -96,7 +100,7 @@ function main() {
     const shareToken = getParameterByName("code");
     if (shareToken) {
         getCodeFromToken(shareToken).then(function (data: any) {
-            if (data && data.id && data.code) {
+            if (data?.id && data?.code) {
                 localStorage.setItem(data.id, data.code);
                 window.location.href = `${getBaseUrl()}?id=${data.id}`;
             } else {
@@ -106,13 +110,9 @@ function main() {
         return;
     }
     const id = getParameterByName("id");
-    loadSavedCode(id ?? "");
+    populateCodeSelector(id ?? "");
     if (id) {
-        const code = localStorage.getItem(id);
-        if (code) {
-            editorManager.editor.setValue(code);
-            currentId = id;
-        }
+        loadCode(id);
     }
     // Initialize Device Simulator
     if (displayCanvas) {
@@ -141,7 +141,7 @@ function main() {
                 } else if (data.level === "continue") {
                     terminal.idle();
                 } else if (data.level !== "beacon") {
-                    let output = data.content.replace(/</g, "&lt;").replace(/>/g, '&gt;');
+                    let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     if (data.level === "print") {
                         const promptLen = `${prompt}> `.length;
                         if (output.slice(-promptLen) === `${prompt}> `) {
@@ -192,36 +192,83 @@ function scrollToBottom() {
     }
 }
 
-function loadSavedCode(currentId: string) {
-    for (var i = 0; i < localStorage.length; i++){
+function populateCodeSelector(currentId: string) {
+    var arrCode = new Array();
+    for (var i = 0; i < localStorage.length; i++) {
         const codeId = localStorage.key(i);
         if (codeId) {
-            const selected = codeId === currentId;
-            codeSelect.options[codeSelect.options.length] = new Option(`Code #${codeSelect.options.length}`, codeId, false, selected);
+            arrCode[i] = new Array();
+            let codeName = `Code #${i + 1}`;
+            const code = localStorage.getItem(codeId);
+            if (code?.startsWith("@=")) {
+                codeName = code.substring(2, code.indexOf("=@"));
+            }
+            arrCode[i][0] = codeName;
+            arrCode[i][1] = codeId;
         }
     }
+    arrCode.sort();
+
+    codeSelect.length = 1;
+    for (var i = 0; i < arrCode.length; i++) {
+        const codeId = arrCode[i][1];
+        const selected = codeId === currentId;
+        codeSelect.options[i + 1] = new Option(arrCode[i][0], codeId, false, selected);
+    }
+
     deleteButton.style.visibility = currentId === "" ? "hidden" : "visible";
 }
 
 codeSelect.addEventListener("change", (e) => {
     if (codeSelect.value !== "0") {
-        window.location.href = `${getBaseUrl()}?id=${codeSelect.value}`;
+        loadCode(codeSelect.value);
     } else {
-        window.location.href = getBaseUrl();
+        currentId = nanoid(10);
+        resetApp();
     }
 });
 
+function loadCode(id: string) {
+    let code = localStorage.getItem(id);
+    if (code) {
+        currentId = id;
+        if (code.startsWith("@=")) {
+            code = code.substring(code.indexOf("=@") + 2);
+        }
+        resetApp(id, code);
+    } else {
+        showToast("Could not find the code in the Local Storage!", 3000, true);
+    }
+}
+
 function deleteCode() {
     if (currentId && localStorage.getItem(currentId)) {
-        localStorage.removeItem(currentId);
-        editorManager.editor.setValue("");
-        currentId = nanoid(10);
-        codeSelect.length = 1;
-        loadSavedCode("");
-        showToast("Code deleted from your browser local storage!", 3000);
+        deleteDialog.showModal();
     } else {
         showToast("There is no Source Code to delete!", 3000, true);
     }
+}
+
+deleteDialog.addEventListener("close", (e) => {
+    if (deleteDialog.returnValue === "ok") {
+        localStorage.removeItem(currentId);
+        currentId = nanoid(10);
+        resetApp();
+        showToast("Code deleted from your browser local storage!", 3000);
+    }
+    deleteDialog.returnValue = "";
+});
+
+function resetApp(id = "", code = "") {
+    populateCodeSelector(id);
+    if (currentChannel.running) {
+        brs.terminate("EXIT_USER_NAV");
+        clearTerminal();
+    }
+    const ctx = displayCanvas.getContext("2d", { alpha: false });
+    ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+    editorManager.editor.setValue(code);
+    editorManager.editor.focus();
 }
 
 function shareCode() {
@@ -243,19 +290,40 @@ function shareCode() {
 function saveCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
-        localStorage.setItem(currentId, code);
         if (codeSelect.value === "0") {
-            codeSelect.length = 1;
-            loadSavedCode(currentId);
+            codeDialog.showModal();
+        } else {
+            const codeName = codeSelect.options[codeSelect.selectedIndex].text;
+            localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+            showToast(
+                "Code saved in your browser local storage!\nTo share it use the Share button.",
+                5000
+            );
         }
-        showToast(
-            "Code saved in your browser local storage!\nTo share it use the Share button.",
-            5000
-        );
     } else {
         showToast("There is no Source Code to save", 3000, true);
     }
 }
+
+codeDialog.addEventListener("close", (e) => {
+    if (codeDialog.returnValue === "ok") {
+        console.log("Name is ", codeForm.codeName.value);
+        if (codeForm.codeName.value.trim().length >= 3) {
+            const codeName = codeForm.codeName.value.trim();
+            const code = editorManager.editor.getValue();
+            localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+            populateCodeSelector(currentId);
+            showToast(
+                "Code saved in your browser local storage!\nTo share it use the Share button.",
+                5000
+            );
+        } else {
+            showToast("Code Snippet Name must have least 3 characters!", 3000, true);
+        }
+    }
+    codeDialog.returnValue = "";
+    codeForm.codeName.value = "";
+});
 
 function runCode() {
     const code = editorManager.editor.getValue();
@@ -292,7 +360,7 @@ function endExecution() {
     }
 }
 
-function clearAll() {
+function clearTerminal() {
     terminal.clear();
 }
 
@@ -329,7 +397,7 @@ function hotKeys(event: KeyboardEvent) {
         (event.code === "KeyL" && event.ctrlKey)
     ) {
         event.preventDefault();
-        clearAll();
+        clearTerminal();
     } else if (event.code === "KeyB" && event.ctrlKey) {
         event.preventDefault();
         startDebug();

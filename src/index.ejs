@@ -73,7 +73,7 @@
             <select id="code-selector">
               <option value="0">&lt;&lt; New Code &gt;&gt;</option>
             </select>
-            <button title="Delete the Code" class="delete">
+            <button title="Delete the Code" class="delete" style="visibility: hidden;">
               <i class="icon-trash"></i>
               <span>DELETE</span>
             </button>
@@ -146,6 +146,22 @@
         <div id="console-logs" class="active"></div>
       </div>
     </div>
+    <dialog id="code-dialog" class="modal_dialog" closed>
+      <p class="modal_dialog_content">Enter the name of the code snippet:</p>
+      <form method="dialog" id="code-form">
+        <input type="text" name="codeName" class="modal_dialog_input" />
+        <button value="ok">OK</button>
+        <button value="cancel" class="modal_dialog_cancel">Cancel</button>
+      </form>
+    </dialog>
+    <dialog id="delete-dialog" class="modal_dialog" closed>
+      <p class="modal_dialog_content">Are you sure you want to delete this code?</p>
+      <br />
+      <form method="dialog">
+        <button value="ok">Yes</button>
+        <button value="cancel" class="modal_dialog_cancel">No</button>
+      </form>
+    </dialog>
   </main>
   <script src="lib/<%= brsApi %>"></script>
 </body>
