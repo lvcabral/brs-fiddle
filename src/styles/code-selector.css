@@ -1,7 +1,7 @@
 :root {
     --arrow-bg: rgba(255, 255, 255, 0.3);
     --arrow-icon: url(../images/caret_down.svg);
-    --option-bg: white;
+    --option-bg: #333;
     --select-bg: rgba(255, 255, 255, 0.2);
   }
   * {
@@ -14,6 +14,7 @@
     border: 0;
     outline: 0;
     font-family: Asap, Arial, Helvetica, sans-serif;
+    background-color: var(--option-bg)!important;
     /* Personalize */
     width: 20rem;
     height: 30px;
