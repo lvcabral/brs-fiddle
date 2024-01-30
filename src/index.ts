@@ -13,9 +13,11 @@ import { nanoid } from "nanoid";
 import { getOS } from "./util";
 import { CodeMirrorManager } from "./codemirror";
 
+const isMacOS = getOS() === "MacOS";
 const codec = Codec("lzma");
 const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
 const saveButton = document.querySelector("button.save") as HTMLButtonElement;
+const deleteButton = document.querySelector("button.delete") as HTMLButtonElement;
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
 const breakButton = document.querySelector("button.break") as HTMLButtonElement;
@@ -31,6 +33,7 @@ const keyboardSwitch = document.getElementById("keyboard") as HTMLInputElement;
 const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
 const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
 const audioIcon = document.getElementById("audio-icon") as HTMLElement;
+const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const prompt = "Brightscript Debugger";
 const commands = {
     help: (terminal: any) => {
@@ -41,7 +44,7 @@ const commands = {
     },
 };
 const terminal = new VanillaTerminal({
-    welcome: `<span style='color: #2e71ff'>Brightscript Console - brs-engine v${brs.getVersion()}</span>`,
+    welcome: `<span style='color: #2e71ff'>BrightScript Console - brs-engine v${brs.getVersion()}</span>`,
     container: "console-logs",
     commands: commands,
     prompt: prompt,
@@ -52,6 +55,7 @@ terminal.idle();
 
 // Buttons Events
 saveButton.addEventListener("click", saveCode);
+deleteButton.addEventListener("click", deleteCode);
 runButton.addEventListener("click", runCode);
 clearAllButton.addEventListener("click", clearAll);
 breakButton.addEventListener("click", startDebug);
@@ -66,21 +70,20 @@ let editorManager: CodeMirrorManager;
 let currentId = nanoid(10);
 
 function main() {
-    const OS = getOS();
     if (saveButton) {
-        saveButton.title = OS === "MacOS" ? "CMD+S" : "CTRL+S";
+        saveButton.title = isMacOS ? "CMD+S" : "CTRL+S";
     }
     if (runButton) {
-        runButton.title = OS === "MacOS" ? "CMD+R" : "CTRL+R";
+        runButton.title = isMacOS ? "CMD+R" : "CTRL+R";
     }
     if (clearAllButton) {
-        clearAllButton.title = OS === "MacOS" ? "CMD+L" : "CTRL+L";
+        clearAllButton.title = isMacOS ? "CMD+L" : "CTRL+L";
     }
     if (endButton) {
-        endButton.title = OS === "MacOS" ? "CTRL+ESC" : "HOME";
+        endButton.title = isMacOS ? "CTRL+ESC" : "HOME";
     }
     if (breakButton) {
-        breakButton.title = OS === "MacOS" ? "CTRL+C" : "CTRL+B";
+        breakButton.title = isMacOS ? "CTRL+C" : "CTRL+B";
     }
     // Initialize the manager
     if (brsCodeField) {
@@ -95,7 +98,7 @@ function main() {
         getCodeFromToken(shareToken).then(function (data: any) {
             if (data && data.id && data.code) {
                 localStorage.setItem(data.id, data.code);
-                window.location.href = getBaseUrl() + "/?id=" + data.id;
+                window.location.href = `${getBaseUrl()}?id=${data.id}`;
             } else {
                 window.location.href = getBaseUrl();
             }
@@ -103,19 +106,12 @@ function main() {
         return;
     }
     const id = getParameterByName("id");
+    loadSavedCode(id ?? "");
     if (id) {
         const code = localStorage.getItem(id);
         if (code) {
             editorManager.editor.setValue(code);
             currentId = id;
-            const saved = localStorage.getItem("saved");
-            if (saved && saved === id) {
-                showToast(
-                    "Code saved in your browser local storage!\nTo share it use the Share button.",
-                    5000
-                );
-                localStorage.removeItem("saved");
-            }
         }
     }
     // Initialize Device Simulator
@@ -196,6 +192,38 @@ function scrollToBottom() {
     }
 }
 
+function loadSavedCode(currentId: string) {
+    for (var i = 0; i < localStorage.length; i++){
+        const codeId = localStorage.key(i);
+        if (codeId) {
+            const selected = codeId === currentId;
+            codeSelect.options[codeSelect.options.length] = new Option(`Code #${codeSelect.options.length}`, codeId, false, selected);
+        }
+    }
+    deleteButton.style.visibility = currentId === "" ? "hidden" : "visible";
+}
+
+codeSelect.addEventListener("change", (e) => {
+    if (codeSelect.value !== "0") {
+        window.location.href = `${getBaseUrl()}?id=${codeSelect.value}`;
+    } else {
+        window.location.href = getBaseUrl();
+    }
+});
+
+function deleteCode() {
+    if (currentId && localStorage.getItem(currentId)) {
+        localStorage.removeItem(currentId);
+        editorManager.editor.setValue("");
+        currentId = nanoid(10);
+        codeSelect.length = 1;
+        loadSavedCode("");
+        showToast("Code deleted from your browser local storage!", 3000);
+    } else {
+        showToast("There is no Source Code to delete!", 3000, true);
+    }
+}
+
 function shareCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
@@ -216,15 +244,14 @@ function saveCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         localStorage.setItem(currentId, code);
-        if (window.location.search === "") {
-            localStorage.setItem("saved", currentId);
-            window.location.href = `${getBaseUrl()}/?id=${currentId}`;
-        } else {
-            showToast(
-                "Code saved in your browser local storage!\nTo share it use the Share button.",
-                5000
-            );
+        if (codeSelect.value === "0") {
+            codeSelect.length = 1;
+            loadSavedCode(currentId);
         }
+        showToast(
+            "Code saved in your browser local storage!\nTo share it use the Share button.",
+            5000
+        );
     } else {
         showToast("There is no Source Code to save", 3000, true);
     }
@@ -285,7 +312,6 @@ function controlModeSwitch() {
 }
 
 function hotKeys(event: KeyboardEvent) {
-    const isMacOS = getOS() === "MacOS";
     if (
         (isMacOS && event.code === "KeyR" && event.metaKey) ||
         (event.code === "KeyR" && event.ctrlKey)
@@ -371,7 +397,7 @@ function getShareUrl(suite: any) {
     //compress the object
     var data = [suite.id, suite.code];
     return codec.compress(data).then(function (text: string) {
-        return getBaseUrl() + "/?code=" + text;
+        return getBaseUrl() + "?code=" + text;
     });
 }
 
