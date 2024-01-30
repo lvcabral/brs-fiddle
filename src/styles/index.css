@@ -120,6 +120,7 @@
     height: calc(100vh - 55px);
     width: 60%;
     color-scheme: dark;
+    min-width: 730px;
 }
 .code .code-header {
     background: #333;
@@ -187,6 +188,9 @@
     height: 92%;
 }
 @media (max-width: 1060px) {
+    .code {
+        min-width: unset;
+    }
     .editor {
         flex-direction: column;
     }
@@ -202,6 +206,9 @@
     }
     button {
         font-size: 14px;
+    }
+    button span {
+        display: none;
     }
 }
 .layout-separator {
@@ -308,4 +315,3 @@ input::before {
     background-color: #fff;
     color: #449dff;
 }
-
