@@ -272,11 +272,15 @@ function resetApp(id = "", code = "") {
 }
 
 function shareCode() {
-    const code = editorManager.editor.getValue();
+    let code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
+        if (codeSelect.value !== "0") {
+            let codeName = codeSelect.options[codeSelect.selectedIndex].text;
+            code = `@=${codeName}=@${code}`;
+        }
         const data = {
             id: currentId,
-            code: editorManager.editor.getValue(),
+            code: code,
         };
         getShareUrl(data).then(function (shareLink: string) {
             navigator.clipboard.writeText(shareLink);
