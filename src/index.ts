@@ -175,7 +175,6 @@ function main() {
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
-                console.log(command, parameters);
                 brs.debug(`${command} ${parameters.join(" ")}`);
             }
         });
