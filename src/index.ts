@@ -93,6 +93,12 @@ function main() {
     // Initialize the manager
     if (brsCodeField) {
         editorManager = new CodeMirrorManager(brsCodeField);
+        // Remove binding for Ctrl+V on MacOS to allow remapping
+        // https://github.com/codemirror/codemirror5/issues/5848
+        if (isMacOS) {
+            let cm = document.querySelector(".CodeMirror") as any;
+            if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
+        }
     }
     // initializeHeader();
     const { height } = codeColumn.getBoundingClientRect();
@@ -387,25 +393,36 @@ function controlModeSwitch() {
 function hotKeys(event: KeyboardEvent) {
     if (
         (isMacOS && event.code === "KeyR" && event.metaKey) ||
-        (event.code === "KeyR" && event.ctrlKey)
+        (!isMacOS && event.code === "KeyR" && event.ctrlKey)
     ) {
         event.preventDefault();
         runCode();
     } else if (
         (isMacOS && event.code === "KeyS" && event.metaKey) ||
-        (event.code === "KeyS" && event.ctrlKey)
+        (!isMacOS && event.code === "KeyS" && event.ctrlKey)
     ) {
         event.preventDefault();
         saveCode();
     } else if (
         (isMacOS && event.code === "KeyL" && event.metaKey) ||
-        (event.code === "KeyL" && event.ctrlKey)
+        (!isMacOS && event.code === "KeyL" && event.ctrlKey)
     ) {
         event.preventDefault();
         clearTerminal();
-    } else if (event.code === "KeyB" && event.ctrlKey) {
-        event.preventDefault();
-        startDebug();
+    } else if (currentChannel.running) {
+        if (
+            (isMacOS && event.code === "KeyC" && event.ctrlKey) ||
+            (!isMacOS && event.code === "KeyB" && event.ctrlKey)
+        ) {
+            event.preventDefault();
+            startDebug();
+        } else if (
+            (isMacOS && event.code === "Escape" && event.ctrlKey) ||
+            (!isMacOS && event.code === "Home")
+        ) {
+            event.preventDefault();
+            endExecution();
+        }
     }
 }
 

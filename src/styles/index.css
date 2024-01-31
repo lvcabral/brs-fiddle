@@ -293,7 +293,6 @@ input::before {
     border: 1px solid #449dff;
     background-color: #232323;
 }
-
 .modal_dialog_content {
     margin: 10px 0px;
 }
@@ -308,14 +307,9 @@ input::before {
     outline: none;
     width: 100px;
 }
-
 .modal_dialog .modal_dialog_cancel {
     margin-left: 10px;
     border: 1px solid #449dff;
     background-color: #fff;
     color: #449dff;
-}
-
-.VanillaTerm .prompt {
-    margin-top: 0.36em;
 }
