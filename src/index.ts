@@ -134,7 +134,7 @@ function main() {
                 terminal.idle();
             } else if (event === "started") {
                 currentChannel = data;
-                console.info(`Started ${data.id}`);
+                console.info(`Execution started ${appId}`);
             } else if (event === "debug") {
                 if (data.level === "stop") {
                     terminal.output("<br />");
@@ -197,7 +197,7 @@ function populateCodeSelector(currentId: string) {
     var arrCode = new Array();
     for (var i = 0; i < localStorage.length; i++) {
         const codeId = localStorage.key(i);
-        if (codeId && !codeId.startsWith("VanillaTerm") && !codeId.startsWith(appId)) {
+        if (codeId && codeId.length === 10) {
             let idx = arrCode.length;
             arrCode.push([]);
             let codeName = `Code #${i + 1}`;
@@ -313,7 +313,6 @@ function saveCode() {
 
 codeDialog.addEventListener("close", (e) => {
     if (codeDialog.returnValue === "ok") {
-        console.log("Name is ", codeForm.codeName.value);
         if (codeForm.codeName.value.trim().length >= 3) {
             const codeName = codeForm.codeName.value.trim();
             const code = editorManager.editor.getValue();
