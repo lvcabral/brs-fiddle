@@ -179,7 +179,7 @@
     width: 100%;
 }
 .editor .console {
-    height: 45%;
+    height: 50%;
 }
 .editor .console #console-logs {
     color-scheme: dark;
@@ -314,4 +314,8 @@ input::before {
     border: 1px solid #449dff;
     background-color: #fff;
     color: #449dff;
+}
+
+.VanillaTerm .prompt {
+    margin-top: 0.36em;
 }
