@@ -198,14 +198,15 @@ function populateCodeSelector(currentId: string) {
     for (var i = 0; i < localStorage.length; i++) {
         const codeId = localStorage.key(i);
         if (codeId && !codeId.startsWith("VanillaTerm") && !codeId.startsWith(appId)) {
-            arrCode[i] = new Array();
+            let idx = arrCode.length;
+            arrCode.push([]);
             let codeName = `Code #${i + 1}`;
             const code = localStorage.getItem(codeId);
             if (code?.startsWith("@=")) {
                 codeName = code.substring(2, code.indexOf("=@"));
             }
-            arrCode[i][0] = codeName;
-            arrCode[i][1] = codeId;
+            arrCode[idx][0] = codeName;
+            arrCode[idx][1] = codeId;
         }
     }
     arrCode.sort();
