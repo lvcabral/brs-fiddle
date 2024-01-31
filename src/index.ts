@@ -39,6 +39,7 @@ const codeForm = document.getElementById("code-form") as HTMLFormElement;
 const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement;
 
 const prompt = "Brightscript Debugger";
+const appId = "brsFiddle";
 const commands = {
     help: (terminal: any) => {
         brs.debug("help");
@@ -117,7 +118,7 @@ function main() {
     // Initialize Device Simulator
     if (displayCanvas) {
         brs.initialize(
-            {},
+            { developerId: appId },
             {
                 debugToConsole: false,
                 disableKeys: !keyboardSwitch.checked,
@@ -126,7 +127,7 @@ function main() {
         );
 
         // Subscribe to Engine Events
-        brs.subscribe("brsFiddle", (event: any, data: any) => {
+        brs.subscribe(appId, (event: any, data: any) => {
             if (event === "loaded") {
                 currentChannel = data;
                 terminal.output(`<br />Executing source code...<br /><br />`);
@@ -197,7 +198,7 @@ function populateCodeSelector(currentId: string) {
     var arrCode = new Array();
     for (var i = 0; i < localStorage.length; i++) {
         const codeId = localStorage.key(i);
-        if (codeId) {
+        if (codeId && !codeId.startsWith("VanillaTerm") && !codeId.startsWith(appId)) {
             arrCode[i] = new Array();
             let codeName = `Code #${i + 1}`;
             const code = localStorage.getItem(codeId);
@@ -334,7 +335,7 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brs.execute("brsFiddle", editorManager.editor.getValue(), {
+            brs.execute(appId, editorManager.editor.getValue(), {
                 clearDisplayOnExit: false,
                 debugOnCrash: true,
                 muteSound: !audioSwitch.checked,
