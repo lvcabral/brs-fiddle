@@ -12,6 +12,7 @@ import VanillaTerminal from "vanilla-terminal";
 import { nanoid } from "nanoid";
 import { getOS } from "./util";
 import { CodeMirrorManager } from "./codemirror";
+import packageInfo from "../package.json";
 
 const isMacOS = getOS() === "MacOS";
 const codec = Codec("lzma");
@@ -49,7 +50,9 @@ const commands = {
     },
 };
 const terminal = new VanillaTerminal({
-    welcome: `<span style='color: #2e71ff'>BrightScript Console - brs-engine v${brs.getVersion()}</span>`,
+    welcome: `<span style='color: #2e71ff'>BrightScript Console - ${packageInfo.name} v${
+        packageInfo.version
+    } -  brs-engine v${brs.getVersion()}</span>`,
     container: "console-logs",
     commands: commands,
     prompt: prompt,
@@ -68,7 +71,7 @@ endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 
-let currentChannel = { id: "", running: false };
+let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
 let editorManager: CodeMirrorManager;
@@ -135,11 +138,11 @@ function main() {
         // Subscribe to Engine Events
         brs.subscribe(appId, (event: any, data: any) => {
             if (event === "loaded") {
-                currentChannel = data;
+                currentApp = data;
                 terminal.output(`<br />Executing source code...<br /><br />`);
                 terminal.idle();
             } else if (event === "started") {
-                currentChannel = data;
+                currentApp = data;
                 console.info(`Execution started ${appId}`);
             } else if (event === "debug") {
                 if (data.level === "stop") {
@@ -163,7 +166,7 @@ function main() {
                 }
                 scrollToBottom();
             } else if (event === "closed" || event === "error") {
-                currentChannel = data;
+                currentApp = data;
                 console.info(`Execution terminated! ${event}: ${data}`);
                 terminal.idle();
             }
@@ -269,7 +272,7 @@ deleteDialog.addEventListener("close", (e) => {
 
 function resetApp(id = "", code = "") {
     populateCodeSelector(id);
-    if (currentChannel.running) {
+    if (currentApp.running) {
         brs.terminate("EXIT_USER_NAV");
         clearTerminal();
     }
@@ -356,7 +359,7 @@ function runCode() {
 }
 
 function startDebug() {
-    if (currentChannel.running) {
+    if (currentApp.running) {
         brs.debug("break");
     } else {
         showToast("There is nothing running to debug", 3000, true);
@@ -364,7 +367,7 @@ function startDebug() {
 }
 
 function endExecution() {
-    if (currentChannel.running) {
+    if (currentApp.running) {
         brs.terminate("EXIT_USER_NAV");
     } else {
         showToast("There is nothing running to terminate", 3000, true);
@@ -409,7 +412,7 @@ function hotKeys(event: KeyboardEvent) {
     ) {
         event.preventDefault();
         clearTerminal();
-    } else if (currentChannel.running) {
+    } else if (currentApp.running) {
         if (
             (isMacOS && event.code === "KeyC" && event.ctrlKey) ||
             (!isMacOS && event.code === "KeyB" && event.ctrlKey)
