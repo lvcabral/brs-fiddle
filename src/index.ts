@@ -44,7 +44,7 @@ const commands = {
         brs.debug("help");
     },
     version: (terminal: any) => {
-        terminal.output(`<br />Brightscript Simulation Engine v${brs.getVersion()}<br />`);
+        terminal.output(`<br />BrightScript Simulation Engine v${brs.getVersion()}<br />`);
     },
 };
 const terminal = new VanillaTerminal({
@@ -143,8 +143,8 @@ function main() {
                 } else if (data.level !== "beacon") {
                     let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     if (data.level === "print") {
-                        const promptLen = `${prompt}> `.length;
-                        if (output.slice(-promptLen) === `${prompt}> `) {
+                        const promptLen = `${prompt}&gt; `.length;
+                        if (output.slice(-promptLen) === `${prompt}&gt; `) {
                             output = output.slice(0, output.length - promptLen);
                         }
                     } else if (data.level === "warning") {
@@ -174,6 +174,7 @@ function main() {
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
+                console.log(command, parameters);
                 brs.debug(`${command} ${parameters.join(" ")}`);
             }
         });
