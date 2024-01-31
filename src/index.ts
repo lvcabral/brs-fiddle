@@ -93,37 +93,44 @@ function main() {
     if (breakButton) {
         breakButton.title = isMacOS ? "CTRL+C" : "CTRL+B";
     }
-    // Initialize the manager
+    // Initialize the Code Mirror manager
     if (brsCodeField) {
         editorManager = new CodeMirrorManager(brsCodeField);
-        // Remove binding for Ctrl+V on MacOS to allow remapping
-        // https://github.com/codemirror/codemirror5/issues/5848
         if (isMacOS) {
-            let cm = document.querySelector(".CodeMirror") as any;
+            // Remove binding for Ctrl+V on MacOS to allow remapping
+            // https://github.com/codemirror/codemirror5/issues/5848
+            const cm = document.querySelector(".CodeMirror") as any;
             if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
         }
     }
-    // initializeHeader();
     const { height } = codeColumn.getBoundingClientRect();
     editorManager.editor.setSize("100%", `${height - 40}px`);
-
+    // Process Shared Token parameter
     const shareToken = getParameterByName("code");
     if (shareToken) {
         getCodeFromToken(shareToken).then(function (data: any) {
             if (data?.id && data?.code) {
                 localStorage.setItem(data.id, data.code);
-                window.location.href = `${getBaseUrl()}?id=${data.id}`;
-            } else {
-                window.location.href = getBaseUrl();
+                localStorage.setItem(`${appId}.load`, data.id);
             }
+            window.location.href = getBaseUrl();
         });
         return;
     }
-    const id = getParameterByName("id");
-    populateCodeSelector(id ?? "");
-    if (id) {
-        loadCode(id);
+    // Process id parameter
+    const paramId = getParameterByName("id")
+    if (paramId?.length) {
+        localStorage.setItem(`${appId}.load`, paramId);
+        window.location.href = getBaseUrl();
+        return;
     }
+    // Check saved id to load
+    const loadId = localStorage.getItem(`${appId}.load`);
+    populateCodeSelector(loadId ?? "");
+    if (loadId?.length) {
+        loadCode(loadId);
+    }
+    localStorage.removeItem(`${appId}.load`);
     // Initialize Device Simulator
     if (displayCanvas) {
         brs.initialize(
@@ -134,59 +141,52 @@ function main() {
                 disableGamePads: !gamePadSwitch.checked,
             }
         );
-
         // Subscribe to Engine Events
-        brs.subscribe(appId, (event: any, data: any) => {
-            if (event === "loaded") {
-                currentApp = data;
-                terminal.output(`<br />Executing source code...<br /><br />`);
-                terminal.idle();
-            } else if (event === "started") {
-                currentApp = data;
-                console.info(`Execution started ${appId}`);
-            } else if (event === "debug") {
-                if (data.level === "stop") {
-                    terminal.output("<br />");
-                    terminal.setPrompt();
-                } else if (data.level === "continue") {
-                    terminal.idle();
-                } else if (data.level !== "beacon") {
-                    let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    if (data.level === "print") {
-                        const promptLen = `${prompt}&gt; `.length;
-                        if (output.slice(-promptLen) === `${prompt}&gt; `) {
-                            output = output.slice(0, output.length - promptLen);
-                        }
-                    } else if (data.level === "warning") {
-                        output = "<span style='color: #d7ba7d;'>" + output + "</span>";
-                    } else if (data.level === "error") {
-                        output = "<span style='color: #e95449;'>" + output + "</span>";
-                    }
-                    terminal.output(`<pre>${output}</pre>`);
-                }
-                scrollToBottom();
-            } else if (event === "closed" || event === "error") {
-                currentApp = data;
-                console.info(`Execution terminated! ${event}: ${data}`);
-                terminal.idle();
-            }
-        });
-
+        brs.subscribe(appId, handleEngineEvents);
         // Resize the display canvas
-        const rightRect = rightContainer.getBoundingClientRect();
-        brs.redraw(
-            false,
-            rightRect.width,
-            Math.trunc(rightRect.height / 2),
-            window.devicePixelRatio
-        );
-
+        resizeCanvas();
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
                 brs.debug(`${command} ${parameters.join(" ")}`);
             }
         });
+    }
+}
+
+function handleEngineEvents(event: string, data: any) {
+    if (event === "loaded") {
+        currentApp = data;
+        terminal.output(`<br />Executing source code...<br /><br />`);
+        terminal.idle();
+    } else if (event === "started") {
+        currentApp = data;
+        console.info(`Execution started ${appId}`);
+    } else if (event === "debug") {
+        if (data.level === "stop") {
+            terminal.output("<br />");
+            terminal.setPrompt();
+        } else if (data.level === "continue") {
+            terminal.idle();
+        } else if (data.level !== "beacon") {
+            let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            if (data.level === "print") {
+                const promptLen = `${prompt}&gt; `.length;
+                if (output.slice(-promptLen) === `${prompt}&gt; `) {
+                    output = output.slice(0, output.length - promptLen);
+                }
+            } else if (data.level === "warning") {
+                output = "<span style='color: #d7ba7d;'>" + output + "</span>";
+            } else if (data.level === "error") {
+                output = "<span style='color: #e95449;'>" + output + "</span>";
+            }
+            terminal.output(`<pre>${output}</pre>`);
+        }
+        scrollToBottom();
+    } else if (event === "closed" || event === "error") {
+        currentApp = data;
+        console.info(`Execution terminated! ${event}: ${data}`);
+        terminal.idle();
     }
 }
 
@@ -433,6 +433,16 @@ function resizeColumn() {
     isResizing = true;
 }
 
+function resizeCanvas() {
+    const rightRect = rightContainer.getBoundingClientRect();
+    brs.redraw(
+        false,
+        rightRect.width,
+        Math.trunc(rightRect.height / 2) - 10,
+        window.devicePixelRatio
+    );
+}
+
 function onMouseMove(e: any) {
     if (!isResizing) {
         return;
@@ -452,16 +462,14 @@ function onMouseMove(e: any) {
 }
 
 function onMouseUp() {
-    if (isResizing) {
-        const rightRect = rightContainer.getBoundingClientRect();
-        brs.redraw(
-            false,
-            rightRect.width,
-            Math.trunc(rightRect.height / 2) - 10,
-            window.devicePixelRatio
-        );
-    }
+    resizeCanvas();
     isResizing = false;
+}
+
+function onMouseDown(event: Event) {
+    if (isResizing) {
+        event.preventDefault();
+    }
 }
 
 function getParameterByName(name: string, url = window.location.href) {
@@ -518,3 +526,4 @@ window.addEventListener("load", main, false);
 document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
+document.addEventListener("mousedown", onMouseDown, false);
