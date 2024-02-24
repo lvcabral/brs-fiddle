@@ -118,7 +118,7 @@ function main() {
         return;
     }
     // Process id parameter
-    const paramId = getParameterByName("id")
+    const paramId = getParameterByName("id");
     if (paramId?.length) {
         localStorage.setItem(`${appId}.load`, paramId);
         window.location.href = getBaseUrl();
@@ -462,7 +462,9 @@ function onMouseMove(e: any) {
 }
 
 function onMouseUp() {
-    resizeCanvas();
+    if (isResizing) {
+        resizeCanvas();
+    }
     isResizing = false;
 }
 
