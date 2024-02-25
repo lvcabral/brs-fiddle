@@ -173,7 +173,10 @@ pre {
 .VanillaTerm .command {
     align-items: center;
 }
-
+.VanillaTerm .command input {
+    border-radius: unset;
+    box-shadow: none;
+}
 .editor .console #console-logs {
     font-size: 12px;
     height: calc(100vh - 78px);
