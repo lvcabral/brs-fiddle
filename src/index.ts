@@ -570,7 +570,7 @@ function loadState() {
     };
     const savedState = localStorage.getItem(`${appId}.state`);
     if (savedState) {
-        state = JSON.parse(savedState);
+        state = Object.assign(state, JSON.parse(savedState));
     }
     return state;
 }
