@@ -51,6 +51,7 @@ module.exports = env => {
                         { context: "node_modules/brs-engine/app/", from: "fonts/**", to: ".." },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
+                        { context: "src/themes/", from: "**/*", to: "../css/" },
                         { context: "src/images/", from: "**/*", to: "../images/" },
                         { context: "src/fonts/", from: "**/*", to: "../fonts/" },
                     ]

@@ -35,6 +35,8 @@ const keyboardSwitch = document.getElementById("keyboard") as HTMLInputElement;
 const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
 const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
 const audioIcon = document.getElementById("audio-icon") as HTMLElement;
+const themeSwitch = document.getElementById("darkTheme") as HTMLInputElement;
+const themeIcon = document.getElementById("theme-icon") as HTMLElement;
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const codeDialog = document.getElementById("code-dialog") as HTMLDialogElement;
 const codeForm = document.getElementById("code-form") as HTMLFormElement;
@@ -45,6 +47,7 @@ const lastState = loadState();
 audioSwitch.checked = lastState.audio;
 keyboardSwitch.checked = lastState.keys;
 gamePadSwitch.checked = lastState.gamePads;
+themeSwitch.checked = lastState.darkTheme;
 
 // Terminal Setup
 const prompt = "Brightscript Debugger";
@@ -110,7 +113,7 @@ function main() {
             if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
         }
     }
-    setTheme();
+    setTheme(lastState.darkTheme);
     const { height } = codeColumn.getBoundingClientRect();
     editorManager.editor.setSize("100%", `${height - 40}px`);
     // Process Shared Token parameter
@@ -390,11 +393,17 @@ function clearTerminal() {
 }
 
 // Switches Events
+themeSwitch.addEventListener("click", (e) => {
+    themeIcon.className = themeSwitch.checked ? "icon-moon" : "icon-sun";
+    lastState.darkTheme = themeSwitch.checked;
+    setTheme(lastState.darkTheme);
+    saveState();
+});
+
 audioSwitch.addEventListener("click", (e) => {
     audioIcon.className = audioSwitch.checked ? "icon-sound-on" : "icon-sound-off";
-    brs.setAudioMute(!audioSwitch.checked);
     lastState.audio = audioSwitch.checked;
-    setTheme({ matches: lastState.audio });
+    brs.setAudioMute(!lastState.audio);
     saveState();
 });
 
@@ -557,6 +566,7 @@ function loadState() {
         audio: true,
         keys: true,
         gamePads: true,
+        darkTheme: isDarkTheme(),
     };
     const savedState = localStorage.getItem(`${appId}.state`);
     if (savedState) {
@@ -582,15 +592,11 @@ function onResize() {
 }
 
 // Theme Management
-function currentTheme() {
-    return window.matchMedia("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+function isDarkTheme() {
+    return window.matchMedia("(prefers-color-scheme: dark)")?.matches ? true : false;
 }
-function setTheme(event: any = null) {
-    let theme = null;
-    if (event) {
-        theme = event.matches ? "dark" : "light";
-    }
-    theme = theme ?? currentTheme();
+function setTheme(dark: boolean) {
+    const theme = dark ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);
     document.body.style.colorScheme = theme;
     codeColumn.style.colorScheme = theme;
@@ -600,7 +606,6 @@ function setTheme(event: any = null) {
         editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
     }
 }
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", setTheme);
 
 // Event Listeners
 window.addEventListener("load", main, false);
