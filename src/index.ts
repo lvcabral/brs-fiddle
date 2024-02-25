@@ -23,6 +23,7 @@ const deleteButton = document.querySelector("button.delete") as HTMLButtonElemen
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
 const breakButton = document.querySelector("button.break") as HTMLButtonElement;
+const resumeButton = document.querySelector("button.resume") as HTMLButtonElement;
 const endButton = document.querySelector("button.end") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
 const layoutContainer = document.querySelector("main.editor") as HTMLElement;
@@ -77,6 +78,7 @@ deleteButton.addEventListener("click", deleteCode);
 runButton.addEventListener("click", runCode);
 clearAllButton.addEventListener("click", clearTerminal);
 breakButton.addEventListener("click", startDebug);
+resumeButton.addEventListener("click", resumeExecution);
 endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
@@ -173,12 +175,19 @@ function handleEngineEvents(event: string, data: any) {
     } else if (event === "started") {
         currentApp = data;
         console.info(`Execution started ${appId}`);
+        runButton.style.display = "none";
+        endButton.style.display = "inline";
+        breakButton.style.display = "inline";
     } else if (event === "debug") {
         if (data.level === "stop") {
             terminal.output("<br />");
             terminal.setPrompt();
+            resumeButton.style.display = "inline";
+            breakButton.style.display = "none";
         } else if (data.level === "continue") {
             terminal.idle();
+            resumeButton.style.display = "none";
+            breakButton.style.display = "inline";
         } else if (data.level !== "beacon") {
             let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             if (data.level === "print") {
@@ -198,6 +207,10 @@ function handleEngineEvents(event: string, data: any) {
         currentApp = data;
         console.info(`Execution terminated! ${event}: ${data}`);
         terminal.idle();
+        runButton.style.display = "inline";
+        endButton.style.display = "none";
+        resumeButton.style.display = "none";
+        breakButton.style.display = "none";
     }
 }
 
@@ -377,6 +390,12 @@ function startDebug() {
         brs.debug("break");
     } else {
         showToast("There is nothing running to debug", 3000, true);
+    }
+}
+
+function resumeExecution() {
+    if (currentApp.running) {
+        brs.debug("cont");
     }
 }
 
