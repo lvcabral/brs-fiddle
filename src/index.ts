@@ -11,7 +11,7 @@ import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
 import { nanoid } from "nanoid";
 import { getOS } from "./util";
-import { CodeMirrorManager } from "./codemirror";
+import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
 
 const appId = "brsFiddle";
@@ -25,7 +25,7 @@ const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonE
 const breakButton = document.querySelector("button.break") as HTMLButtonElement;
 const endButton = document.querySelector("button.end") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
-const layoutContainer = document.querySelector("main.editor");
+const layoutContainer = document.querySelector("main.editor") as HTMLElement;
 const layoutSeparator = document.querySelector("div.layout-separator") as HTMLDivElement;
 const codeColumn = document.querySelector("div.code") as HTMLDivElement;
 const consoleColumn = document.querySelector("div.console") as HTMLDivElement;
@@ -102,7 +102,7 @@ function main() {
     }
     // Initialize the Code Mirror manager
     if (brsCodeField) {
-        editorManager = new CodeMirrorManager(brsCodeField);
+        editorManager = new CodeMirrorManager(brsCodeField, "dark");
         if (isMacOS) {
             // Remove binding for Ctrl+V on MacOS to allow remapping
             // https://github.com/codemirror/codemirror5/issues/5848
@@ -110,6 +110,7 @@ function main() {
             if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
         }
     }
+    setTheme();
     const { height } = codeColumn.getBoundingClientRect();
     editorManager.editor.setSize("100%", `${height - 40}px`);
     // Process Shared Token parameter
@@ -393,6 +394,7 @@ audioSwitch.addEventListener("click", (e) => {
     audioIcon.className = audioSwitch.checked ? "icon-sound-on" : "icon-sound-off";
     brs.setAudioMute(!audioSwitch.checked);
     lastState.audio = audioSwitch.checked;
+    setTheme({ matches: lastState.audio });
     saveState();
 });
 
@@ -567,7 +569,42 @@ function saveState() {
     localStorage.setItem(`${appId}.state`, JSON.stringify(lastState));
 }
 
+function onResize() {
+    if (window.innerWidth >= 1220) {
+        const { height } = codeColumn.getBoundingClientRect();
+        editorManager.editor.setSize("100%", `${height - 15}px`);
+    } else {
+        const { top } = rightContainer.getBoundingClientRect();
+        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight - top - 15)}px`);
+        codeColumn.style.width = "100%";
+    }
+    scrollToBottom();
+}
+
+// Theme Management
+function currentTheme() {
+    return window.matchMedia("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+}
+function setTheme(event: any = null) {
+    let theme = null;
+    if (event) {
+        theme = event.matches ? "dark" : "light";
+    }
+    theme = theme ?? currentTheme();
+    document.documentElement.setAttribute("data-theme", theme);
+    document.body.style.colorScheme = theme;
+    codeColumn.style.colorScheme = theme;
+    consoleColumn.style.colorScheme = theme;
+    rightContainer.style.colorScheme = theme;
+    if (editorManager) {
+        editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
+    }
+}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", setTheme);
+
+// Event Listeners
 window.addEventListener("load", main, false);
+window.addEventListener("resize", onResize, false);
 document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);

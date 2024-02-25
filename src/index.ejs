@@ -30,12 +30,15 @@
   <meta property="twitter:description" content="Simple Code Editor for playing with BrightScript language." />
   <meta property="twitter:image" content="https://lvcabral.com/brs/images/icon.png" />
   <link rel="icon" href="./images/favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/default.css" />
   <link rel="stylesheet" href="css/codemirror.css" />
   <link rel="stylesheet" href="css/vscode-dark.css" />
   <link rel="stylesheet" href="css/fontello.css" />
-  <link rel="stylesheet" href="css/code-selector.css" />
+  <link rel="stylesheet" href="css/coda.css" />
+  <script>
+    let theme = window.matchMedia("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+  </script>
 </head>
 
 <body id="root" class="index-page">
@@ -106,6 +109,10 @@
             <h4>Display</h4>
           </div>
           <div>
+            <label title="Theme">
+              <i class="icon-sound-on" id="audio-icon"></i>
+              <input type="checkbox" checked id="darkTheme" />
+            </label>
             <label title="Audio Switch">
               <i class="icon-sound-on" id="audio-icon"></i>
               <input type="checkbox" checked id="audioSwitch" />
