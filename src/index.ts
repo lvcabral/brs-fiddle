@@ -14,6 +14,7 @@ import { getOS } from "./util";
 import { CodeMirrorManager } from "./codemirror";
 import packageInfo from "../package.json";
 
+const appId = "brsFiddle";
 const isMacOS = getOS() === "MacOS";
 const codec = Codec("lzma");
 const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
@@ -39,8 +40,14 @@ const codeDialog = document.getElementById("code-dialog") as HTMLDialogElement;
 const codeForm = document.getElementById("code-form") as HTMLFormElement;
 const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement;
 
+// Restore Last State
+const lastState = loadState();
+audioSwitch.checked = lastState.audio;
+keyboardSwitch.checked = lastState.keys;
+gamePadSwitch.checked = lastState.gamePads;
+
+// Terminal Setup
 const prompt = "Brightscript Debugger";
-const appId = "brsFiddle";
 const commands = {
     help: (terminal: any) => {
         brs.debug("help");
@@ -125,8 +132,8 @@ function main() {
         return;
     }
     // Check saved id to load
-    const loadId = localStorage.getItem(`${appId}.load`);
-    populateCodeSelector(loadId ?? "");
+    const loadId = localStorage.getItem(`${appId}.load`) ?? lastState.codeId;
+    populateCodeSelector(loadId);
     if (loadId?.length) {
         loadCode(loadId);
     }
@@ -202,6 +209,7 @@ function scrollToBottom() {
     }
 }
 
+// Code Events
 function populateCodeSelector(currentId: string) {
     var arrCode = new Array();
     for (var i = 0; i < localStorage.length; i++) {
@@ -247,6 +255,8 @@ function loadCode(id: string) {
             code = code.substring(code.indexOf("=@") + 2);
         }
         resetApp(id, code);
+        lastState.codeId = id;
+        saveState();
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
@@ -378,9 +388,12 @@ function clearTerminal() {
     terminal.clear();
 }
 
+// Switches Events
 audioSwitch.addEventListener("click", (e) => {
     audioIcon.className = audioSwitch.checked ? "icon-sound-on" : "icon-sound-off";
     brs.setAudioMute(!audioSwitch.checked);
+    lastState.audio = audioSwitch.checked;
+    saveState();
 });
 
 keyboardSwitch.addEventListener("click", controlModeSwitch);
@@ -391,9 +404,19 @@ function controlModeSwitch() {
         keyboard: keyboardSwitch.checked,
         gamePads: gamePadSwitch.checked,
     });
+    lastState.keys = keyboardSwitch.checked;
+    lastState.gamePads = gamePadSwitch.checked;
+    saveState();
 }
 
+//Keyboard Event
 function hotKeys(event: KeyboardEvent) {
+    const el = document.activeElement;
+    const isCodeEditor = el?.id === "brsCode";
+    brs.setControlMode({
+        keyboard: isCodeEditor ? false : keyboardSwitch.checked,
+        gamePads: gamePadSwitch.checked,
+    });
     if (
         (isMacOS && event.code === "KeyR" && event.metaKey) ||
         (!isMacOS && event.code === "KeyR" && event.ctrlKey)
@@ -429,6 +452,7 @@ function hotKeys(event: KeyboardEvent) {
     }
 }
 
+// Mouse Events
 function resizeColumn() {
     isResizing = true;
 }
@@ -474,6 +498,7 @@ function onMouseDown(event: Event) {
     }
 }
 
+// Helper Functions
 function getParameterByName(name: string, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
@@ -522,6 +547,24 @@ function showToast(message: string, duration = 3000, error = false) {
         stopOnFocus: true,
         className: error ? "toastify-error" : "toastify-success",
     }).showToast();
+}
+
+function loadState() {
+    let state = {
+        codeId: "",
+        audio: true,
+        keys: true,
+        gamePads: true,
+    };
+    const savedState = localStorage.getItem(`${appId}.state`);
+    if (savedState) {
+        state = JSON.parse(savedState);
+    }
+    return state;
+}
+
+function saveState() {
+    localStorage.setItem(`${appId}.state`, JSON.stringify(lastState));
 }
 
 window.addEventListener("load", main, false);
