@@ -489,22 +489,22 @@ function resizeColumn() {
 
 function resizeCanvas() {
     const rightRect = rightContainer.getBoundingClientRect();
-    brs.redraw(
-        false,
-        rightRect.width,
-        rightRect.height / 1.5,
-        window.devicePixelRatio
-    );
+    const width = rightRect.width;
+    const height = Math.trunc(width * 9 / 16);
+    brs.redraw(false, width, height);
 }
 
 function onResize() {
     if (window.innerWidth >= 1220) {
         const { height } = codeColumn.getBoundingClientRect();
-        editorManager.editor.setSize("100%", `${height - 15}px`);
+        editorManager.editor.setSize("100%", `${height - 25}px`);
+        consoleLogsContainer.style.height = `100%`;
     } else {
-        const { top } = rightContainer.getBoundingClientRect();
-        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight - top - 15)}px`);
+        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight / 3)}px`);
         codeColumn.style.width = "100%";
+        const consoleRect = consoleLogsContainer.getBoundingClientRect();
+        const logHeight = window.innerHeight - consoleRect.top;
+        consoleLogsContainer.style.height = `${logHeight}px`;
     }
     resizeCanvas();
     scrollToBottom();
