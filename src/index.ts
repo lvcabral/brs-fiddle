@@ -492,9 +492,22 @@ function resizeCanvas() {
     brs.redraw(
         false,
         rightRect.width,
-        Math.trunc(rightRect.height / 2) - 10,
+        rightRect.height / 1.5,
         window.devicePixelRatio
     );
+}
+
+function onResize() {
+    if (window.innerWidth >= 1220) {
+        const { height } = codeColumn.getBoundingClientRect();
+        editorManager.editor.setSize("100%", `${height - 15}px`);
+    } else {
+        const { top } = rightContainer.getBoundingClientRect();
+        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight - top - 15)}px`);
+        codeColumn.style.width = "100%";
+    }
+    resizeCanvas();
+    scrollToBottom();
 }
 
 function onMouseMove(e: any) {
@@ -508,16 +521,16 @@ function onMouseMove(e: any) {
         const codeColumnWidth = `${width - separatorPosition}px`;
 
         const rightRect = rightContainer.getBoundingClientRect();
-        if (width - separatorPosition >= 420 && separatorPosition >= 360) {
-            codeColumn.style.width = codeColumnWidth;
-            consoleColumn.style.width = rightRect.width.toString();
-        }
+        codeColumn.style.width = codeColumnWidth;
+        rightContainer.style.width = `${rightRect.width}px`;
+        resizeCanvas();
     }
 }
 
 function onMouseUp() {
     if (isResizing) {
         resizeCanvas();
+        scrollToBottom();
     }
     isResizing = false;
 }
@@ -598,17 +611,6 @@ function saveState() {
     localStorage.setItem(`${appId}.state`, JSON.stringify(lastState));
 }
 
-function onResize() {
-    if (window.innerWidth >= 1220) {
-        const { height } = codeColumn.getBoundingClientRect();
-        editorManager.editor.setSize("100%", `${height - 15}px`);
-    } else {
-        const { top } = rightContainer.getBoundingClientRect();
-        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight - top - 15)}px`);
-        codeColumn.style.width = "100%";
-    }
-    scrollToBottom();
-}
 
 // Theme Management
 function isDarkTheme() {

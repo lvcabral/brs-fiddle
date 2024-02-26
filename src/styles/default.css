@@ -114,6 +114,7 @@ pre {
 }
 .console {
     width: 100%;
+    display: contents;
     background: var(--background-color);
 }
 .console .console-header {
@@ -179,7 +180,7 @@ pre {
 }
 .editor .console #console-logs {
     font-size: 12px;
-    height: calc(100vh - 78px);
+    height: 100%;
     overflow: auto;
 }
 .simulator-display {
@@ -238,9 +239,12 @@ pre {
     flex: 1 1 0%;
     flex-direction: column;
     height: calc(100vh - 55px);
+    min-width: 482px;
 }
 #display {
-    height: 480px;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
     background-color: black;
     opacity: 1;
     z-index: 20;
@@ -311,7 +315,8 @@ pre {
     width: 100%;
 }
 .editor .console {
-    height: 50%;
+    height: auto;
+    display: contents;
 }
 .editor .console #console-logs {
     font-size: 12px;
@@ -323,6 +328,9 @@ pre {
         min-width: unset;
     }
     .console {
+        min-width: unset;
+    }
+    #right-container {
         min-width: unset;
     }
     .editor {
