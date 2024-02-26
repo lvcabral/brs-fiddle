@@ -20,8 +20,9 @@ export class CodeMirrorManager {
     };
 
     // CTOR
-    constructor(private readonly tagElement: HTMLTextAreaElement) {
+    constructor(private readonly tagElement: HTMLTextAreaElement, theme: string) {
         defineMode(CodeMirror);
+        this.config.theme = getCodeMirrorTheme(theme);
         this.editor = CodeMirror.fromTextArea(this.tagElement, this.config);
         this.editor.setOption("extraKeys", {
             "Ctrl-/": function (cm) {
@@ -29,4 +30,8 @@ export class CodeMirrorManager {
             },
         });
     }
+}
+
+export function getCodeMirrorTheme(theme: string): string {
+    return theme === "light" ? "coda" : "vscode-dark";
 }
