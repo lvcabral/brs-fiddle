@@ -30,12 +30,15 @@
   <meta property="twitter:description" content="Simple Code Editor for playing with BrightScript language." />
   <meta property="twitter:image" content="https://lvcabral.com/brs/images/icon.png" />
   <link rel="icon" href="./images/favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="css/global.css" />
-  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/default.css" />
   <link rel="stylesheet" href="css/codemirror.css" />
-  <link rel="stylesheet" href="css/vscode-dark.css" />
   <link rel="stylesheet" href="css/fontello.css" />
-  <link rel="stylesheet" href="css/code-selector.css" />
+  <link rel="stylesheet" href="css/vscode-dark.css" />
+  <link rel="stylesheet" href="css/coda.css" />
+  <script>
+    let theme = window.matchMedia("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+  </script>
 </head>
 
 <body id="root" class="index-page">
@@ -69,7 +72,7 @@
     <div class="code">
       <div class="code-header">
         <div>
-          <h4>Code &nbsp;
+          <h4><span>Code&nbsp;</span>
             <select id="code-selector">
               <option value="0">&lt;&lt; New Code &gt;&gt;</option>
             </select>
@@ -83,6 +86,10 @@
           <button title="Run the Code" class="run">
             <i class="icon-play"></i>
             <span>RUN</span>
+          </button>
+          <button title="End the Execution" style="display:none" class="end">
+            <i class="icon-stop"></i>
+            <span>END</span>
           </button>
           <button title="Save the Code" class="save">
             <i class="icon-save"></i>
@@ -103,29 +110,25 @@
       <div class="simulator-display">
         <div class="display-header">
           <div>
-            <h4>Display</h4>
+            <h4><span>Display</span></h4>
           </div>
           <div>
+            <label title="Theme">
+              <i class="icon-moon" id="theme-icon"></i>
+              <input type="checkbox" checked id="darkTheme" />
+            </label>
             <label title="Audio Switch">
               <i class="icon-sound-on" id="audio-icon"></i>
               <input type="checkbox" checked id="audioSwitch" />
             </label>
             <label title="Keyboard control">
               <i class="icon-keyboard"></i>
-              <input type="checkbox" id="keyboard" />
+              <input type="checkbox" checked id="keyboard" />
             </label>
             <label title="Gamepad control">
               <i class="icon-gamepad"></i>
               <input type="checkbox" checked id="gamepad" />
             </label>
-            <button title="Pause and Debug" class="break">
-              <i class="icon-pause"></i>
-              <span>DEBUG</span>
-            </button>
-            <button title="End the Execution" class="end">
-              <i class="icon-stop"></i>
-              <span>END</span>
-            </button>
           </div>
         </div>
         <canvas id="display"></canvas>
@@ -137,6 +140,14 @@
             <h4>Console</h4>
           </div>
           <div>
+            <button title="Pause and Debug" style="display:none" class="break">
+              <i class="icon-pause"></i>
+              <span>DEBUG</span>
+            </button>
+            <button title="Resume the Execution" style="display:none" class="resume">
+              <i class="icon-play"></i>
+              <span>RESUME</span>
+            </button>
             <button title="Clear All Logs" class="clear-all">
               <i class="icon-trash"></i>
               <span>CLEAR</span>

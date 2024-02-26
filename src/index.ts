@@ -11,9 +11,10 @@ import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
 import { nanoid } from "nanoid";
 import { getOS } from "./util";
-import { CodeMirrorManager } from "./codemirror";
+import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
 
+const appId = "brsFiddle";
 const isMacOS = getOS() === "MacOS";
 const codec = Codec("lzma");
 const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
@@ -22,9 +23,10 @@ const deleteButton = document.querySelector("button.delete") as HTMLButtonElemen
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
 const breakButton = document.querySelector("button.break") as HTMLButtonElement;
+const resumeButton = document.querySelector("button.resume") as HTMLButtonElement;
 const endButton = document.querySelector("button.end") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
-const layoutContainer = document.querySelector("main.editor");
+const layoutContainer = document.querySelector("main.editor") as HTMLElement;
 const layoutSeparator = document.querySelector("div.layout-separator") as HTMLDivElement;
 const codeColumn = document.querySelector("div.code") as HTMLDivElement;
 const consoleColumn = document.querySelector("div.console") as HTMLDivElement;
@@ -34,13 +36,22 @@ const keyboardSwitch = document.getElementById("keyboard") as HTMLInputElement;
 const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
 const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
 const audioIcon = document.getElementById("audio-icon") as HTMLElement;
+const themeSwitch = document.getElementById("darkTheme") as HTMLInputElement;
+const themeIcon = document.getElementById("theme-icon") as HTMLElement;
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const codeDialog = document.getElementById("code-dialog") as HTMLDialogElement;
 const codeForm = document.getElementById("code-form") as HTMLFormElement;
 const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement;
 
+// Restore Last State
+const lastState = loadState();
+audioSwitch.checked = lastState.audio;
+keyboardSwitch.checked = lastState.keys;
+gamePadSwitch.checked = lastState.gamePads;
+themeSwitch.checked = lastState.darkTheme;
+
+// Terminal Setup
 const prompt = "Brightscript Debugger";
-const appId = "brsFiddle";
 const commands = {
     help: (terminal: any) => {
         brs.debug("help");
@@ -67,6 +78,7 @@ deleteButton.addEventListener("click", deleteCode);
 runButton.addEventListener("click", runCode);
 clearAllButton.addEventListener("click", clearTerminal);
 breakButton.addEventListener("click", startDebug);
+resumeButton.addEventListener("click", resumeExecution);
 endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
@@ -95,7 +107,7 @@ function main() {
     }
     // Initialize the Code Mirror manager
     if (brsCodeField) {
-        editorManager = new CodeMirrorManager(brsCodeField);
+        editorManager = new CodeMirrorManager(brsCodeField, "dark");
         if (isMacOS) {
             // Remove binding for Ctrl+V on MacOS to allow remapping
             // https://github.com/codemirror/codemirror5/issues/5848
@@ -103,6 +115,7 @@ function main() {
             if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
         }
     }
+    setTheme(lastState.darkTheme);
     const { height } = codeColumn.getBoundingClientRect();
     editorManager.editor.setSize("100%", `${height - 40}px`);
     // Process Shared Token parameter
@@ -118,15 +131,15 @@ function main() {
         return;
     }
     // Process id parameter
-    const paramId = getParameterByName("id")
+    const paramId = getParameterByName("id");
     if (paramId?.length) {
         localStorage.setItem(`${appId}.load`, paramId);
         window.location.href = getBaseUrl();
         return;
     }
     // Check saved id to load
-    const loadId = localStorage.getItem(`${appId}.load`);
-    populateCodeSelector(loadId ?? "");
+    const loadId = localStorage.getItem(`${appId}.load`) ?? lastState.codeId;
+    populateCodeSelector(loadId);
     if (loadId?.length) {
         loadCode(loadId);
     }
@@ -143,8 +156,8 @@ function main() {
         );
         // Subscribe to Engine Events
         brs.subscribe(appId, handleEngineEvents);
-        // Resize the display canvas
-        resizeCanvas();
+        // Resize screen
+        onResize()
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
@@ -162,12 +175,19 @@ function handleEngineEvents(event: string, data: any) {
     } else if (event === "started") {
         currentApp = data;
         console.info(`Execution started ${appId}`);
+        runButton.style.display = "none";
+        endButton.style.display = "inline";
+        breakButton.style.display = "inline";
     } else if (event === "debug") {
         if (data.level === "stop") {
             terminal.output("<br />");
             terminal.setPrompt();
+            resumeButton.style.display = "inline";
+            breakButton.style.display = "none";
         } else if (data.level === "continue") {
             terminal.idle();
+            resumeButton.style.display = "none";
+            breakButton.style.display = "inline";
         } else if (data.level !== "beacon") {
             let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             if (data.level === "print") {
@@ -187,6 +207,10 @@ function handleEngineEvents(event: string, data: any) {
         currentApp = data;
         console.info(`Execution terminated! ${event}: ${data}`);
         terminal.idle();
+        runButton.style.display = "inline";
+        endButton.style.display = "none";
+        resumeButton.style.display = "none";
+        breakButton.style.display = "none";
     }
 }
 
@@ -202,6 +226,7 @@ function scrollToBottom() {
     }
 }
 
+// Code Events
 function populateCodeSelector(currentId: string) {
     var arrCode = new Array();
     for (var i = 0; i < localStorage.length; i++) {
@@ -247,6 +272,8 @@ function loadCode(id: string) {
             code = code.substring(code.indexOf("=@") + 2);
         }
         resetApp(id, code);
+        lastState.codeId = id;
+        saveState();
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
@@ -366,6 +393,12 @@ function startDebug() {
     }
 }
 
+function resumeExecution() {
+    if (currentApp.running) {
+        brs.debug("cont");
+    }
+}
+
 function endExecution() {
     if (currentApp.running) {
         brs.terminate("EXIT_USER_NAV");
@@ -378,9 +411,19 @@ function clearTerminal() {
     terminal.clear();
 }
 
+// Switches Events
+themeSwitch.addEventListener("click", (e) => {
+    themeIcon.className = themeSwitch.checked ? "icon-moon" : "icon-sun";
+    lastState.darkTheme = themeSwitch.checked;
+    setTheme(lastState.darkTheme);
+    saveState();
+});
+
 audioSwitch.addEventListener("click", (e) => {
     audioIcon.className = audioSwitch.checked ? "icon-sound-on" : "icon-sound-off";
-    brs.setAudioMute(!audioSwitch.checked);
+    lastState.audio = audioSwitch.checked;
+    brs.setAudioMute(!lastState.audio);
+    saveState();
 });
 
 keyboardSwitch.addEventListener("click", controlModeSwitch);
@@ -391,9 +434,19 @@ function controlModeSwitch() {
         keyboard: keyboardSwitch.checked,
         gamePads: gamePadSwitch.checked,
     });
+    lastState.keys = keyboardSwitch.checked;
+    lastState.gamePads = gamePadSwitch.checked;
+    saveState();
 }
 
+//Keyboard Event
 function hotKeys(event: KeyboardEvent) {
+    const el = document.activeElement;
+    const isCodeEditor = el?.id === "brsCode";
+    brs.setControlMode({
+        keyboard: isCodeEditor ? false : keyboardSwitch.checked,
+        gamePads: gamePadSwitch.checked,
+    });
     if (
         (isMacOS && event.code === "KeyR" && event.metaKey) ||
         (!isMacOS && event.code === "KeyR" && event.ctrlKey)
@@ -429,18 +482,43 @@ function hotKeys(event: KeyboardEvent) {
     }
 }
 
+// Resize Events
 function resizeColumn() {
     isResizing = true;
 }
 
 function resizeCanvas() {
-    const rightRect = rightContainer.getBoundingClientRect();
-    brs.redraw(
-        false,
-        rightRect.width,
-        Math.trunc(rightRect.height / 2) - 10,
-        window.devicePixelRatio
-    );
+    let width = displayCanvas.width;
+    let height = displayCanvas.height;
+    if (window.innerWidth >= 1220) {
+        const rightRect = rightContainer.getBoundingClientRect();
+        width = rightRect.width;
+        height = Math.trunc(width * 9 / 16);
+    } else {
+        height = window.innerHeight / 3;
+        width = Math.trunc(height * 16 / 9);
+        if (width > window.innerWidth) {
+            width = window.innerWidth;
+            height = Math.trunc(width * 9 / 16);
+        }
+    }
+    brs.redraw(false, width, height);
+}
+
+function onResize() {
+    resizeCanvas();
+    if (window.innerWidth >= 1220) {
+        const { height } = codeColumn.getBoundingClientRect();
+        editorManager.editor.setSize("100%", `${height - 25}px`);
+        consoleLogsContainer.style.height = `100%`;
+    } else {
+        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight / 3.5)}px`);
+        codeColumn.style.width = "100%";
+        const consoleRect = consoleLogsContainer.getBoundingClientRect();
+        const logHeight = window.innerHeight - consoleRect.top;
+        consoleLogsContainer.style.height = `${logHeight}px`;
+    }
+    scrollToBottom();
 }
 
 function onMouseMove(e: any) {
@@ -454,15 +532,17 @@ function onMouseMove(e: any) {
         const codeColumnWidth = `${width - separatorPosition}px`;
 
         const rightRect = rightContainer.getBoundingClientRect();
-        if (width - separatorPosition >= 420 && separatorPosition >= 360) {
-            codeColumn.style.width = codeColumnWidth;
-            consoleColumn.style.width = rightRect.width.toString();
-        }
+        codeColumn.style.width = codeColumnWidth;
+        rightContainer.style.width = `${rightRect.width}px`;
+        resizeCanvas();
     }
 }
 
 function onMouseUp() {
-    resizeCanvas();
+    if (isResizing) {
+        resizeCanvas();
+        scrollToBottom();
+    }
     isResizing = false;
 }
 
@@ -472,6 +552,7 @@ function onMouseDown(event: Event) {
     }
 }
 
+// Helper Functions
 function getParameterByName(name: string, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
@@ -522,7 +603,45 @@ function showToast(message: string, duration = 3000, error = false) {
     }).showToast();
 }
 
+function loadState() {
+    let state = {
+        codeId: "",
+        audio: true,
+        keys: true,
+        gamePads: true,
+        darkTheme: isDarkTheme(),
+    };
+    const savedState = localStorage.getItem(`${appId}.state`);
+    if (savedState) {
+        state = Object.assign(state, JSON.parse(savedState));
+    }
+    return state;
+}
+
+function saveState() {
+    localStorage.setItem(`${appId}.state`, JSON.stringify(lastState));
+}
+
+
+// Theme Management
+function isDarkTheme() {
+    return window.matchMedia("(prefers-color-scheme: dark)")?.matches ? true : false;
+}
+function setTheme(dark: boolean) {
+    const theme = dark ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+    document.body.style.colorScheme = theme;
+    codeColumn.style.colorScheme = theme;
+    consoleColumn.style.colorScheme = theme;
+    rightContainer.style.colorScheme = theme;
+    if (editorManager) {
+        editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
+    }
+}
+
+// Event Listeners
 window.addEventListener("load", main, false);
+window.addEventListener("resize", onResize, false);
 document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
