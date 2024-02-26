@@ -351,6 +351,18 @@ pre {
         display: none;
     }
 }
+
+@media (max-width: 530px) {
+    .header .brand img {
+        width: 68px !important;
+    }
+    h4 span {
+        display: none;
+    }
+    h4 select {
+        width: 11rem;
+    }
+}
 .layout-separator {
     width: 3px;
     margin: 0 -1px;

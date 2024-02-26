@@ -156,8 +156,8 @@ function main() {
         );
         // Subscribe to Engine Events
         brs.subscribe(appId, handleEngineEvents);
-        // Resize the display canvas
-        resizeCanvas();
+        // Resize screen
+        onResize()
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
@@ -482,31 +482,42 @@ function hotKeys(event: KeyboardEvent) {
     }
 }
 
-// Mouse Events
+// Resize Events
 function resizeColumn() {
     isResizing = true;
 }
 
 function resizeCanvas() {
-    const rightRect = rightContainer.getBoundingClientRect();
-    const width = rightRect.width;
-    const height = Math.trunc(width * 9 / 16);
+    let width = displayCanvas.width;
+    let height = displayCanvas.height;
+    if (window.innerWidth >= 1220) {
+        const rightRect = rightContainer.getBoundingClientRect();
+        width = rightRect.width;
+        height = Math.trunc(width * 9 / 16);
+    } else {
+        height = window.innerHeight / 3;
+        width = Math.trunc(height * 16 / 9);
+        if (width > window.innerWidth) {
+            width = window.innerWidth;
+            height = Math.trunc(width * 9 / 16);
+        }
+    }
     brs.redraw(false, width, height);
 }
 
 function onResize() {
+    resizeCanvas();
     if (window.innerWidth >= 1220) {
         const { height } = codeColumn.getBoundingClientRect();
         editorManager.editor.setSize("100%", `${height - 25}px`);
         consoleLogsContainer.style.height = `100%`;
     } else {
-        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight / 3)}px`);
+        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight / 3.5)}px`);
         codeColumn.style.width = "100%";
         const consoleRect = consoleLogsContainer.getBoundingClientRect();
         const logHeight = window.innerHeight - consoleRect.top;
         consoleLogsContainer.style.height = `${logHeight}px`;
     }
-    resizeCanvas();
     scrollToBottom();
 }
 
