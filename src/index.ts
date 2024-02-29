@@ -272,8 +272,6 @@ function loadCode(id: string) {
             code = code.substring(code.indexOf("=@") + 2);
         }
         resetApp(id, code);
-        lastState.codeId = id;
-        saveState();
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
@@ -307,6 +305,8 @@ function resetApp(id = "", code = "") {
     ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
     editorManager.editor.setValue(code);
     editorManager.editor.focus();
+    lastState.codeId = id;
+    saveState();
 }
 
 function shareCode() {
@@ -353,6 +353,8 @@ codeDialog.addEventListener("close", (e) => {
             const codeName = codeForm.codeName.value.trim();
             const code = editorManager.editor.getValue();
             localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+            lastState.codeId = currentId;
+            saveState();
             populateCodeSelector(currentId);
             showToast(
                 "Code saved in your browser local storage!\nTo share it use the Share button.",
