@@ -1,4 +1,4 @@
-# brs-fiddle - BrightScript Code Playground
+# brsFiddle.net - BrightScript Code Playground
 
 Simple Code Editor for playing with BrightScript language.
 
@@ -8,7 +8,7 @@ Simple Code Editor for playing with BrightScript language.
 
 ## Project Information
 
-This application was created to give a useful tool for the Roku Development Community to learn, practice and share BrightSript code. It also serves to demonstrate the power of the [BrightScript Simulation Engine](https://github.com/lvcabral/brs-engine) library, as a web framework to run BrightScript code in platforms other than the Roku. You can also check the [BrighScript TV](https://lvcabral.com/brs) to see it in action running full Roku apps and games.
+This application was created to give the **Roku Development Community** a useful tool to learn, practice and share BrightSript code. It also serves to demonstrate the power of the [BrightScript Simulation Engine](https://github.com/lvcabral/brs-engine) library, as a web framework to run BrightScript code in platforms other than the Roku. You can also check the [BrighScript TV](https://lvcabral.com/brs) to see it in action running full Roku apps and games.
 
 ## Shared Code Samples
 
@@ -21,6 +21,55 @@ Click on the links below to launch `brsFiddle.net` website and start playing wit
 - Video Playback - [Shared Link](https://brsfiddle.net?code=XQAAAAKMCwAAAAAAAABJKoqngm5uKnfSsjl5UQrxThRucpL9ibQbDIH2ngkfAM04Aw7W933zvEnJjH0_TcYKuAb8pP4_pFUty4bsZ2ZGN6blI4HbCWU1o8kGuMYqVThNrDhiPIDtBh5rXeosnLR79JxTFgkSi4riS7OV1YxU2DSgn9ndUJMQTbe46AIqdpF3LfZnmkXgW4yR9Jd28iMajr1P6G7zSPRt0-hAg4owerHW0KUB0f10IyD_I-zwLEyjuVVjh5VYgE7r9pLU8r845lZ9-hnD0BibKqo7Fei_J_KCRVxMpeDmF-E3ZZdEgPjW5-rLUDn3dv0XDH6rKIuYdnx075Y4XefhFNACmnKFxvoi4mAIwczMbed3zSRLGWW7IqggC8HJ1rH_MDVp4gk_58cB_Bea5Wx6wFgZzrPmk5H8rO-dVkgpnJL7bevIMmyuCUlrrE_HLB2oopUMdnPggp3_s7xnoby6w6CJ4-gjkZYU-bDWC2pRztEk_DbISFmsy_OG_Pd8tTQrRBJGhZtSe2BsSziJ_9mePKvHH_yIjPeQjnR9tijZ6Q_ryDR8RVpuEFZRGJ6z6_kk_vZnFmYidHHBV_Oy_GmhQOpTRKe2htjfyN-pBZJw7Tu3VcTYmOILWPgJUpAbB8MkDj-c2BbWDogdsAgpZdSt_I40tpHDbvRp-vklV69_IUDIx5fquD1el8qPoDtUHblJZGKLHRvASj7lYTC4qGI-mg_IZpReBXMBLvd5VVHViQp-r7T4Y8W8pi7zZ7aqNci8ZXCXqLPyBLFwtEf-0ZICdAgmNjjFztjW217pOUEA4XIXRulcatttsH0VqMDB3y2tQv-pyVbXmSfpb_mgqG7HjfgfmYu4H0aV-Ifp3pwIz1tfk2nEHI90_rh081-lSZWTVT_kOznTwkAvjlLK8i4KzH-GS7jdlkhUW81Hz1ln6sy78NHI_MeqdnJqFzOpy24DX1qUaSyrThOd8_mvSRVcaQNFDJ1KgWimc-oZpD6MJQ1fbYFli9WHdpPhD7lI6OPlAP4dSfwf_sGLe9JHkjrrhCeXNI7dAF34raawlqZwAP2UXY0DQAJev-U2wJXHedkarK7KcLMmlYVFNOIE_bDQ-F0gJmifV7DR64js9WAQTI0NKnN7KP0v86lEF6ZoGxHlqy6bP_0NSmiNEi04UL5b7DKWRTjm2O7HlfKt-3E5AVn40noALDF_JvnykLL2l8BsYOHiQHZeh_p6sWvFLVqqK0JP7n21n6LUDa-lX6Jbjkv1A9XlXhfT2RZCeBrJW-c_d_QkRfqnlP3PKYazNGevfg3dfJHJczSET4jl3gVXXiJY__fIHPo)
 - API Call Example - [Shared Link](https://brsfiddle.net?code=XQAAAAKaDwAAAAAAAABJKoJnEhkACX8vDCmMt60KGGoNIX-9BnquVKbSjLc-L1DvpNbgtZS5eIQeJPrqKnZHKcPFPi-V2EYk0SJU-YlSJSWfr4hWs6qlQyn7uHA6iUTUopF3eDWTAHOhq0rKGfghXKHkc5aE2EhK_2wKGUprB5Y2dVgdJCc9PeacM021sytujkTuIIcrXJ6jFbnDu-wT-hR1MFYpSpbn8SiLlQ4IEaPch5rHXjd1YgwluF87--5cGQBgwMWjxZoc7Iyds5DoMRoIQbsiLYJBPERnExhKgpJrWSKcH_BtiBmFwA0oagupDSR1LeT83KMEGXFLiXpgd8QOcUh3L8KCNeei6PVRyaskp-FxXHZaBoaySTrKQo_cEwWpJ2-108EM38JYrgRRA_4Mn_Qyj-6-eGp1Nj3LVUVt_EeOJGi-cRiFx5nIIJfIclVqTL9C9Nuih-AMwR2ob2YQXxm7k2JsXQXuYdJLZKWLeIsMd3h0BolciLvAOn2OdnKM90fRtTQ110KATp1-Shf5Rn-HyOKr_HlaNp7OV3M9Ck-U0DE5dxDspTVmFdJSQJRNlaaZObo55BCjMm1hn831sPoH0jozMs1X2TyuSXnXs2zsUDhjERmRgaK9_wZR6yXreJ34XEFuvebjqyf6Fa0Ddk4uUQNJcij9VAXUhiTKKvdV0SLGnz4k_U5WNfEq5h0NGj38U7r2t_HPKFTULiOfsij9symsKNX0bILzoeuli9B0TqobKCT2g8wFQzDodtCYpKWGTr1EDOrFnVHA__jyZA98vB1VU0j_YJsDC7lNOslovfRCbmZ40wQ7dKoBtR3DaqWo5w6CVdGmsZHlBvE2C7mCznY6G2U5PwXX6aUSjvrrEpYmjcVd83UiptsJWcdtFTw_-Qr1qIcwSi0hC396b-rCWqsuCx12Znp1qA6F9GgDxYNuIutSP6sF0ptZ3Ruq12ulH-YDp0fw0Mc01YLtknHV-PPjjE1lLTyCkVxsgU5CfHLGgqAjDBoIv57t2KQex5idlemNuQ8VjFMBCCxMUeylyEuj-FZfiYX-bn1SBNPVXo50oMHoNwd4R-ikX4nSGk8sypT-MWbxcSc4PM0kJJ6-ERdTtu-Ip7Or4jmVGvLIEe8Lg-6BV0HwB2yrX2LY-o_Ns4abDHekFZCaJ4qhF-k5jsu9ltfnlaTeKOhOyhvk6shNsrLhLeWHRDB9CYneXM8S_9_8lj8ZSAThsFHbMy91tZfWo9_dVMzsZiM7xsuHEyavMQv9GvFIfEvQy0SyeTbPs-3AhQG5U_l3VvdNIyZzN3L6ApiQiV4XZgKR3jqXTYnonVBCmGNiaGJ5-9gtWQ2QaJs8MuGnYAV_pmoWugQpTtGpSPXG2rH9lvC9-GSW7RGWTAflasxAF2AU8PPRVCv2YyozaA5RizbUYpyZ9VrzehvIGBmznwwxhMLaFfiwFCLKmPle17OKhHdS1Sqzk6ya-OqbArBlkCooifrh7B0plHulf1TdZXWM7Xi5zhAskKoWZC4T6dDcO4aYFClxfOqzbldV84kunYEKxs1geTvYl1ei27N85RoX5h5besxzNGuVTRRHAXIfIEac7SHGx3hHx-gXDJc3zE_j3-L91cJVzdTdnhTCLYSqLTSalGa5ktY4H7ML57x_FhD2xMkQWaFUjl0fEaPX3m2N7QeErxFDzyxlC2yjZLCmTwsdz-I1OtRibKhZ8scjkadZD--C7bNHMXSr2t_J__dxH27Xe4JnK9lsZRa93YnGcCe3R23ICyRXvF0PGCkCBjvm4uZQsJvZzq7VQQ04FjaNcgAKanfFMIXFJSnrzimBdOWPIebb-7o727HHX6VzGE3vYpvM-Sx2nTKVySaDzev8u9x7hP_zLtDG)
 
+## Build from Source
+
+As it builds (and runs the CLI) in `node`, so you'll need to [install that first](https://nodejs.org).
+
+Once that's ready, install [yarn](https://yarnpkg.com).  Installing it with `npm` is probably the simplest:
+
+```shell
+$ npm install -g yarn
+```
+
+### Setup
+
+1. Clone this repo:
+
+   ```shell
+   $ git clone https://github.com/lvcabral/brs-fiddle.git
+   ```
+
+2. Install dependencies:
+
+    ```shell
+    $ yarn install     # or just `yarn`
+    ```
+
+### Build
+
+This project is written in TypeScript, so it needs to be compiled before it can be executed. `yarn build` compiles files in `src/` into JavaScript and TypeScript declarations, and puts them in `lib/`, `bin/` and `types/`.
+
+```shell
+$ yarn build
+
+$ ls app/
+audio
+css
+fonts
+images
+index.html
+lib
+web,config
+```
+
+### Release
+
+To release a smaller version of the app Webpack can create a *minified* version by running `yarn release`.
+
+### Running the Web Application
+
+To build and start the web application on your default browser just execute `yarn start`.
+
 ## Developer Links
 
 - My website: [https://lvcabral.com](https://lvcabral.com)
@@ -32,6 +81,6 @@ Click on the links below to launch `brsFiddle.net` website and start playing wit
 
 ## License
 
-Copyright © Marcelo Lv Cabral. All rights reserved.
+Copyright © 2023-2024 by Marcelo Lv Cabral. All rights reserved.
 
 Licensed under the [MIT](LICENSE) license.
