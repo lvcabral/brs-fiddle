@@ -41,7 +41,7 @@ module.exports = env => {
             plugins: [
                 new HtmlWebpackPlugin({
                     filename: "../index.html",
-                    templateParameters: { brsApi: apiLib },
+                    templateParameters: { brsApi: apiLib, gtag: process.env.GTAG },
                 }),
                 new CopyWebpackPlugin({
                     patterns: [
