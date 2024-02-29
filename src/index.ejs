@@ -1,211 +1,189 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=<%= gtag %>"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag("js", new Date());
-            gtag("config", "<%= gtag %>");
-        </script>
-        <meta charset="utf-8" />
-        <title>brsFiddle - BrightScript Code Playground</title>
-        <meta
-            name="description"
-            content="Simple Code Editor for playing with BrightScript language."
-        />
-        <meta name="author" content="Marcelo Lv Cabral" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://brsfiddle.net/" />
-        <meta property="og:title" content="brsFiddle - BrightScript Code Playground" />
-        <meta
-            property="og:description"
-            content="Simple Code Editor for playing with BrightScript language."
-        />
-        <meta property="og:image" content="https://lvcabral.com/brs/images/icon.png" />
 
-        <!-- Twitter/X -->
-        <meta property="twitter:card" content="summary" />
-        <meta property="twitter:url" content="https://brsFiddle.net/" />
-        <meta property="twitter:title" content="brsFiddle - BrightScript Code Playground" />
-        <meta
-            property="twitter:description"
-            content="Simple Code Editor for playing with BrightScript language."
-        />
-        <meta property="twitter:image" content="https://lvcabral.com/brs/images/icon.png" />
-        <link rel="icon" href="./images/favicon.ico" type="image/x-icon" />
-        <link rel="stylesheet" href="css/default.css" />
-        <link rel="stylesheet" href="css/codemirror.css" />
-        <link rel="stylesheet" href="css/fontello.css" />
-        <link rel="stylesheet" href="css/vscode-dark.css" />
-        <link rel="stylesheet" href="css/coda.css" />
-        <script>
-            let theme = window.matchMedia("(prefers-color-scheme: dark)")?.matches
-                ? "dark"
-                : "light";
-            document.documentElement.setAttribute("data-theme", theme);
-        </script>
-    </head>
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= gtag %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "<%= gtag %>");
+  </script>
+  <meta charset="utf-8" />
+  <title>brsFiddle - BrightScript Code Playground</title>
+  <meta name="description" content="Simple Code Editor for playing with BrightScript language." />
+  <meta name="author" content="Marcelo Lv Cabral" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://brsfiddle.net/" />
+  <meta property="og:title" content="brsFiddle - BrightScript Code Playground" />
+  <meta property="og:description" content="Simple Code Editor for playing with BrightScript language." />
+  <meta property="og:image" content="https://lvcabral.com/brs/images/icon.png" />
 
-    <body id="root" class="index-page">
-        <header class="header">
-            <div class="container">
-                <a class="brand" href="/">
-                    <img src="./images/logo.svg" alt="brs Console" />
-                </a>
-                <div class="actions">
-                    <a href="https://paypal.me/lvcabral" title="By me a Coffee!" target="_blank">
-                        <i class="icon-donate"></i>
-                        <span>Donate</span>
-                    </a>
-                    <a
-                        href="https://join.slack.com/t/rokudevelopers/shared_invite/zt-1fwucni9w-WizAcwB_rhL8nTctkO7trQ"
-                        title="Roku Developers Slack"
-                        target="_blank"
-                    >
-                        <i class="icon-slack"></i>
-                        <span>Community</span>
-                    </a>
-                    <a
-                        href="https://lvcabral.com/brs"
-                        title="BrightScript Simulation Engine"
-                        target="_blank"
-                    >
-                        <i class="icon-roku-emulator"></i>
-                        <span>Simulator</span>
-                    </a>
-                    <a
-                        href="https://github.com/lvcabral/brs-engine#readme"
-                        title="Code Repository"
-                        target="_blank"
-                    >
-                        <i class="icon-github"></i>
-                        <span>Code</span>
-                    </a>
-                </div>
-            </div>
-        </header>
-        <main class="main-container editor">
-            <div class="code">
-                <div class="code-header">
-                    <div>
-                        <h4>
-                            <span>Code&nbsp;</span>
-                            <select id="code-selector">
-                                <option value="0">&lt;&lt; New Code &gt;&gt;</option>
-                            </select>
-                            <button
-                                title="Delete the Code"
-                                class="delete"
-                                style="visibility: hidden"
-                            >
-                                <i class="icon-trash"></i>
-                                <span>DELETE</span>
-                            </button>
-                        </h4>
-                    </div>
-                    <div>
-                        <button title="Run the Code" class="run">
-                            <i class="icon-play"></i>
-                            <span>RUN</span>
-                        </button>
-                        <button title="End the Execution" style="display: none" class="end">
-                            <i class="icon-stop"></i>
-                            <span>END</span>
-                        </button>
-                        <button title="Save the Code" class="save">
-                            <i class="icon-save"></i>
-                            <span>SAVE</span>
-                        </button>
-                        <button title="Share the Code" class="share">
-                            <i class="icon-share"></i>
-                            <span>SHARE</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="editor-wrapper">
-                    <textarea id="brsCode" placeholder="Loading..." spellcheck="false"></textarea>
-                </div>
-            </div>
-            <div class="layout-separator"></div>
-            <div id="right-container">
-                <div class="simulator-display">
-                    <div class="display-header">
-                        <div>
-                            <h4><span>Display</span></h4>
-                        </div>
-                        <div>
-                            <label title="Theme">
-                                <i class="icon-moon" id="theme-icon"></i>
-                                <input type="checkbox" checked id="darkTheme" />
-                            </label>
-                            <label title="Audio Switch">
-                                <i class="icon-sound-on" id="audio-icon"></i>
-                                <input type="checkbox" checked id="audioSwitch" />
-                            </label>
-                            <label title="Keyboard control">
-                                <i class="icon-keyboard"></i>
-                                <input type="checkbox" checked id="keyboard" />
-                            </label>
-                            <label title="Gamepad control">
-                                <i class="icon-gamepad"></i>
-                                <input type="checkbox" checked id="gamepad" />
-                            </label>
-                        </div>
-                    </div>
-                    <canvas id="display"></canvas>
-                    <video id="player" crossorigin="anonymous"></video>
-                </div>
-                <div class="console">
-                    <div class="console-header">
-                        <div>
-                            <h4>Console</h4>
-                        </div>
-                        <div>
-                            <button title="Pause and Debug" style="display: none" class="break">
-                                <i class="icon-pause"></i>
-                                <span>DEBUG</span>
-                            </button>
-                            <button
-                                title="Resume the Execution"
-                                style="display: none"
-                                class="resume"
-                            >
-                                <i class="icon-play"></i>
-                                <span>RESUME</span>
-                            </button>
-                            <button title="Clear All Logs" class="clear-all">
-                                <i class="icon-trash"></i>
-                                <span>CLEAR</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="console-logs" class="active"></div>
-                </div>
-            </div>
-            <dialog id="code-dialog" class="modal_dialog" closed>
-                <p class="modal_dialog_content">Enter the name of the code snippet:</p>
-                <form method="dialog" id="code-form">
-                    <input type="text" name="codeName" class="modal_dialog_input" />
-                    <button value="ok">OK</button>
-                    <button value="cancel" class="modal_dialog_cancel">Cancel</button>
-                </form>
-            </dialog>
-            <dialog id="delete-dialog" class="modal_dialog" closed>
-                <p class="modal_dialog_content">Are you sure you want to delete this code?</p>
-                <br />
-                <form method="dialog">
-                    <button value="ok">Yes</button>
-                    <button value="cancel" class="modal_dialog_cancel">No</button>
-                </form>
-            </dialog>
-        </main>
-        <script src="lib/<%= brsApi %>"></script>
-    </body>
+  <!-- Twitter/X -->
+  <meta property="twitter:card" content="summary" />
+  <meta property="twitter:url" content="https://brsFiddle.net/" />
+  <meta property="twitter:title" content="brsFiddle - BrightScript Code Playground" />
+  <meta property="twitter:description" content="Simple Code Editor for playing with BrightScript language." />
+  <meta property="twitter:image" content="https://lvcabral.com/brs/images/icon.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="./images/favicon.ico" type="image/x-icon" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/default.css" />
+  <link rel="stylesheet" href="css/codemirror.css" />
+  <link rel="stylesheet" href="css/fontello.css" />
+  <link rel="stylesheet" href="css/vscode-dark.css" />
+  <link rel="stylesheet" href="css/coda.css" />
+  <script>
+    let theme = window.matchMedia("(prefers-color-scheme: dark)")?.matches
+      ? "dark"
+      : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+  </script>
+</head>
+
+<body id="root" class="index-page">
+  <header class="header">
+    <div class="container">
+      <a class="brand" href="/">
+        <img src="./images/logo.svg" alt="brs Console" />
+      </a>
+      <div class="actions">
+        <a href="https://paypal.me/lvcabral" title="By me a Coffee!" target="_blank">
+          <i class="icon-donate"></i>
+          <span>Donate</span>
+        </a>
+        <a href="https://join.slack.com/t/rokudevelopers/shared_invite/zt-1fwucni9w-WizAcwB_rhL8nTctkO7trQ"
+          title="Roku Developers Slack" target="_blank">
+          <i class="icon-slack"></i>
+          <span>Community</span>
+        </a>
+        <a href="https://lvcabral.com/brs" title="BrightScript Simulation Engine" target="_blank">
+          <i class="icon-roku-emulator"></i>
+          <span>Simulator</span>
+        </a>
+        <a href="https://github.com/lvcabral/brs-engine#readme" title="Code Repository" target="_blank">
+          <i class="icon-github"></i>
+          <span>Code</span>
+        </a>
+      </div>
+    </div>
+  </header>
+  <main class="main-container editor">
+    <div class="code">
+      <div class="code-header">
+        <div>
+          <h4>
+            <span>Code&nbsp;</span>
+            <select id="code-selector">
+              <option value="0">&lt;&lt; New Code &gt;&gt;</option>
+            </select>
+            <button title="Delete the Code" class="delete" style="visibility: hidden">
+              <i class="icon-trash"></i>
+              <span>DELETE</span>
+            </button>
+          </h4>
+        </div>
+        <div>
+          <button title="Run the Code" class="run">
+            <i class="icon-play"></i>
+            <span>RUN</span>
+          </button>
+          <button title="End the Execution" style="display: none" class="end">
+            <i class="icon-stop"></i>
+            <span>END</span>
+          </button>
+          <button title="Save the Code" class="save">
+            <i class="icon-save"></i>
+            <span>SAVE</span>
+          </button>
+          <button title="Share the Code" class="share">
+            <i class="icon-share"></i>
+            <span>SHARE</span>
+          </button>
+        </div>
+      </div>
+      <div class="editor-wrapper">
+        <textarea id="brsCode" placeholder="Loading..." spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div class="layout-separator"></div>
+    <div id="right-container">
+      <div class="simulator-display">
+        <div class="display-header">
+          <div>
+            <h4><span>Display</span></h4>
+          </div>
+          <div>
+            <label title="Theme">
+              <i class="icon-moon" id="theme-icon"></i>
+              <input type="checkbox" checked id="darkTheme" />
+            </label>
+            <label title="Audio Switch">
+              <i class="icon-sound-on" id="audio-icon"></i>
+              <input type="checkbox" checked id="audioSwitch" />
+            </label>
+            <label title="Keyboard control">
+              <i class="icon-keyboard"></i>
+              <input type="checkbox" checked id="keyboard" />
+            </label>
+            <label title="Gamepad control">
+              <i class="icon-gamepad"></i>
+              <input type="checkbox" checked id="gamepad" />
+            </label>
+          </div>
+        </div>
+        <canvas id="display"></canvas>
+        <video id="player" crossorigin="anonymous"></video>
+      </div>
+      <div class="console">
+        <div class="console-header">
+          <div>
+            <h4>Console</h4>
+          </div>
+          <div>
+            <button title="Pause and Debug" style="display: none" class="break">
+              <i class="icon-pause"></i>
+              <span>DEBUG</span>
+            </button>
+            <button title="Resume the Execution" style="display: none" class="resume">
+              <i class="icon-play"></i>
+              <span>RESUME</span>
+            </button>
+            <button title="Clear All Logs" class="clear-all">
+              <i class="icon-trash"></i>
+              <span>CLEAR</span>
+            </button>
+          </div>
+        </div>
+        <div id="console-logs" class="active"></div>
+      </div>
+    </div>
+    <dialog id="code-dialog" class="modal_dialog" closed>
+      <p class="modal_dialog_content">Enter the name of the code snippet:</p>
+      <form method="dialog" id="code-form">
+        <input type="text" name="codeName" class="modal_dialog_input" />
+        <button value="ok">OK</button>
+        <button value="cancel" class="modal_dialog_cancel">Cancel</button>
+      </form>
+    </dialog>
+    <dialog id="delete-dialog" class="modal_dialog" closed>
+      <p class="modal_dialog_content">Are you sure you want to delete this code?</p>
+      <br />
+      <form method="dialog">
+        <button value="ok">Yes</button>
+        <button value="cancel" class="modal_dialog_cancel">No</button>
+      </form>
+    </dialog>
+  </main>
+  <script src="lib/<%= brsApi %>"></script>
+</body>
+
 </html>
