@@ -59,7 +59,7 @@ fonts
 images
 index.html
 lib
-web,config
+web.config
 ```
 
 ### Release
