@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+env:
+  GTAG: ${{ vars.GTAG }}
 jobs:
   web-deploy:
     name: Deploy
