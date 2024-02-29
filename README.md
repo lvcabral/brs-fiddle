@@ -47,7 +47,7 @@ $ npm install -g yarn
 
 ### Build
 
-This project is written in TypeScript, so it needs to be compiled before it can be executed. `yarn build` compiles files in `src/` into JavaScript and TypeScript declarations, and puts them in `lib/`, `bin/` and `types/`.
+This project is written in TypeScript, so it needs to be compiled before it can be executed. `yarn build` compiles files in `src/` into JavaScript and TypeScript declarations, and puts them in `app/`.
 
 ```shell
 $ yarn build
