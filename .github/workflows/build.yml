@@ -22,6 +22,6 @@ jobs:
         server: ${{ vars.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        protocol: ftps
+        protocol: ftps-legacy
         local-dir: ./app/
         server-dir: /brs-fiddle/
