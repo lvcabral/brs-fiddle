@@ -8,7 +8,7 @@ Simple Code Editor for playing with BrightScript language.
 
 ## Project Information
 
-This application was created to give the **Roku Development Community** a useful tool to learn, practice and share BrightSript code. It also serves to demonstrate the power of the [BrightScript Simulation Engine](https://github.com/lvcabral/brs-engine) library, as a web framework to run BrightScript code in platforms other than the Roku. You can also check the [BrighScript TV](https://lvcabral.com/brs) to see it in action running full Roku apps and games.
+This application was created to give the **Roku Development Community** a useful tool to learn, practice and share BrightScript code. It also serves to demonstrate the power of the [BrightScript Simulation Engine](https://github.com/lvcabral/brs-engine) library, as a web framework to run BrightScript code in platforms other than the Roku. You can also check the [BrightScript TV](https://lvcabral.com/brs) to see it in action running full Roku apps and games.
 
 ## Shared Code Samples
 
