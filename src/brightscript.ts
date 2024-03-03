@@ -12,24 +12,24 @@ https://developer.roku.com/en-gb/docs/references/brightscript/language/brightscr
 
 export function defineMode(CodeMirror: any) {
     CodeMirror.defineMode("brightscript", function (conf: any, parserConf: any) {
-        var ERRORCLASS = "error";
+        const ERRORCLASS = "error";
 
         function wordRegexp(words: string[]) {
-            return new RegExp("^((" + words.join(")|(") + "))\\b", "i");
+            return new RegExp(`^((${words.join(")|(")}))\\b`, "i");
         }
 
-        var singleOperators = new RegExp("^[\\+\\-\\*/&\\\\\\^<>=]");
-        var doubleOperators = new RegExp("^((<>)|(<=)|(>=)|(<<)|(>>))");
-        var singleDelimiters = new RegExp("^[\\.,;:$%!#&@?]");
-        var brackets = new RegExp("^[\\(\\)\\[\\]\\{\\}]");
-        var functions = new RegExp("^[A-Za-z][_A-Za-z0-9]+(?=\\()");
-        var identifiers = new RegExp("^[A-Za-z][_A-Za-z0-9]*");
+        const singleOperators = /^[+\-/*&\\^<>=]/;
+        const doubleOperators = /^((<>)|(<=)|(>=)|(<<)|(>>))/;
+        const singleDelimiters = /^[.,;:$%!#&@?]/;
+        const brackets = /^[(){}[\]]/;
+        const functions = /^[_A-Za-z]\w*(?=\()/;
+        const identifiers = /^[_A-Za-z]\w*/;
 
-        var openingKeywords = ["sub", "function"];
-        var endKeywords = ["endsub", "endfunction"];
+        const openingKeywords = ["sub", "function"];
+        const endKeywords = ["endsub", "endfunction"];
 
-        var openingControl = ["while", "if", "for"];
-        var middleControl = [
+        const openingControl = ["while", "if", "for"];
+        const middleControl = [
             "else",
             "elseif",
             "to",
@@ -39,12 +39,12 @@ export function defineMode(CodeMirror: any) {
             "each",
             "as",
             "return",
-            "stop", 
+            "stop",
         ];
-        var endControl = ["next", "endif", "endfor", "endwhile"];
-        var wordOperators = wordRegexp(["and", "or", "not", "mod"]);
-        var commonkeywords = ["dim", "print", "library"];
-        var commontypes = [
+        const endControl = ["next", "endif", "endfor", "endwhile"];
+        const wordOperators = wordRegexp(["and", "or", "not", "mod"]);
+        const commonkeywords = ["dim", "print", "library"];
+        const commontypes = [
             "object",
             "dynamic",
             "boolean",
@@ -56,8 +56,8 @@ export function defineMode(CodeMirror: any) {
             "void",
         ];
 
-        var atomWords = ["true", "false", "invalid"];
-        var builtinFuncsWords = [
+        const atomWords = ["true", "false", "invalid"];
+        const builtinFuncsWords = [
             "box",
             "createobject",
             "getglobalaa",
@@ -114,11 +114,9 @@ export function defineMode(CodeMirror: any) {
             "sqr",
             "tan",
         ];
-        var builtinConsts = [
-            "LINE_NUM",
-        ];
-        var builtinObjsWords = ["global", "m"];
-        var knownElements = [
+        const builtinConsts = ["LINE_NUM"];
+        let builtinObjsWords = ["global", "m"];
+        const knownElements = [
             "getdefaultfont",
             "clear",
             "push",
@@ -135,23 +133,23 @@ export function defineMode(CodeMirror: any) {
 
         builtinObjsWords = builtinObjsWords.concat(builtinConsts);
 
-        var keywords = wordRegexp(commonkeywords);
-        var types = wordRegexp(commontypes);
-        var atoms = wordRegexp(atomWords);
-        var builtinFuncs = wordRegexp(builtinFuncsWords);
-        var builtinObjs = wordRegexp(builtinObjsWords);
-        var known = wordRegexp(knownElements);
-        var stringPrefixes = '"';
+        const keywords = wordRegexp(commonkeywords);
+        const types = wordRegexp(commontypes);
+        const atoms = wordRegexp(atomWords);
+        const builtinFuncs = wordRegexp(builtinFuncsWords);
+        const builtinObjs = wordRegexp(builtinObjsWords);
+        const known = wordRegexp(knownElements);
+        const stringPrefixes = '"';
 
-        var opening = wordRegexp(openingKeywords);
-        var closing = wordRegexp(endKeywords);
-        var openingCtrl = wordRegexp(openingControl);
-        var middleCtrl = wordRegexp(middleControl);
-        var closingCtrl = wordRegexp(endControl);
-        var doubleClosing = wordRegexp(["end"]);
-        var doOpening = wordRegexp(["do"]);
-        var noIndentWords = wordRegexp(["on error resume next", "exit"]);
-        var comment = wordRegexp(["rem"]);
+        const opening = wordRegexp(openingKeywords);
+        const closing = wordRegexp(endKeywords);
+        const openingCtrl = wordRegexp(openingControl);
+        const middleCtrl = wordRegexp(middleControl);
+        const closingCtrl = wordRegexp(endControl);
+        const doubleClosing = wordRegexp(["end"]);
+        const doOpening = wordRegexp(["do"]);
+        const noIndentWords = wordRegexp(["on error resume next", "exit"]);
+        const comment = wordRegexp(["rem"]);
 
         function indent(_stream: StringStream, state: any) {
             state.currentIndent++;
@@ -166,7 +164,7 @@ export function defineMode(CodeMirror: any) {
                 return "space";
             }
 
-            var ch = stream.peek();
+            const ch = stream.peek();
             // Handle Comments
             if (ch === "'") {
                 stream.skipToEnd();
@@ -179,10 +177,10 @@ export function defineMode(CodeMirror: any) {
 
             // Handle Number Literals
             if (
-                stream.match(/^((&H)|(&O))?[0-9\.]/i, false) &&
-                !stream.match(/^((&H)|(&O))?[0-9\.]+[a-z_]/i, false)
+                stream.match(/^((&H)|(&O))?[0-9.]/i, false) &&
+                !stream.match(/^((&H)|(&O))?[0-9.]+[a-z_]/i, false)
             ) {
-                var floatLiteral = false;
+                let floatLiteral = false;
                 // Floats
                 if (stream.match(/^\d*\.\d+/i)) {
                     floatLiteral = true;
@@ -198,7 +196,7 @@ export function defineMode(CodeMirror: any) {
                     return "number";
                 }
                 // Integers
-                var intLiteral = false;
+                let intLiteral = false;
                 // Hex
                 if (stream.match(/^&H[0-9a-f]+/i)) {
                     intLiteral = true;
@@ -343,8 +341,8 @@ export function defineMode(CodeMirror: any) {
         }
 
         function tokenStringFactory(delimiter: string) {
-            var singleline = delimiter.length == 1;
-            var OUTCLASS = "string";
+            const singleline = delimiter.length == 1;
+            const OUTCLASS = "string";
 
             return function (stream: StringStream, state: any) {
                 while (!stream.eol()) {
@@ -368,8 +366,8 @@ export function defineMode(CodeMirror: any) {
         }
 
         function tokenLexer(stream: StringStream, state: any) {
-            var style = state.tokenize(stream, state);
-            var current = stream.current();
+            let style = state.tokenize(stream, state);
+            let current = stream.current();
 
             // Handle '.' connected identifiers
             if (current === ".") {
@@ -381,7 +379,7 @@ export function defineMode(CodeMirror: any) {
                         (style.substr(0, 8) === "variable" ||
                             style === "builtin" ||
                             style === "keyword")) ||
-                            knownElements.indexOf(current.substring(1)) > -1
+                    knownElements.indexOf(current.substring(1)) > -1
                 ) {
                     if (style === "builtin" || style === "keyword") style = "variable";
                     if (knownElements.indexOf(current.substr(1)) > -1) style = "variable-2";
@@ -395,7 +393,7 @@ export function defineMode(CodeMirror: any) {
             return style;
         }
 
-        var external = {
+        const external = {
             electricChars: "dDpPtTfFeE ",
             startState: function () {
                 return {
@@ -414,7 +412,7 @@ export function defineMode(CodeMirror: any) {
                     state.nextLineIndent = 0;
                     state.doInCurrentLine = 0;
                 }
-                var style = tokenLexer(stream, state);
+                let style = tokenLexer(stream, state);
 
                 state.lastToken = { style: style, content: stream.current() };
 
@@ -424,7 +422,7 @@ export function defineMode(CodeMirror: any) {
             },
 
             indent: function (state: any, textAfter: string) {
-                var trueText = textAfter.replace(/^\s+|\s+$/g, "");
+                const trueText = textAfter.replace(/(^\s+)|(\s+$)/g, "");
                 if (
                     trueText.match(closing) ||
                     trueText.match(doubleClosing) ||
