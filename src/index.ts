@@ -228,8 +228,8 @@ function scrollToBottom() {
 
 // Code Events
 function populateCodeSelector(currentId: string) {
-    var arrCode = new Array();
-    for (var i = 0; i < localStorage.length; i++) {
+    const arrCode = new Array();
+    for (let i = 0; i < localStorage.length; i++) {
         const codeId = localStorage.key(i);
         if (codeId && codeId.length === 10) {
             let idx = arrCode.length;
@@ -246,7 +246,7 @@ function populateCodeSelector(currentId: string) {
     arrCode.sort();
 
     codeSelect.length = 1;
-    for (var i = 0; i < arrCode.length; i++) {
+    for (let i = 0; i < arrCode.length; i++) {
         const codeId = arrCode[i][1];
         const selected = codeId === currentId;
         codeSelect.options[i + 1] = new Option(arrCode[i][0], codeId, false, selected);
@@ -557,7 +557,7 @@ function onMouseDown(event: Event) {
 // Helper Functions
 function getParameterByName(name: string, url = window.location.href) {
     name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+    const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
         results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return "";
@@ -579,7 +579,7 @@ function getShareUrl(suite: any) {
         return Promise.resolve(null);
     }
     //compress the object
-    var data = [suite.id, suite.code];
+    const data = [suite.id, suite.code];
     return codec.compress(data).then(function (text: string) {
         return getBaseUrl() + "?code=" + text;
     });
