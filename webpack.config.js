@@ -5,20 +5,16 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = env => {
     const libraryName = "brsFiddle";
     const brsLibName = "brs"
+    const apiLib = brsLibName + ".api.js";
+    const wrkLib = brsLibName + ".worker.js";
+    const distPath = "app/lib"
+    let mode = "development";
+    let outputLib = libraryName + ".js";
+    let devtool = "inline-source-map";
     if (env.production) {
         mode = "production";
         outputLib = libraryName + ".min.js";
-        apiLib = brsLibName + ".api.js";
-        wrkLib = brsLibName + ".worker.js";
         devtool = "source-map";
-        distPath = "app/lib"
-    } else {
-        mode = "development";
-        outputLib = libraryName + ".js";
-        apiLib = brsLibName + ".api.js";
-        wrkLib = brsLibName + ".worker.js";
-        devtool = "inline-source-map";
-        distPath = "app/lib"
     }
     return [
         {

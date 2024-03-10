@@ -90,34 +90,8 @@ let editorManager: CodeMirrorManager;
 let currentId = nanoid(10);
 
 function main() {
-    if (saveButton) {
-        saveButton.title = isMacOS ? "CMD+S" : "CTRL+S";
-    }
-    if (runButton) {
-        runButton.title = isMacOS ? "CMD+R" : "CTRL+R";
-    }
-    if (clearAllButton) {
-        clearAllButton.title = isMacOS ? "CMD+L" : "CTRL+L";
-    }
-    if (endButton) {
-        endButton.title = isMacOS ? "CTRL+ESC" : "HOME";
-    }
-    if (breakButton) {
-        breakButton.title = isMacOS ? "CTRL+C" : "CTRL+B";
-    }
-    // Initialize the Code Mirror manager
-    if (brsCodeField) {
-        editorManager = new CodeMirrorManager(brsCodeField, "dark");
-        if (isMacOS) {
-            // Remove binding for Ctrl+V on MacOS to allow remapping
-            // https://github.com/codemirror/codemirror5/issues/5848
-            const cm = document.querySelector(".CodeMirror") as any;
-            if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
-        }
-    }
-    setTheme(lastState.darkTheme);
-    const { height } = codeColumn.getBoundingClientRect();
-    editorManager.editor.setSize("100%", `${height - 40}px`);
+    updateButtons();
+    initializeCodeEditor();
     // Process Shared Token parameter
     const shareToken = getParameterByName("code");
     if (shareToken) {
@@ -167,6 +141,39 @@ function main() {
     }
 }
 
+function updateButtons() {
+    if (saveButton) {
+        saveButton.title = isMacOS ? "CMD+S" : "CTRL+S";
+    }
+    if (runButton) {
+        runButton.title = isMacOS ? "CMD+R" : "CTRL+R";
+    }
+    if (clearAllButton) {
+        clearAllButton.title = isMacOS ? "CMD+L" : "CTRL+L";
+    }
+    if (endButton) {
+        endButton.title = isMacOS ? "CTRL+ESC" : "HOME";
+    }
+    if (breakButton) {
+        breakButton.title = isMacOS ? "CTRL+C" : "CTRL+B";
+    }
+}
+
+function initializeCodeEditor() {
+    if (brsCodeField) {
+        editorManager = new CodeMirrorManager(brsCodeField, "dark");
+        if (isMacOS) {
+            // Remove binding for Ctrl+V on MacOS to allow remapping
+            // https://github.com/codemirror/codemirror5/issues/5848
+            const cm = document.querySelector(".CodeMirror") as any;
+            if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
+        }
+    }
+    setTheme(lastState.darkTheme);
+    const { height } = codeColumn.getBoundingClientRect();
+    editorManager.editor.setSize("100%", `${height - 40}px`);
+}
+
 function handleEngineEvents(event: string, data: any) {
     if (event === "loaded") {
         currentApp = data;
@@ -179,29 +186,7 @@ function handleEngineEvents(event: string, data: any) {
         endButton.style.display = "inline";
         breakButton.style.display = "inline";
     } else if (event === "debug") {
-        if (data.level === "stop") {
-            terminal.output("<br />");
-            terminal.setPrompt();
-            resumeButton.style.display = "inline";
-            breakButton.style.display = "none";
-        } else if (data.level === "continue") {
-            terminal.idle();
-            resumeButton.style.display = "none";
-            breakButton.style.display = "inline";
-        } else if (data.level !== "beacon") {
-            let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            if (data.level === "print") {
-                const promptLen = `${prompt}&gt; `.length;
-                if (output.slice(-promptLen) === `${prompt}&gt; `) {
-                    output = output.slice(0, output.length - promptLen);
-                }
-            } else if (data.level === "warning") {
-                output = "<span style='color: #d7ba7d;'>" + output + "</span>";
-            } else if (data.level === "error") {
-                output = "<span style='color: #e95449;'>" + output + "</span>";
-            }
-            terminal.output(`<pre>${output}</pre>`);
-        }
+        logToTerminal(data);
         scrollToBottom();
     } else if (event === "closed" || event === "error") {
         currentApp = data;
@@ -211,6 +196,32 @@ function handleEngineEvents(event: string, data: any) {
         endButton.style.display = "none";
         resumeButton.style.display = "none";
         breakButton.style.display = "none";
+    }
+}
+
+function logToTerminal(data: any) {
+    if (data.level === "stop") {
+        terminal.output("<br />");
+        terminal.setPrompt();
+        resumeButton.style.display = "inline";
+        breakButton.style.display = "none";
+    } else if (data.level === "continue") {
+        terminal.idle();
+        resumeButton.style.display = "none";
+        breakButton.style.display = "inline";
+    } else if (data.level !== "beacon") {
+        let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        if (data.level === "print") {
+            const promptLen = `${prompt}&gt; `.length;
+            if (output.slice(-promptLen) === `${prompt}&gt; `) {
+                output = output.slice(0, output.length - promptLen);
+            }
+        } else if (data.level === "warning") {
+            output = "<span style='color: #d7ba7d;'>" + output + "</span>";
+        } else if (data.level === "error") {
+            output = "<span style='color: #e95449;'>" + output + "</span>";
+        }
+        terminal.output(`<pre>${output}</pre>`);
     }
 }
 
@@ -449,22 +460,13 @@ function hotKeys(event: KeyboardEvent) {
         keyboard: isCodeEditor ? false : keyboardSwitch.checked,
         gamePads: gamePadSwitch.checked,
     });
-    if (
-        (isMacOS && event.code === "KeyR" && event.metaKey) ||
-        (!isMacOS && event.code === "KeyR" && event.ctrlKey)
-    ) {
+    if (isHotKey(event, "KeyR")) {
         event.preventDefault();
         runCode();
-    } else if (
-        (isMacOS && event.code === "KeyS" && event.metaKey) ||
-        (!isMacOS && event.code === "KeyS" && event.ctrlKey)
-    ) {
+    } else if (isHotKey(event, "KeyS")) {
         event.preventDefault();
         saveCode();
-    } else if (
-        (isMacOS && event.code === "KeyL" && event.metaKey) ||
-        (!isMacOS && event.code === "KeyL" && event.ctrlKey)
-    ) {
+    } else if (isHotKey(event, "KeyL")) {
         event.preventDefault();
         clearTerminal();
     } else if (currentApp.running) {
@@ -482,6 +484,11 @@ function hotKeys(event: KeyboardEvent) {
             endExecution();
         }
     }
+}
+
+function isHotKey(event: KeyboardEvent, keyCode: string) {
+    return (isMacOS && event.code === keyCode && event.metaKey) ||
+        (!isMacOS && event.code === keyCode && event.ctrlKey);
 }
 
 // Resize Events
@@ -556,7 +563,7 @@ function onMouseDown(event: Event) {
 
 // Helper Functions
 function getParameterByName(name: string, url = window.location.href) {
-    name = name.replace(/[\[\]]/g, "\\$&");
+    name = name.replace(/[[\]]/g, "\\$&");
     const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
         results = regex.exec(url);
     if (!results) return null;
@@ -587,7 +594,7 @@ function getShareUrl(suite: any) {
 
 function getBaseUrl(): string {
     let url = window.location.origin + window.location.pathname;
-    if (url.slice(-1) === "/") {
+    if (url.endsWith("/")) {
         url = url.slice(0, url.length - 1);
     }
     return url;
@@ -627,7 +634,7 @@ function saveState() {
 
 // Theme Management
 function isDarkTheme() {
-    return window.matchMedia("(prefers-color-scheme: dark)")?.matches ? true : false;
+    return window.matchMedia("(prefers-color-scheme: dark)")?.matches;
 }
 function setTheme(dark: boolean) {
     const theme = dark ? "dark" : "light";
