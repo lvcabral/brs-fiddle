@@ -18,14 +18,4 @@ export const getOS = () => {
     }
     return os;
 };
-export interface console {
-    panel: HTMLDivElement;
-    log: Function;
-    error: Function;
-}
 
-declare global {
-    interface Window {
-        console: console;
-    }
-}
