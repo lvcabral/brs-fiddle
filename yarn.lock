@@ -847,9 +847,9 @@ browserslist@^4.21.10:
     update-browserslist-db "^1.0.13"
 
 brs-engine@^1.5.0:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-1.5.3.tgz#5da7d4c99924441dba6df475ef04fd112defe432"
-  integrity sha512-j3WaPKEsamDRILL8d/fiKnO0px6na2Pl5YhZ5KVMJb5FwZfYt7WKWONY02720ueYZetfnGzmwIFVgLkix9v3Pg==
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-1.5.4.tgz#e76da41374073423f3f8f9028212485cc290e02a"
+  integrity sha512-CWaSTArKHlwGEaqxO/yQzMa9krqHJawxJwjFHhRyDRLzgT7o3UaaS0Z1v+GqnNGg/Vt1/Ap0HidvqOCibQtPeQ==
   dependencies:
     "@msgpack/msgpack" "^2.8.0"
     canvas "^2.11.2"
