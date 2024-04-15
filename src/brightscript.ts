@@ -28,10 +28,16 @@ export function defineMode(CodeMirror: any) {
         const openingKeywords = ["sub", "function"];
         const endKeywords = ["endsub", "endfunction"];
 
-        const openingControl = ["while", "if", "for"];
+        const openingControl = ["while", "if", "for", "try"];
         const middleControl = [
-            "else",
+            "catch",
+            "continue for",
+            "continue while",
+            "else if",
             "elseif",
+            "else",
+            "exit for",
+            "exit while",
             "to",
             "step",
             "in",
@@ -40,8 +46,9 @@ export function defineMode(CodeMirror: any) {
             "as",
             "return",
             "stop",
+            "throw",
         ];
-        const endControl = ["next", "endif", "endfor", "endwhile"];
+        const endControl = ["next", "endif", "end if", "endfor", "end for", "endwhile", "end while", "endtry", "end try"];
         const wordOperators = wordRegexp(["and", "or", "not", "mod"]);
         const commonkeywords = ["dim", "print", "library"];
         const commontypes = [
@@ -148,7 +155,7 @@ export function defineMode(CodeMirror: any) {
         const closingCtrl = wordRegexp(endControl);
         const doubleClosing = wordRegexp(["end"]);
         const doOpening = wordRegexp(["do"]);
-        const noIndentWords = wordRegexp(["on error resume next", "exit"]);
+        const noIndentWords = wordRegexp(["on error resume next"]);
         const comment = wordRegexp(["rem"]);
 
         function indent(_stream: StringStream, state: any) {
