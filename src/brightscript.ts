@@ -6,7 +6,7 @@ import { StringStream } from "codemirror";
 /*
 BrightScript Language Mode
 
-https://developer.roku.com/en-gb/docs/references/brightscript/language/brightscript-language-reference.md
+https://developer.roku.com/docs/references/brightscript/language/brightscript-language-reference.md
 
 */
 
