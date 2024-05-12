@@ -50,7 +50,7 @@ export function defineMode(CodeMirror: any) {
         ];
         const endControl = ["next", "endif", "end if", "endfor", "end for", "endwhile", "end while", "endtry", "end try"];
         const wordOperators = wordRegexp(["and", "or", "not", "mod"]);
-        const commonkeywords = ["dim", "print", "library"];
+        const commonkeywords = ["dim", "print", "goto", "library"];
         const commontypes = [
             "object",
             "dynamic",
@@ -136,6 +136,8 @@ export function defineMode(CodeMirror: any) {
             "state",
             "update",
             "addnew",
+            "tostr",
+            "toint",
         ];
 
         builtinObjsWords = builtinObjsWords.concat(builtinConsts);
@@ -155,7 +157,7 @@ export function defineMode(CodeMirror: any) {
         const closingCtrl = wordRegexp(endControl);
         const doubleClosing = wordRegexp(["end"]);
         const doOpening = wordRegexp(["do"]);
-        const noIndentWords = wordRegexp(["on error resume next"]);
+        const noIndentWords = wordRegexp(["library"]);
         const comment = wordRegexp(["rem"]);
 
         function indent(_stream: StringStream, state: any) {
