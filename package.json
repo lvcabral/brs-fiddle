@@ -1,6 +1,6 @@
 {
   "name": "brs-fiddle",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "BrightScript Fiddle",
   "author": "Marcelo Lv Cabral <marcelo@lvcabral.com> (https://lvcabral.com/)",
   "homepage": "https://lvcabral.com/brs/",
@@ -27,7 +27,7 @@
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
-    "brs-engine": "^1.6.0",
+    "brs-engine": "^1.7.0",
     "codemirror": "^5.65.12",
     "json-url": "^3.0.0",
     "nanoid": "^4.0.1",
