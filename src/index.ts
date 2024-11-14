@@ -19,7 +19,6 @@ const isMacOS = getOS() === "MacOS";
 const codec = Codec("lzma");
 const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
 const saveButton = document.querySelector("button.save") as HTMLButtonElement;
-const deleteButton = document.querySelector("button.delete") as HTMLButtonElement;
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
 const breakButton = document.querySelector("button.break") as HTMLButtonElement;
@@ -40,8 +39,11 @@ const themeSwitch = document.getElementById("darkTheme") as HTMLInputElement;
 const themeIcon = document.getElementById("theme-icon") as HTMLElement;
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const codeDialog = document.getElementById("code-dialog") as HTMLDialogElement;
+const actionType = document.getElementById("actionType") as HTMLInputElement;
 const codeForm = document.getElementById("code-form") as HTMLFormElement;
 const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement;
+const moreButton = document.getElementById("more-options") as HTMLButtonElement;
+const dropdown = document.getElementById("more-options-dropdown") as HTMLDivElement;
 
 // Restore Last State
 const lastState = loadState();
@@ -74,7 +76,6 @@ terminal.idle();
 
 // Buttons Events
 saveButton.addEventListener("click", saveCode);
-deleteButton.addEventListener("click", deleteCode);
 runButton.addEventListener("click", runCode);
 clearAllButton.addEventListener("click", clearTerminal);
 breakButton.addEventListener("click", startDebug);
@@ -82,6 +83,24 @@ resumeButton.addEventListener("click", resumeExecution);
 endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
+moreButton.addEventListener("click", function (event) {
+    event.stopPropagation();
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+});
+document.addEventListener("click", function (event: any) {
+    if (!dropdown.contains(event.target) && event.target !== moreButton) {
+        dropdown.style.display = "none";
+    }
+});
+document.getElementById("rename-option")?.addEventListener("click", renameCode);
+document.getElementById("saveas-option")?.addEventListener("click", saveAsCode);
+document.getElementById("delete-option")?.addEventListener("click", deleteCode);
+document.getElementById("export-option")?.addEventListener("click", exportCode);
+document.getElementById("import-option")?.addEventListener("click", importCode);
 
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
@@ -131,7 +150,7 @@ function main() {
         // Subscribe to Engine Events
         brs.subscribe(appId, handleEngineEvents);
         // Resize screen
-        onResize()
+        onResize();
         // Handle console commands
         terminal.onInput((command: string, parameters: string[], handled: boolean) => {
             if (!handled) {
@@ -262,8 +281,6 @@ function populateCodeSelector(currentId: string) {
         const selected = codeId === currentId;
         codeSelect.options[i + 1] = new Option(arrCode[i][0], codeId, false, selected);
     }
-
-    deleteButton.style.visibility = currentId === "" ? "hidden" : "visible";
 }
 
 codeSelect.addEventListener("change", (e) => {
@@ -288,12 +305,85 @@ function loadCode(id: string) {
     }
 }
 
+function renameCode() {
+    if (currentId && localStorage.getItem(currentId)) {
+        actionType.value = "rename";
+        codeForm.codeName.value = codeSelect.options[codeSelect.selectedIndex].text;
+        codeDialog.showModal();
+    } else {
+        showToast("There is no code snippet selected to rename!", 3000, true);
+    }
+}
+
+function saveAsCode() {
+    if (currentId && localStorage.getItem(currentId)) {
+        actionType.value = "saveas";
+        codeForm.codeName.value = codeSelect.options[codeSelect.selectedIndex].text + " (Copy)";
+        codeDialog.showModal();
+    } else {
+        showToast("There is no code snippet selected to save as!", 3000, true);
+    }
+}
+
 function deleteCode() {
     if (currentId && localStorage.getItem(currentId)) {
         deleteDialog.showModal();
     } else {
-        showToast("There is no Source Code to delete!", 3000, true);
+        showToast("There is no code snippet selected to delete!", 3000, true);
     }
+}
+
+interface CodeSnippet {
+    name: string;
+    content: string;
+}
+
+function exportCode() {
+    const codes: { [key: string]: CodeSnippet } = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.length === 10) {
+            const value = localStorage.getItem(key);
+            if (value?.startsWith("@=")) {
+                const codeName = value.substring(2, value.indexOf("=@"));
+                const codeContent = value.substring(value.indexOf("=@") + 2);
+                codes[key] = { name: codeName, content: codeContent };
+            }
+        }
+    }
+    const json = JSON.stringify(codes, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "codesnippets.json";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importCode() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e: ProgressEvent<FileReader>) => {
+                const json = e.target?.result as string;
+                const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
+                for (const id in codes) {
+                    const code = codes[id];
+                    const value = `@=${code.name}=@${code.content}`;
+                    localStorage.setItem(id, value);
+                }
+                populateCodeSelector(currentId);
+                showToast("Code snippets imported to the browser local storage!", 3000);
+            };
+            reader.readAsText(file);
+        }
+    };
+    input.click();
 }
 
 deleteDialog.addEventListener("close", (e) => {
@@ -301,7 +391,7 @@ deleteDialog.addEventListener("close", (e) => {
         localStorage.removeItem(currentId);
         currentId = nanoid(10);
         resetApp();
-        showToast("Code deleted from your browser local storage!", 3000);
+        showToast("Code deleted from the browser local storage!", 3000);
     }
     deleteDialog.returnValue = "";
 });
@@ -344,12 +434,13 @@ function saveCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         if (codeSelect.value === "0") {
+            actionType.value = "save";
             codeDialog.showModal();
         } else {
             const codeName = codeSelect.options[codeSelect.selectedIndex].text;
             localStorage.setItem(currentId, `@=${codeName}=@${code}`);
             showToast(
-                "Code saved in your browser local storage!\nTo share it use the Share button.",
+                "Code saved in the browser local storage!\nTo share it use the Share button.",
                 5000
             );
         }
@@ -360,24 +451,51 @@ function saveCode() {
 
 codeDialog.addEventListener("close", (e) => {
     if (codeDialog.returnValue === "ok") {
-        if (codeForm.codeName.value.trim().length >= 3) {
-            const codeName = codeForm.codeName.value.trim();
-            const code = editorManager.editor.getValue();
-            localStorage.setItem(currentId, `@=${codeName}=@${code}`);
-            lastState.codeId = currentId;
-            saveState();
-            populateCodeSelector(currentId);
+        const codeName = codeForm.codeName.value.trim();
+        if (codeName.length < 3) {
+            showToast("Code snippet name must have least 3 characters!", 3000, true);
+            return;
+        }
+        if (codeNameExists(codeName)) {
+            showToast("There is already a code snippet with this Name!", 3000, true);
+            return;
+        }
+        const code = editorManager.editor.getValue();
+        if (actionType.value === "saveas") {
+            currentId = nanoid(10);
+        }
+        localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+        lastState.codeId = currentId;
+        saveState();
+        populateCodeSelector(currentId);
+        if (actionType.value === "rename") {
+            showToast("Code snippet renamed in the simulator local storage.", 5000);
+        } else {
             showToast(
-                "Code saved in your browser local storage!\nTo share it use the Share button.",
+                "Code saved in the browser local storage!\nTo share it use the Share button.",
                 5000
             );
-        } else {
-            showToast("Code Snippet Name must have least 3 characters!", 3000, true);
         }
     }
     codeDialog.returnValue = "";
     codeForm.codeName.value = "";
 });
+
+function codeNameExists(codeName: string) {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.length === 10) {
+            const value = localStorage.getItem(key);
+            if (value?.startsWith("@=")) {
+                const itemName = value.substring(2, value.indexOf("=@"));
+                if (itemName.toLocaleLowerCase() === codeName.toLocaleLowerCase()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
 function runCode() {
     const code = editorManager.editor.getValue();
@@ -487,8 +605,10 @@ function hotKeys(event: KeyboardEvent) {
 }
 
 function isHotKey(event: KeyboardEvent, keyCode: string) {
-    return (isMacOS && event.code === keyCode && event.metaKey) ||
-        (!isMacOS && event.code === keyCode && event.ctrlKey);
+    return (
+        (isMacOS && event.code === keyCode && event.metaKey) ||
+        (!isMacOS && event.code === keyCode && event.ctrlKey)
+    );
 }
 
 // Resize Events
@@ -502,13 +622,13 @@ function resizeCanvas() {
     if (window.innerWidth >= 1220) {
         const rightRect = rightContainer.getBoundingClientRect();
         width = rightRect.width;
-        height = Math.trunc(width * 9 / 16);
+        height = Math.trunc((width * 9) / 16);
     } else {
         height = window.innerHeight / 3;
-        width = Math.trunc(height * 16 / 9);
+        width = Math.trunc((height * 16) / 9);
         if (width > window.innerWidth) {
             width = window.innerWidth;
-            height = Math.trunc(width * 9 / 16);
+            height = Math.trunc((width * 9) / 16);
         }
     }
     brs.redraw(false, width, height);
@@ -630,7 +750,6 @@ function loadState() {
 function saveState() {
     localStorage.setItem(`${appId}.state`, JSON.stringify(lastState));
 }
-
 
 // Theme Management
 function isDarkTheme() {
