@@ -39,6 +39,7 @@ const themeSwitch = document.getElementById("darkTheme") as HTMLInputElement;
 const themeIcon = document.getElementById("theme-icon") as HTMLElement;
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const codeDialog = document.getElementById("code-dialog") as HTMLDialogElement;
+const actionType = document.getElementById("actionType") as HTMLInputElement;
 const codeForm = document.getElementById("code-form") as HTMLFormElement;
 const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement;
 const moreButton = document.getElementById("more-options") as HTMLButtonElement;
@@ -96,6 +97,7 @@ document.addEventListener("click", function (event: any) {
     }
 });
 document.getElementById("rename-option")?.addEventListener("click", renameCode);
+document.getElementById("saveas-option")?.addEventListener("click", saveAsCode);
 document.getElementById("delete-option")?.addEventListener("click", deleteCode);
 document.getElementById("export-option")?.addEventListener("click", exportCode);
 document.getElementById("import-option")?.addEventListener("click", importCode);
@@ -305,10 +307,21 @@ function loadCode(id: string) {
 
 function renameCode() {
     if (currentId && localStorage.getItem(currentId)) {
+        actionType.value = "rename";
         codeForm.codeName.value = codeSelect.options[codeSelect.selectedIndex].text;
         codeDialog.showModal();
     } else {
         showToast("There is no code snippet selected to rename!", 3000, true);
+    }
+}
+
+function saveAsCode() {
+    if (currentId && localStorage.getItem(currentId)) {
+        actionType.value = "saveas";
+        codeForm.codeName.value = codeSelect.options[codeSelect.selectedIndex].text + " (Copy)";
+        codeDialog.showModal();
+    } else {
+        showToast("There is no code snippet selected to save as!", 3000, true);
     }
 }
 
@@ -421,6 +434,7 @@ function saveCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         if (codeSelect.value === "0") {
+            actionType.value = "save";
             codeDialog.showModal();
         } else {
             const codeName = codeSelect.options[codeSelect.selectedIndex].text;
@@ -437,23 +451,41 @@ function saveCode() {
 
 codeDialog.addEventListener("close", (e) => {
     if (codeDialog.returnValue === "ok") {
-        if (codeForm.codeName.value.trim().length >= 3) {
-            const codeName = codeForm.codeName.value.trim();
-            const code = editorManager.editor.getValue();
-            localStorage.setItem(currentId, `@=${codeName}=@${code}`);
-            lastState.codeId = currentId;
-            saveState();
-            populateCodeSelector(currentId);
-            if (codeSelect.value !== "0") {
-                showToast("Code snippet renamed in the simulator local storage.", 5000);
-            } else {
-                showToast(
-                    "Code saved in the browser local storage!\nTo share it use the Share button.",
-                    5000
-                );
-            }
-        } else {
+        const codeName = codeForm.codeName.value.trim();
+        if (codeName.length < 3) {
             showToast("Code Snippet Name must have least 3 characters!", 3000, true);
+            return;
+        }
+        // Check if the name already exists
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.length === 10) {
+                const value = localStorage.getItem(key);
+                if (value?.startsWith("@=")) {
+                    const itemName = value.substring(2, value.indexOf("=@"));
+                    if (itemName === codeName) {
+                        showToast("There is already a code snippet with this Name!", 3000, true);
+                        return;
+                    }
+                }
+            }
+        }
+        // Save the code
+        const code = editorManager.editor.getValue();
+        if (actionType.value === "saveas")  {
+            currentId = nanoid(10);
+        }
+        localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+        lastState.codeId = currentId;
+        saveState();
+        populateCodeSelector(currentId);
+        if (actionType.value === "rename") {
+            showToast("Code snippet renamed in the simulator local storage.", 5000);
+        } else {
+            showToast(
+                "Code saved in the browser local storage!\nTo share it use the Share button.",
+                5000
+            );
         }
     }
     codeDialog.returnValue = "";
