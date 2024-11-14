@@ -453,26 +453,15 @@ codeDialog.addEventListener("close", (e) => {
     if (codeDialog.returnValue === "ok") {
         const codeName = codeForm.codeName.value.trim();
         if (codeName.length < 3) {
-            showToast("Code Snippet Name must have least 3 characters!", 3000, true);
+            showToast("Code snippet name must have least 3 characters!", 3000, true);
             return;
         }
-        // Check if the name already exists
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.length === 10) {
-                const value = localStorage.getItem(key);
-                if (value?.startsWith("@=")) {
-                    const itemName = value.substring(2, value.indexOf("=@"));
-                    if (itemName === codeName) {
-                        showToast("There is already a code snippet with this Name!", 3000, true);
-                        return;
-                    }
-                }
-            }
+        if (codeNameExists(codeName)) {
+            showToast("There is already a code snippet with this Name!", 3000, true);
+            return;
         }
-        // Save the code
         const code = editorManager.editor.getValue();
-        if (actionType.value === "saveas")  {
+        if (actionType.value === "saveas") {
             currentId = nanoid(10);
         }
         localStorage.setItem(currentId, `@=${codeName}=@${code}`);
@@ -491,6 +480,22 @@ codeDialog.addEventListener("close", (e) => {
     codeDialog.returnValue = "";
     codeForm.codeName.value = "";
 });
+
+function codeNameExists(codeName: string) {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.length === 10) {
+            const value = localStorage.getItem(key);
+            if (value?.startsWith("@=")) {
+                const itemName = value.substring(2, value.indexOf("=@"));
+                if (itemName.toLocaleLowerCase() === codeName.toLocaleLowerCase()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
 function runCode() {
     const code = editorManager.editor.getValue();
