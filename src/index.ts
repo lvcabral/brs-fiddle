@@ -454,10 +454,12 @@ codeDialog.addEventListener("close", (e) => {
         const codeName = codeForm.codeName.value.trim();
         if (codeName.length < 3) {
             showToast("Code snippet name must have least 3 characters!", 3000, true);
+            resetDialog();
             return;
         }
         if (codeNameExists(codeName)) {
             showToast("There is already a code snippet with this Name!", 3000, true);
+            resetDialog();
             return;
         }
         const code = editorManager.editor.getValue();
@@ -469,7 +471,7 @@ codeDialog.addEventListener("close", (e) => {
         saveState();
         populateCodeSelector(currentId);
         if (actionType.value === "rename") {
-            showToast("Code snippet renamed in the simulator local storage.", 5000);
+            showToast("Code snippet renamed in the browser local storage.", 5000);
         } else {
             showToast(
                 "Code saved in the browser local storage!\nTo share it use the Share button.",
@@ -477,9 +479,13 @@ codeDialog.addEventListener("close", (e) => {
             );
         }
     }
+    resetDialog();
+});
+
+function resetDialog() {
     codeDialog.returnValue = "";
     codeForm.codeName.value = "";
-});
+}
 
 function codeNameExists(codeName: string) {
     for (let i = 0; i < localStorage.length; i++) {
