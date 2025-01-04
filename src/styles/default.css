@@ -134,6 +134,8 @@ pre {
 .dropdown li {
     margin-top: 3px;
     margin-bottom: 3px;
+    width: 100%;
+    white-space: nowrap;
 }
 .dropdown li a {
     display: flex;
@@ -142,6 +144,7 @@ pre {
     color: var(--control-color);
     padding: 3px;
     width: 100%;
+    box-sizing: border-box;
 }
 .dropdown li a i {
     margin-right: 8px;
