@@ -10,6 +10,7 @@ import Codec from "json-url";
 import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
 import { nanoid } from "nanoid";
+import { saveAs } from "file-saver";
 import { getOS } from "./util";
 import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
@@ -350,10 +351,7 @@ function exportCode() {
             const json = JSON.stringify(codes, null, 2);
             const blob = new Blob([json], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${safeFileName}.json`;
-            a.click();
+            saveAs(blob, `${safeFileName}.json`);
             URL.revokeObjectURL(url);
         } else {
             showToast("Please save your Code Snipped before exporting!", 3000, true);
