@@ -347,7 +347,10 @@ function exportCode() {
         if (codeSelect.value !== "0") {
             let codeName = codeSelect.options[codeSelect.selectedIndex].text;
             codes[currentId] = { name: codeName, content: codeContent };
-            const safeFileName = codeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+            const safeFileName = codeName
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9\-]/g, "");
             const json = JSON.stringify(codes, null, 2);
             const blob = new Blob([json], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -454,7 +457,11 @@ function shareCode() {
         getShareUrl(data).then(function (shareLink: string) {
             navigator.clipboard.writeText(shareLink);
             if (shareLink.length > 2048) {
-                showToast("Share URL copied to clipboard, but it's longer than 2048 bytes, consider exporting as a file instead!", 7000, true);
+                showToast(
+                    "Share URL copied to clipboard, but it's longer than 2048 bytes, consider exporting as a file instead!",
+                    7000,
+                    true
+                );
             } else {
                 showToast("Share URL copied to clipboard");
             }
