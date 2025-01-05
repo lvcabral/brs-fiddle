@@ -18,4 +18,3 @@ export const getOS = () => {
     }
     return os;
 };
-
