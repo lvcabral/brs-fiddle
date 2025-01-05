@@ -41,10 +41,10 @@ module.exports = env => {
                 }),
                 new CopyWebpackPlugin({
                     patterns: [
-                        { context: "node_modules/brs-engine/app/lib", from: apiLib },
-                        { context: "node_modules/brs-engine/app/lib", from: wrkLib },
-                        { context: "node_modules/brs-engine/app/", from: "audio/**", to: ".." },
-                        { context: "node_modules/brs-engine/app/", from: "fonts/**", to: ".." },
+                        { context: "node_modules/brs-engine/browser/lib", from: apiLib },
+                        { context: "node_modules/brs-engine/browser/lib", from: wrkLib },
+                        { context: "node_modules/brs-engine/browser/", from: "audio/**", to: ".." },
+                        { context: "node_modules/brs-engine/browser/", from: "fonts/**", to: ".." },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
                         { context: "src/themes/", from: "**/*", to: "../css/" },
