@@ -286,8 +286,8 @@ function markCodeAsSaved() {
 }
 
 function updateCodeSelector() {
-    for (let i = 0; i < codeSelect.options.length; i++) {
-        const option = codeSelect.options[i];
+    const options = Array.from(codeSelect.options);
+    for (const option of options) {
         if (option.value === currentId) {
             if (isCodeChanged) {
                 option.text = `⏺︎ ${option.text.replace(/^⏺︎ /, "")}`;
@@ -434,7 +434,7 @@ function exportCode() {
                 .toLowerCase()
                 .replace(/\s+/g, "-")
                 .replace(/^⏺︎ /, "")
-                .replace(/[^a-z0-9\-]/g, "");
+                .replace(/[^a-z0-9-]/g, "");
             const json = JSON.stringify(codes, null, 2);
             const blob = new Blob([json], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -904,5 +904,5 @@ window.addEventListener('beforeunload', (event) => {
         event.returnValue = confirmationMessage; // Standard way to display a confirmation dialog
         return confirmationMessage; // For some browsers
     }
-    return;
+    return null;
 });
