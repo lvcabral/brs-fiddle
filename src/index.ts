@@ -113,6 +113,7 @@ let isResizing = false;
 let editorManager: CodeMirrorManager;
 let currentId = nanoid(10);
 let isCodeChanged = false;
+let unchangedCode = "";
 
 function main() {
     updateButtons();
@@ -206,7 +207,11 @@ function initializeCodeEditor() {
                 return;
             }
         }
-        markCodeAsChanged();
+        if (editorManager.editor.getValue() !== unchangedCode) {
+            markCodeAsChanged();
+        } else {
+            markCodeAsSaved();
+        }
     });
 }
 
@@ -366,7 +371,12 @@ codeSelect.addEventListener("change", async (e) => {
         currentId = nanoid(10);
         resetApp();
     }
+    resetUndoHistory();
 });
+
+function resetUndoHistory() {
+    editorManager?.editor?.clearHistory();
+}
 
 function loadCode(id: string) {
     let code = localStorage.getItem(id);
@@ -411,6 +421,7 @@ async function deleteCode() {
             localStorage.removeItem(currentId);
             currentId = nanoid(10);
             resetApp();
+            unchangedCode = "";
             showToast("Code deleted from the browser local storage!", 3000);
         }
     } else {
@@ -511,6 +522,7 @@ function resetApp(id = "", code = "") {
     }
     const ctx = displayCanvas.getContext("2d", { alpha: false });
     ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+    unchangedCode = code;
     editorManager.editor.setValue(code);
     editorManager.editor.focus();
     lastState.codeId = id;
@@ -555,6 +567,7 @@ function saveCode() {
         } else {
             const codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^⏺︎ /, "");
             localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+            unchangedCode = code;
             showToast(
                 "Code saved in the browser local storage!\nTo share it use the Share button.",
                 5000
@@ -584,6 +597,7 @@ codeDialog.addEventListener("close", (e) => {
             currentId = nanoid(10);
         }
         localStorage.setItem(currentId, `@=${codeName}=@${code}`);
+        unchangedCode = code;
         lastState.codeId = currentId;
         saveState();
         populateCodeSelector(currentId);
