@@ -27,7 +27,7 @@
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
-    "brs-engine": "^1.8.0",
+    "brs-engine": "^1.8.5",
     "codemirror": "^5.65.12",
     "file-saver": "^2.0.5",
     "json-url": "^3.0.0",
