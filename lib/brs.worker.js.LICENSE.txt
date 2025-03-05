@@ -1,0 +1,1 @@
+/*! For license information please see brs.worker.js.LICENSE.txt */

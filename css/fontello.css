@@ -1,0 +1,76 @@
+@font-face {
+  font-family: 'fontello';
+  src: url('../fonts/fontello.eot?38105295');
+  src: url('../fonts/fontello.eot?38105295#iefix') format('embedded-opentype'),
+       url('../fonts/fontello.woff2?38105295') format('woff2'),
+       url('../fonts/fontello.woff?38105295') format('woff'),
+       url('../fonts/fontello.ttf?38105295') format('truetype'),
+       url('../fonts/fontello.svg?38105295#fontello') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+[class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: never;
+
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+
+  /* Font smoothing. That was taken from TWBS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+}
+
+.icon-roku-remote:before { content: '\e800'; } /* '' */
+.icon-save:before { content: '\e801'; } /* '' */
+.icon-trash:before { content: '\e802'; } /* '' */
+.icon-settings:before { content: '\e803'; } /* '' */
+.icon-play:before { content: '\e804'; } /* '' */
+.icon-roku-logo:before { content: '\e805'; } /* '' */
+.icon-cancel:before { content: '\e806'; } /* '' */
+.icon-roku-tv:before { content: '\e807'; } /* '' */
+.icon-roku-emulator:before { content: '\e808'; } /* '' */
+.icon-keyboard:before { content: '\e809'; } /* '' */
+.icon-sound-on:before { content: '\e80a'; } /* '' */
+.icon-sound-off:before { content: '\e80b'; } /* '' */
+.icon-sun:before { content: '\e80c'; } /* '' */
+.icon-moon:before { content: '\e80d'; } /* '' */
+.icon-menu-outline:before { content: '\e80e'; } /* '' */
+.icon-wrench:before { content: '\e80f'; } /* '' */
+.icon-edit:before { content: '\e810'; } /* '' */
+.icon-edit-1:before { content: '\e811'; } /* '' */
+.icon-export:before { content: '\e812'; } /* '' */
+.icon-export-1:before { content: '\e813'; } /* '' */
+.icon-import:before { content: '\e814'; } /* '' */
+.icon-export-2:before { content: '\e815'; } /* '' */
+.icon-slack:before { content: '\e900'; } /* '' */
+.icon-download:before { content: '\f02e'; } /* '' */
+.icon-upload:before { content: '\f02f'; } /* '' */
+.icon-github:before { content: '\f09b'; } /* '' */
+.icon-menu:before { content: '\f0c9'; } /* '' */
+.icon-donate:before { content: '\f0f4'; } /* '' */
+.icon-gamepad:before { content: '\f11b'; } /* '' */
+.icon-eraser:before { content: '\f12d'; } /* '' */
+.icon-recycle:before { content: '\f1b8'; } /* '' */
+.icon-sliders:before { content: '\f1de'; } /* '' */
+.icon-share:before { content: '\f1e0'; } /* '' */
+.icon-tv:before { content: '\f26c'; } /* '' */
+.icon-pause:before { content: '\f28c'; } /* '' */
+.icon-stop:before { content: '\f28e'; } /* '' */
