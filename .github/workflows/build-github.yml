@@ -1,0 +1,32 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  GTAG: ${{ vars.GTAG }}
+
+jobs:
+  web-deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get latest code
+      uses: actions/checkout@v3
+
+    - name: Install Node.js, NPM and Yarn
+      uses: actions/setup-node@v1
+      with:
+        node-version: 20
+
+    - run: yarn install
+    - run: yarn release
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./app/
