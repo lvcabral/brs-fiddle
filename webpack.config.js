@@ -45,6 +45,7 @@ module.exports = env => {
                         { context: "node_modules/brs-engine/browser/lib", from: wrkLib },
                         { context: "node_modules/brs-engine/browser/", from: "audio/**", to: ".." },
                         { context: "node_modules/brs-engine/browser/", from: "fonts/**", to: ".." },
+                        { context: "node_modules/coi-serviceworker/", from: "coi-serviceworker.min.js", to: ".." },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
                         { context: "src/themes/", from: "**/*", to: "../css/" },
