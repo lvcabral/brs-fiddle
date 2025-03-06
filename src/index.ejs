@@ -119,8 +119,32 @@
           </button>
         </div>
       </div>
-      <div class="editor-wrapper">
-        <textarea id="brsCode" placeholder="Loading..." spellcheck="false"></textarea>
+      <div class="code-content">
+        <div class="folder-structure">
+          <ul>
+            <li data-type="folder"><i class="icon-folder"></i> source
+              <ul>
+                <li data-type="file"><i class="icon-file"></i> main.brs</li>
+              </ul>
+            </li>
+            <li data-type="folder"><i class="icon-folder"></i> components
+              <ul>
+                <li data-type="file"><i class="icon-file"></i> component1.xml</li>
+                <li data-type="file"><i class="icon-file"></i> component2.xml</li>
+              </ul>
+            </li>
+            <li data-type="folder"><i class="icon-folder"></i> images
+              <ul>
+                <li data-type="file"><i class="icon-file"></i> image1.png</li>
+                <li data-type="file"><i class="icon-file"></i> image2.jpg</li>
+              </ul>
+            </li>
+            <li data-type="file"><i class="icon-folder"></i> manifest</li>
+          </ul>
+        </div>
+        <div class="editor-wrapper">
+          <textarea id="brsCode" placeholder="Loading..." spellcheck="false"></textarea>
+        </div>
       </div>
     </div>
     <div class="layout-separator"></div>

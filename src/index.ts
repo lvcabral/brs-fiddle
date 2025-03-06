@@ -213,6 +213,7 @@ function initializeCodeEditor() {
             markCodeAsSaved();
         }
     });
+    initFolderStructure();
 }
 
 function handleEngineEvents(event: string, data: any) {
@@ -524,6 +525,7 @@ function resetApp(id = "", code = "") {
     ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
     unchangedCode = code;
     editorManager.editor.setValue(code);
+    editorManager.setMode("brightscript");
     editorManager.editor.focus();
     lastState.codeId = id;
     saveState();
@@ -912,11 +914,70 @@ document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
 document.addEventListener("mousedown", onMouseDown, false);
-window.addEventListener('beforeunload', (event) => {
+window.addEventListener("beforeunload", (event) => {
     if (isCodeChanged) {
-        const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+        const confirmationMessage = "You have unsaved changes. Are you sure you want to leave?";
         event.returnValue = confirmationMessage; // Standard way to display a confirmation dialog
         return confirmationMessage; // For some browsers
     }
     return null;
 });
+
+function initFolderStructure() {
+    const folderStructure = document.querySelector(".folder-structure");
+    const codeContent = document.querySelector(".code-content");
+    const editor = editorManager.editor;
+
+    folderStructure?.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (target.tagName === "LI" || target.tagName === "I") {
+            const fileName = target.textContent?.trim();
+            const isFolder = target.getAttribute("data-type") === "folder";
+            if (fileName && !isFolder) {
+                loadFile(fileName);
+            }
+        }
+    });
+
+    codeContent?.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest(".folder-structure") && !target.closest(".CodeMirror")) {
+            editor.focus();
+        }
+    });
+
+    function loadFile(fileName: string) {
+        // Load the file content based on the fileName
+        // For demonstration purposes, we'll just set some dummy content
+        let fileContent = "";
+        let mode = "brightscript"; // Default mode
+
+        switch (fileName) {
+            case "manifest":
+                fileContent = "Manifest content";
+                mode = "properties";
+                break;
+            case "main.brs":
+                fileContent = "'BrightScript content";
+                mode = "brightscript";
+                break;
+            case "component1.xml":
+            case "component2.xml":
+                fileContent = "<!-- XML content -->";
+                mode = "xml";
+                break;
+            case "image1.png":
+            case "image2.jpg":
+                // Handle image files separately
+                showToast("Image files cannot be edited in the code editor.", 3000, true);
+                return;
+            default:
+                fileContent = "Unknown file type";
+        }
+
+        editor.setValue(fileContent);
+        editor.setOption("mode", mode);
+        markCodeAsSaved();
+        editor.focus();
+    }
+}
