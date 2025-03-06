@@ -48,6 +48,11 @@ const confirmButton = document.getElementById("confirm-button") as HTMLButtonEle
 const cancelButton = document.getElementById("cancel-button") as HTMLButtonElement;
 const moreButton = document.getElementById("more-options") as HTMLButtonElement;
 const dropdown = document.getElementById("more-options-dropdown") as HTMLDivElement;
+const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
+const mainFile = document.getElementById("main-brs") as HTMLElement;
+const imagePanel = document.getElementById("image-panel") as HTMLDivElement;
+const imagePreview = document.getElementById("image-preview") as HTMLImageElement;
+
 
 // Restore Last State
 const lastState = loadState();
@@ -388,6 +393,7 @@ function loadCode(id: string) {
         }
         resetApp(id, code);
         markCodeAsSaved();
+        highlightSelectedFile(mainFile);
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
@@ -924,7 +930,6 @@ window.addEventListener("beforeunload", (event) => {
 });
 
 function initFolderStructure() {
-    const folderStructure = document.querySelector(".folder-structure");
     const codeContent = document.querySelector(".code-content");
     const editor = editorManager.editor;
 
@@ -934,7 +939,14 @@ function initFolderStructure() {
             const fileName = target.textContent?.trim();
             const isFolder = target.getAttribute("data-type") === "folder";
             if (fileName && !isFolder) {
+                if (isImageFile(fileName)) {
+                    showImage(fileName);
+                    return;
+                } else {
+                    hideImage();
+                }
                 loadFile(fileName);
+                highlightSelectedFile(target);
             }
         }
     });
@@ -950,34 +962,120 @@ function initFolderStructure() {
         // Load the file content based on the fileName
         // For demonstration purposes, we'll just set some dummy content
         let fileContent = "";
-        let mode = "brightscript"; // Default mode
+        let mode = "text";
+        const extention = getFileExtension(fileName);
+        switch (extention) {
+            case "brs":
+                mode = "brightscript";
+                break;
+            case "xml":
+                mode = "xml";
+                break;
+            case "":
+                mode = "properties";
+                break;
+            default:
+                showToast("Unknown file cannot be loaded in the code editor.", 3000, true);
+                return;
+        }
 
         switch (fileName) {
             case "manifest":
-                fileContent = "Manifest content";
-                mode = "properties";
+                fileContent = `#
+#  Roku Channel Manifest File
+#  Full spec at bit.ly/roku-manifest-file
+#
+
+##   Channel Details
+title=Hello World
+major_version=1
+minor_version=0
+build_version=00001
+
+##   Channel Assets
+mm_icon_focus_fhd=pkg:/images/poster_fhd.png
+mm_icon_focus_hd=pkg:/images/poster_hd.png
+splash_screen_fhd=pkg:/images/splash_fhd.jpg
+splash_screen_hd=pkg:/images/splash_hd.jpg
+
+splash_color=#000000
+splash_min_time=1
+`;
                 break;
             case "main.brs":
-                fileContent = "'BrightScript content";
-                mode = "brightscript";
-                break;
-            case "component1.xml":
-            case "component2.xml":
-                fileContent = "<!-- XML content -->";
-                mode = "xml";
-                break;
-            case "image1.png":
-            case "image2.jpg":
-                // Handle image files separately
-                showToast("Image files cannot be edited in the code editor.", 3000, true);
+                loadCode(currentId);
                 return;
-            default:
-                fileContent = "Unknown file type";
-        }
+            case "mainScene.xml":
+                fileContent = `<?xml version="1.0" encoding="utf-8" ?>
+<component name="HelloWorld" extends="Scene">
+	<children>
+      <Label id="myLabel"
+      	text="Hello World!"
+      	width="1280"
+      	height="720"
+      	horizAlign="center"
+      	vertAlign="center"
+      	/>
+    </children>
+<script type="text/brightscript" uri="mainScene.brs" />
+</component>
+`;
+                break;
+            case "mainScene.brs":
+                fileContent = `function init()
+    m.top.setFocus(true)
+    m.myLabel = m.top.findNode("myLabel")
 
+    'Set the font size
+    m.myLabel.font.size=92
+
+    'Set the color to light blue
+    m.myLabel.color="0x72D7EEFF"
+
+    '**
+    '** The full list of editable attributes can be located at:
+    '** http://sdkdocs.roku.com/display/sdkdoc/Label#Label-Fields
+    '**
+end function
+`;
+                break;
+            default:
+                fileContent = "Unknown file";
+        }
         editor.setValue(fileContent);
         editor.setOption("mode", mode);
         markCodeAsSaved();
         editor.focus();
     }
+
+}
+
+function highlightSelectedFile(target: HTMLElement) {
+    const selected = folderStructure?.querySelector("li.selected");
+    if (selected) {
+        selected.classList.remove("selected");
+    }
+    target.classList.add("selected");
+}
+
+function isImageFile(fileName: string) {
+    const ext = getFileExtension(fileName).toLowerCase();
+    return ["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(ext);
+}
+
+function showImage(fileName: string) {
+    imagePreview.src = `./images/${fileName}`;
+    imagePanel.style.display = "block";
+    setTimeout(() => {
+        hideImage();
+    }, 10000); // Hide the image after 10 seconds
+}
+
+function hideImage() {
+    imagePanel.style.display = "none";
+    imagePreview.src = "";
+}
+
+function getFileExtension(filename: string): string {
+    return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 }
