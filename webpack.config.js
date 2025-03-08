@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -43,8 +44,7 @@ module.exports = env => {
                     patterns: [
                         { context: "node_modules/brs-engine/browser/lib", from: apiLib },
                         { context: "node_modules/brs-engine/browser/lib", from: wrkLib },
-                        { context: "node_modules/brs-engine/browser/", from: "audio/**", to: ".." },
-                        { context: "node_modules/brs-engine/browser/", from: "fonts/**", to: ".." },
+                        { context: "node_modules/brs-engine/browser/", from: "assets/**", to: ".." },
                         { context: "node_modules/coi-serviceworker/", from: "coi-serviceworker.min.js", to: ".." },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/", from: "CNAME", to: ".." },
@@ -52,8 +52,12 @@ module.exports = env => {
                         { context: "src/themes/", from: "**/*", to: "../css/" },
                         { context: "src/images/", from: "**/*", to: "../images/" },
                         { context: "src/fonts/", from: "**/*", to: "../fonts/" },
+                        { context: "src/templates/", from: "**/*", to: "../templates/" },
                     ]
-                })
+                }),
+                new webpack.ProvidePlugin({
+                    process: 'process/browser',
+                  }),
             ],
             module: {
                 rules: [

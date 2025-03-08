@@ -9,11 +9,16 @@ import * as brs from "brs-engine";
 import Codec from "json-url";
 import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
+import { configure, fs, InMemory } from "@zenfs/core";
+import { Zip } from "@lvcabral/zip";
+import { IndexedDB } from "@zenfs/dom";
 import { nanoid } from "nanoid";
 import { saveAs } from "file-saver";
-import { getOS } from "./util";
+import { getOS, getFileExtension } from "./util";
+
 import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
+let templateZip: ArrayBuffer | null = null;
 
 const appId = "brsFiddle";
 const isMacOS = getOS() === "MacOS";
@@ -50,9 +55,10 @@ const moreButton = document.getElementById("more-options") as HTMLButtonElement;
 const dropdown = document.getElementById("more-options-dropdown") as HTMLDivElement;
 const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
 const mainFile = document.getElementById("main-brs") as HTMLElement;
+const fileSystemDiv = document.getElementById("file-system") as HTMLDivElement;
+const simpleFileSystem = fileSystemDiv.innerHTML;
 const imagePanel = document.getElementById("image-panel") as HTMLDivElement;
 const imagePreview = document.getElementById("image-preview") as HTMLImageElement;
-
 
 // Restore Last State
 const lastState = loadState();
@@ -120,9 +126,11 @@ let currentId = nanoid(10);
 let isCodeChanged = false;
 let unchangedCode = "";
 
-function main() {
+async function main() {
     updateButtons();
     initializeCodeEditor();
+    initFolderStructure();
+    await initializeFileSystem();
     // Process Shared Token parameter
     const shareToken = getParameterByName("code");
     if (shareToken) {
@@ -211,6 +219,10 @@ function initializeCodeEditor() {
                 isCodeChanged = false;
                 return;
             }
+        } else if (codeSelect.value === "1") {
+            // TODO: Handle SceneGraph code changes
+            isCodeChanged = false;
+            return;
         }
         if (editorManager.editor.getValue() !== unchangedCode) {
             markCodeAsChanged();
@@ -218,7 +230,63 @@ function initializeCodeEditor() {
             markCodeAsSaved();
         }
     });
-    initFolderStructure();
+}
+
+async function initializeFileSystem() {
+    if (!templateZip) {
+        const res = await fetch("./templates/hello-world.zip");
+        templateZip = await res.arrayBuffer();
+    }
+    if (templateZip) {
+        await configure({
+            mounts: {
+                "/mnt/zip": { backend: Zip, data: templateZip  },
+                '/tmp': InMemory,
+                '/home': IndexedDB,
+            },
+        });
+    }
+}
+
+function loadTemplate() {
+    const fileStructure = readDirectory("/mnt/zip");
+    fileSystemDiv.innerHTML = generateFileStructureHTML(fileStructure);
+    loadFile("/mnt/zip/source/main.brs");
+}
+
+function readDirectory(path: string): any {
+    const structure: any = {};
+    const entries = fs.readdirSync(path);
+    for (const entry of entries) {
+        const newPath = `${path}/${entry}`;
+        if (fs.statSync(newPath).isDirectory()) {
+            structure[entry] = readDirectory(newPath);
+        } else {
+            structure[entry] = null;
+        }
+    }
+    return structure;
+}
+
+function generateFileStructureHTML(structure: any, path = ""): string {
+    let html = "<ul>";
+    for (const key in structure) {
+        const fullPath = path ? `${path}/${key}` : key;
+        if (structure[key] === null) {
+            if (key === "main.brs") {
+                html += `<li data-type="file" data-path="${fullPath}" class="selected"><i class="icon-file"></i>${key}</li>`;
+            } else {
+                html += `<li data-type="file" data-path="${fullPath}"><i class="icon-file"></i>${key}</li>`;
+            }
+
+        } else {
+            html += `<li data-type="folder"><i class="icon-folder-open"></i>${key}`;
+            html += generateFileStructureHTML(structure[key], fullPath);
+            html += "</li>";
+        }
+    }
+    html += "</ul>";
+    return html;
 }
 
 function handleEngineEvents(event: string, data: any) {
@@ -327,11 +395,11 @@ function populateCodeSelector(currentId: string) {
     }
     arrCode.sort();
 
-    codeSelect.length = 1;
+    codeSelect.length = 2;
     for (let i = 0; i < arrCode.length; i++) {
         const codeId = arrCode[i][1];
         const selected = codeId === currentId;
-        codeSelect.options[i + 1] = new Option(arrCode[i][0], codeId, false, selected);
+        codeSelect.options[i + 2] = new Option(arrCode[i][0], codeId, false, selected);
     }
     updateCodeSelector();
 }
@@ -371,12 +439,19 @@ codeSelect.addEventListener("change", async (e) => {
             return;
         }
     }
-    if (codeSelect.value !== "0") {
-        loadCode(codeSelect.value);
-    } else {
+    if (codeSelect.value === "0") {
         currentId = nanoid(10);
         resetApp();
+        fileSystemDiv.innerHTML = simpleFileSystem;
+    } else if (codeSelect.value === "1") {
+        currentId = nanoid(10);
+        resetApp();
+        loadTemplate();
+    } else {
+        loadCode(codeSelect.value);
+        fileSystemDiv.innerHTML = simpleFileSystem;
     }
+    hideImage();
     resetUndoHistory();
 });
 
@@ -445,7 +520,7 @@ function exportCode() {
     const codes: { [key: string]: CodeSnippet } = {};
     let codeContent = editorManager.editor.getValue();
     if (codeContent && codeContent.trim() !== "") {
-        if (codeSelect.value !== "0") {
+        if (codeSelect.value !== "0" && codeSelect.value !== "1") {
             let codeName = codeSelect.options[codeSelect.selectedIndex].text;
             codes[currentId] = { name: codeName, content: codeContent };
             const safeFileName = codeName
@@ -541,7 +616,7 @@ function resetApp(id = "", code = "") {
 function shareCode() {
     let code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
-        if (codeSelect.value !== "0") {
+        if (codeSelect.value !== "0" && codeSelect.value !== "1") {
             let codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^⏺︎ /, "");
             code = `@=${codeName}=@${code}`;
         }
@@ -572,6 +647,8 @@ function saveCode() {
         if (codeSelect.value === "0") {
             actionType.value = "save";
             codeDialog.showModal();
+        } else if (codeSelect.value === "1") {
+            showToast("SceneGraph code still can't be saved!", 3000, true);
         } else {
             const codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^⏺︎ /, "");
             localStorage.setItem(currentId, `@=${codeName}=@${code}`);
@@ -644,10 +721,14 @@ function codeNameExists(codeName: string) {
 }
 
 function runCode() {
+    if (codeSelect.value === "1" && templateZip) {
+        runZip("hello-world.zip", templateZip);
+        return;
+    }
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brs.execute(appId, editorManager.editor.getValue(), {
+            brs.execute(`${appId}.brs`, editorManager.editor.getValue(), {
                 clearDisplayOnExit: false,
                 debugOnCrash: true,
                 muteSound: !audioSwitch.checked,
@@ -660,6 +741,19 @@ function runCode() {
     } else {
         showToast("There is no Source Code to run", 3000, true);
     }
+}
+
+function runZip(pkg: string, zipData: ArrayBuffer) {
+    brs.execute(
+        pkg,
+        zipData,
+        {
+            clearDisplayOnExit: false,
+            debugOnCrash: true,
+            muteSound: !audioSwitch.checked,
+        },
+        new Map([["source", "auto-run-dev"]])
+    );
 }
 
 function startDebug() {
@@ -938,14 +1032,16 @@ function initFolderStructure() {
         if (target.tagName === "LI" || target.tagName === "I") {
             const fileName = target.textContent?.trim();
             const isFolder = target.getAttribute("data-type") === "folder";
-            if (fileName && !isFolder) {
-                if (isImageFile(fileName)) {
-                    showImage(fileName);
+            const filePath = target.getAttribute("data-path");
+            if (fileName && !isFolder && filePath) {
+                const file = `/mnt/zip/${filePath}`;
+                if (isImageFile(file)) {
+                    showImage(file);
                     return;
                 } else {
                     hideImage();
                 }
-                loadFile(fileName);
+                loadFile(file);
                 highlightSelectedFile(target);
             }
         }
@@ -958,96 +1054,33 @@ function initFolderStructure() {
         }
     });
 
-    function loadFile(fileName: string) {
-        // Load the file content based on the fileName
-        // For demonstration purposes, we'll just set some dummy content
-        let fileContent = "";
-        let mode = "text";
-        const extention = getFileExtension(fileName);
-        switch (extention) {
-            case "brs":
-                mode = "brightscript";
-                break;
-            case "xml":
-                mode = "xml";
-                break;
-            case "":
-                mode = "properties";
-                break;
-            default:
-                showToast("Unknown file cannot be loaded in the code editor.", 3000, true);
-                return;
-        }
+}
 
-        switch (fileName) {
-            case "manifest":
-                fileContent = `#
-#  Roku Channel Manifest File
-#  Full spec at bit.ly/roku-manifest-file
-#
-
-##   Channel Details
-title=Hello World
-major_version=1
-minor_version=0
-build_version=00001
-
-##   Channel Assets
-mm_icon_focus_fhd=pkg:/images/poster_fhd.png
-mm_icon_focus_hd=pkg:/images/poster_hd.png
-splash_screen_fhd=pkg:/images/splash_fhd.jpg
-splash_screen_hd=pkg:/images/splash_hd.jpg
-
-splash_color=#000000
-splash_min_time=1
-`;
-                break;
-            case "main.brs":
-                loadCode(currentId);
-                return;
-            case "mainScene.xml":
-                fileContent = `<?xml version="1.0" encoding="utf-8" ?>
-<component name="HelloWorld" extends="Scene">
-	<children>
-      <Label id="myLabel"
-      	text="Hello World!"
-      	width="1280"
-      	height="720"
-      	horizAlign="center"
-      	vertAlign="center"
-      	/>
-    </children>
-<script type="text/brightscript" uri="mainScene.brs" />
-</component>
-`;
-                break;
-            case "mainScene.brs":
-                fileContent = `function init()
-    m.top.setFocus(true)
-    m.myLabel = m.top.findNode("myLabel")
-
-    'Set the font size
-    m.myLabel.font.size=92
-
-    'Set the color to light blue
-    m.myLabel.color="0x72D7EEFF"
-
-    '**
-    '** The full list of editable attributes can be located at:
-    '** http://sdkdocs.roku.com/display/sdkdoc/Label#Label-Fields
-    '**
-end function
-`;
-                break;
-            default:
-                fileContent = "Unknown file";
-        }
-        editor.setValue(fileContent);
-        editor.setOption("mode", mode);
-        markCodeAsSaved();
-        editor.focus();
+function loadFile(filePath: string) {
+    // Load the file content based on the fileName
+    const editor = editorManager.editor;
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+    let mode = "text";
+    const extention = getFileExtension(filePath);
+    switch (extention) {
+        case "brs":
+            mode = "brightscript";
+            break;
+        case "xml":
+            mode = "xml";
+            break;
+        case "":
+            mode = "properties";
+            break;
+        default:
+            showToast("Unknown file cannot be loaded in the code editor.", 3000, true);
+            return;
     }
 
+    editor.setValue(fileContent);
+    editor.setOption("mode", mode);
+    markCodeAsSaved();
+    editor.focus();
 }
 
 function highlightSelectedFile(target: HTMLElement) {
@@ -1063,19 +1096,43 @@ function isImageFile(fileName: string) {
     return ["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(ext);
 }
 
-function showImage(fileName: string) {
-    imagePreview.src = `./images/${fileName}`;
+let imageClick = 0;
+function showImage(filePath: string) {
+    const imageData = fs.readFileSync(filePath);
+    const blob = new Blob([imageData], { type: getMimeType(filePath) });
+    const url = URL.createObjectURL(blob);
+    imagePreview.src = url;
     imagePanel.style.display = "block";
+    imageClick++;
     setTimeout(() => {
-        hideImage();
+        imageClick--;
+        if (imageClick === 0) {
+            hideImage();
+        }
+        URL.revokeObjectURL(url); // Revoke the object URL after the image is hidden
     }, 10000); // Hide the image after 10 seconds
+}
+
+function getMimeType(filePath: string): string {
+    const ext = getFileExtension(filePath).toLowerCase();
+    switch (ext) {
+        case "png":
+            return "image/png";
+        case "jpg":
+        case "jpeg":
+            return "image/jpeg";
+        case "gif":
+            return "image/gif";
+        case "bmp":
+            return "image/bmp";
+        case "webp":
+            return "image/webp";
+        default:
+            return "application/octet-stream";
+    }
 }
 
 function hideImage() {
     imagePanel.style.display = "none";
     imagePreview.src = "";
-}
-
-function getFileExtension(filename: string): string {
-    return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 }

@@ -84,6 +84,7 @@
             <span>Code&nbsp;</span>
             <select id="code-selector">
               <option value="0">&lt;&lt; New Code &gt;&gt;</option>
+              <option value="1">&lt;&lt; New SceneGraph &gt;&gt;</option>
             </select>
             <button title="Code Tools" class="more-options" id="more-options">
               <i class="icon-wrench"></i>
@@ -121,31 +122,15 @@
       </div>
       <div class="code-content">
         <div class="folder-structure">
-          <ul>
-            <li data-type="folder"><i class="icon-folder-open"></i>source
-              <ul>
-                <li data-type="file" class="selected" id="main-brs"><i class="icon-file-code"></i>main.brs</li>
-              </ul>
-            </li>
-            <li data-type="folder"><i class="icon-folder-open"></i>components
-              <ul>
-                <li data-type="file"><i class="icon-file-code"></i>mainScene.xml</li>
-                <li data-type="file"><i class="icon-file-code"></i>mainScene.brs</li>
-              </ul>
-            </li>
-            <li data-type="folder"><i class="icon-folder-open"></i>images
-              <ul>
-                <li data-type="file"><i class="icon-file-image"></i>AmigaBoingBall.png</li>
-                <li data-type="file"><i class="icon-file-image"></i>BallShadow.png</li>
-                <li data-type="file"><i class="icon-file-image"></i>poster_hd.png</li>
-                <li data-type="file"><i class="icon-file-image"></i>poster_fhd.png</li>
-                <li data-type="file"><i class="icon-file-image"></i>roku-logo.png</li>
-                <li data-type="file"><i class="icon-file-image"></i>splash_hd.jpg</li>
-                <li data-type="file"><i class="icon-file-image"></i>splash_fhd.jpg</li>
-              </ul>
-            </li>
-            <li data-type="file"><i class="icon-doc-text"></i>manifest</li>
-          </ul>
+          <div id="file-system">
+            <ul>
+              <li data-type="folder"><i class="icon-folder-open"></i>source
+                <ul>
+                  <li data-type="file" class="selected" id="main-brs"><i class="icon-file-code"></i>main.brs</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
           <div id="image-panel" class="image-panel" style="display: none;">
             <img id="image-preview" src="" alt="Image Preview" />
           </div>
