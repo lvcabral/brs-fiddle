@@ -14,7 +14,7 @@ import { Zip } from "@lvcabral/zip";
 import { IndexedDB } from "@zenfs/dom";
 import { nanoid } from "nanoid";
 import { saveAs } from "file-saver";
-import { getOS, getFileExtension } from "./util";
+import { getOS, getFileExtension, getMimeType, getIcon } from "./util";
 
 import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
@@ -240,9 +240,9 @@ async function initializeFileSystem() {
     if (templateZip) {
         await configure({
             mounts: {
-                "/mnt/zip": { backend: Zip, data: templateZip  },
-                '/tmp': InMemory,
-                '/home': IndexedDB,
+                "/mnt/zip": { backend: Zip, data: templateZip },
+                "/tmp": InMemory,
+                "/home": IndexedDB,
             },
         });
     }
@@ -274,11 +274,12 @@ function generateFileStructureHTML(structure: any, path = ""): string {
         const fullPath = path ? `${path}/${key}` : key;
         if (structure[key] === null) {
             if (key === "main.brs") {
-                html += `<li data-type="file" data-path="${fullPath}" class="selected"><i class="icon-file"></i>${key}</li>`;
+                html += `<li data-type="file" data-path="${fullPath}" class="selected"><i class="icon-file-code"></i>${key}</li>`;
             } else {
-                html += `<li data-type="file" data-path="${fullPath}"><i class="icon-file"></i>${key}</li>`;
+                html += `<li data-type="file" data-path="${fullPath}"><i class="${getIcon(
+                    key
+                )}"></i>${key}</li>`;
             }
-
         } else {
             html += `<li data-type="folder"><i class="icon-folder-open"></i>${key}`;
             html += generateFileStructureHTML(structure[key], fullPath);
@@ -1055,7 +1056,6 @@ function initFolderStructure() {
             editor.focus();
         }
     });
-
 }
 
 function loadFile(filePath: string) {
@@ -1113,25 +1113,6 @@ function showImage(filePath: string) {
         }
         URL.revokeObjectURL(url); // Revoke the object URL after the image is hidden
     }, 10000); // Hide the image after 10 seconds
-}
-
-function getMimeType(filePath: string): string {
-    const ext = getFileExtension(filePath).toLowerCase();
-    switch (ext) {
-        case "png":
-            return "image/png";
-        case "jpg":
-        case "jpeg":
-            return "image/jpeg";
-        case "gif":
-            return "image/gif";
-        case "bmp":
-            return "image/bmp";
-        case "webp":
-            return "image/webp";
-        default:
-            return "application/octet-stream";
-    }
 }
 
 function hideImage() {

@@ -23,6 +23,43 @@ export function getFileExtension(filename: string): string {
     return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 }
 
+export function getIcon(filePath: string): string {
+    const ext = getFileExtension(filePath).toLowerCase();
+    switch (ext) {
+        case "png":
+        case "jpg":
+        case "jpeg":
+        case "gif":
+        case "bmp":
+        case "webp":
+            return "icon-file-image";
+        case "brs":
+        case "xml":
+            return "icon-file-code";
+        default:
+            return "icon-doc-text";
+    }
+}
+
+export function getMimeType(filePath: string): string {
+    const ext = getFileExtension(filePath).toLowerCase();
+    switch (ext) {
+        case "png":
+            return "image/png";
+        case "jpg":
+        case "jpeg":
+            return "image/jpeg";
+        case "gif":
+            return "image/gif";
+        case "bmp":
+            return "image/bmp";
+        case "webp":
+            return "image/webp";
+        default:
+            return "application/octet-stream";
+    }
+}
+
 export function getImageUrlFromArrBuffer(arrayBuffer: ArrayBufferLike, mimeType: string): string {
     const base64Data = arrayBufferToBase64(arrayBuffer);
     return `data:${mimeType};base64,${base64Data}`;
