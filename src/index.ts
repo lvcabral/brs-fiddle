@@ -273,12 +273,11 @@ function generateFileStructureHTML(structure: any, path = ""): string {
     for (const key in structure) {
         const fullPath = path ? `${path}/${key}` : key;
         if (structure[key] === null) {
+            const icon = getIcon(key);
             if (key === "main.brs") {
-                html += `<li data-type="file" data-path="${fullPath}" class="selected"><i class="icon-file-code"></i>${key}</li>`;
+                html += `<li data-type="file" data-path="${fullPath}" class="selected"><i class="${icon}"></i>${key}</li>`;
             } else {
-                html += `<li data-type="file" data-path="${fullPath}"><i class="${getIcon(
-                    key
-                )}"></i>${key}</li>`;
+                html += `<li data-type="file" data-path="${fullPath}"><i class="${icon}"></i>${key}</li>`;
             }
         } else {
             html += `<li data-type="folder"><i class="icon-folder-open"></i>${key}`;
