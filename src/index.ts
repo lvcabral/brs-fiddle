@@ -1043,6 +1043,8 @@ function initFolderStructure() {
                 }
                 loadFile(file);
                 highlightSelectedFile(target);
+            } else {
+                editor.focus();
             }
         }
     });
