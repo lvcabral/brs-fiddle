@@ -426,7 +426,11 @@ export function exportAllCode() {
     URL.revokeObjectURL(url);
 }
 
-function readFilesRecursively(directoryPath: string, relativePath: string, files: { [path: string]: string }) {
+function readFilesRecursively(
+    directoryPath: string,
+    relativePath: string,
+    files: { [path: string]: string }
+) {
     const entries = fs.readdirSync(directoryPath);
 
     for (const entry of entries) {
@@ -441,16 +445,18 @@ function readFilesRecursively(directoryPath: string, relativePath: string, files
         } else {
             const content = fs.readFileSync(entryPath);
             if (isImageFile(entry)) {
-                files[newRelativePath] = `data:image/${getFileExtension(entry)};base64,${content.toString('base64')}`;
+                files[newRelativePath] = `data:image/${getFileExtension(
+                    entry
+                )};base64,${content.toString("base64")}`;
             } else {
-                files[newRelativePath] = content.toString('utf-8');
+                files[newRelativePath] = content.toString("utf-8");
             }
         }
     }
 }
 
 function getFileExtension(fileName: string): string {
-    return fileName.split('.').pop() || '';
+    return fileName.split(".").pop() || "";
 }
 
 export function exportCodeSnippet(codeId: string) {
@@ -478,41 +484,51 @@ export function exportCodeSnippet(codeId: string) {
     }
 }
 
-export function importCodeSnippet() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
-    input.onchange = (e: Event) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e: ProgressEvent<FileReader>) => {
-                const json = e.target?.result as string;
-                const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
-                for (const id in codes) {
-                    const code = codes[id];
-                    const targetPath = `/code/${id}`;
-                    if (!fs.existsSync(targetPath)) {
-                        fs.mkdirSync(targetPath);
-                    }
-                    fs.writeFileSync(`${targetPath}/.snippet`, code.name);
-                    for (const filePath in code.files) {
-                        const fullPath = `${targetPath}/${filePath}`;
-                        ensureDirectoryExists(fullPath.substring(0, fullPath.lastIndexOf('/')));
-                        const content = code.files[filePath];
-                        if (content.startsWith("data:image/")) {
-                            const base64Data = content.split(",")[1];
-                            fs.writeFileSync(fullPath, Buffer.from(base64Data, 'base64'));
-                        } else {
-                            fs.writeFileSync(fullPath, content);
+export async function importCodeSnippet(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+        input.onchange = (e: Event) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e: ProgressEvent<FileReader>) => {
+                    try {
+                        const json = e.target?.result as string;
+                        const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
+                        for (const id in codes) {
+                            const code = codes[id];
+                            const targetPath = `/code/${id}`;
+                            if (!fs.existsSync(targetPath)) {
+                                fs.mkdirSync(targetPath);
+                            }
+                            fs.writeFileSync(`${targetPath}/.snippet`, code.name);
+                            for (const filePath in code.files) {
+                                const fullPath = `${targetPath}/${filePath}`;
+                                ensureDirectoryExists(
+                                    fullPath.substring(0, fullPath.lastIndexOf("/"))
+                                );
+                                const content = code.files[filePath];
+                                if (content.startsWith("data:image/")) {
+                                    const base64Data = content.split(",")[1];
+                                    fs.writeFileSync(fullPath, Buffer.from(base64Data, "base64"));
+                                } else {
+                                    fs.writeFileSync(fullPath, content);
+                                }
+                            }
                         }
+                        resolve();
+                    } catch (error) {
+                        showToast("Failed to import code snippets", 3000, true);
+                        reject(error);
                     }
-                }
-                showToast("Code snippets imported to the browser local storage!", 3000);
-                populateCodeSelector("");
-            };
-            reader.readAsText(file);
-        }
-    };
-    input.click();
+                };
+                reader.readAsText(file);
+            } else {
+                reject(new Error("No file selected"));
+            }
+        };
+        input.click();
+    });
 }

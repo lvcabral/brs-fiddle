@@ -32,7 +32,14 @@ import {
     exportCodeSnippet,
     importCodeSnippet,
 } from "./snippets";
-import { calculateLocalStorageUsage, generateId, getFileExtension, getOS, isImageFile, showToast } from "./util";
+import {
+    calculateLocalStorageUsage,
+    generateId,
+    getFileExtension,
+    getOS,
+    isImageFile,
+    showToast,
+} from "./util";
 import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
 
@@ -143,7 +150,7 @@ document.getElementById("saveas-option")?.addEventListener("click", saveAsCode);
 document.getElementById("delete-option")?.addEventListener("click", deleteCode);
 document.getElementById("export-option")?.addEventListener("click", exportCode);
 document.getElementById("export-all-option")?.addEventListener("click", exportAllCode);
-document.getElementById("import-option")?.addEventListener("click", importCodeSnippet);
+document.getElementById("import-option")?.addEventListener("click", importCode);
 
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
@@ -479,6 +486,18 @@ function exportCode() {
     }
 }
 
+function importCode() {
+    importCodeSnippet().then(() => {
+        showToast("Code snippet(s) imported to the browser local storage!", 3000);
+        if (currentId) {
+            populateCodeSelector(currentId);
+            updateCodeSelector(currentId, isCodeChanged);
+        } else {
+            resetApp(true);
+        }
+    });
+}
+
 function resetApp(populate: boolean) {
     if (populate) {
         populateCodeSelector("");
@@ -595,7 +614,6 @@ function resetDialog() {
     codeForm.codeName.value = "";
     editorManager.editor.focus();
 }
-
 
 function runCode() {
     if (hasManifest(currentId)) {
