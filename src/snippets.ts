@@ -62,23 +62,24 @@ function migrateOldSnippets() {
             ids.push(codeId);
         }
     }
-    if (ids.length > 0) {
-        for (let i = 0; i < ids.length; i++) {
-            const codeId = ids[i];
-            console.log("Migrating code snippet: ", codeId);
-            let codeName = `Code #${i + 1}`;
-            const code = localStorage.getItem(codeId);
-            if (code) {
-                let source = code;
-                if (code.startsWith("@=")) {
-                    codeName = code.substring(2, code.indexOf("=@"));
-                    source = code.substring(code.indexOf("=@") + 2);
-                }
-                if (!fs.existsSync(`/code/${codeId}`)) {
-                    saveCodeSnippetMaster(codeId, codeName, source);
-                }
-                localStorage.removeItem(codeId);
+    if (ids.length === 0) {
+        return;
+    }
+    for (let i = 0; i < ids.length; i++) {
+        const codeId = ids[i];
+        console.log("Migrating code snippet: ", codeId);
+        let codeName = `Code #${i + 1}`;
+        const code = localStorage.getItem(codeId);
+        if (code) {
+            let source = code;
+            if (code.startsWith("@=")) {
+                codeName = code.substring(2, code.indexOf("=@"));
+                source = code.substring(code.indexOf("=@") + 2);
             }
+            if (!fs.existsSync(`/code/${codeId}`)) {
+                saveCodeSnippetMaster(codeId, codeName, source);
+            }
+            localStorage.removeItem(codeId);
         }
     }
 }
