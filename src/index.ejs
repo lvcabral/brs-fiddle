@@ -23,14 +23,14 @@
   <meta property="og:url" content="https://brsfiddle.net/" />
   <meta property="og:title" content="brsFiddle - BrightScript Code Playground" />
   <meta property="og:description" content="Simple Code Editor for playing with BrightScript language." />
-  <meta property="og:image" content="https://lvcabral.com/brs/images/icon.png" />
+  <meta property="og:image" content="https://brsfiddle.net/images/icon.png" />
 
   <!-- Twitter/X -->
   <meta property="twitter:card" content="summary" />
   <meta property="twitter:url" content="https://brsFiddle.net/" />
   <meta property="twitter:title" content="brsFiddle - BrightScript Code Playground" />
   <meta property="twitter:description" content="Simple Code Editor for playing with BrightScript language." />
-  <meta property="twitter:image" content="https://lvcabral.com/brs/images/icon.png" />
+  <meta property="twitter:image" content="https://brsfiddle.net/images/icon.png" />
 
   <!-- Favicon -->
   <link rel="icon" href="./images/favicon.ico" type="image/x-icon" />
@@ -84,12 +84,12 @@
             <span>Code&nbsp;</span>
             <select id="code-selector">
               <option value="0">&lt;&lt; New Code &gt;&gt;</option>
-              <option value="1">&lt;&lt; New SceneGraph &gt;&gt;</option>
             </select>
             <button title="Code Tools" class="more-options" id="more-options">
               <i class="icon-wrench"></i>
               <div class="dropdown" id="more-options-dropdown">
                 <ul>
+                  <li><a href="#" id="templates-option"><i class="icon-file-archive"></i> Templates</a></li>
                   <li><a href="#" id="rename-option"><i class="icon-edit"></i> Rename</a></li>
                   <li><a href="#" id="saveas-option"><i class="icon-save"></i> Save as</a></li>
                   <li><a href="#" id="delete-option"><i class="icon-trash"></i> Delete</a></li>
@@ -192,21 +192,35 @@
         <div id="console-logs" class="active"></div>
       </div>
     </div>
+    <dialog id="template-dialog" class="modal_dialog" closed>
+      <p class="modal_dialog_content">Select a Template to use:</p>
+      <ul id="template-list" class="template-list">
+        <!-- Template items will be populated here -->
+      </ul>
+      <form method="dialog">
+        <div class="button-container">
+          <button id="template-cancel-button" value="cancel" class="modal_dialog_cancel">Cancel</button>
+        </div>
+      </form>
+    </dialog>
     <dialog id="code-dialog" class="modal_dialog" closed>
       <p class="modal_dialog_content">Enter the name of the code snippet:</p>
       <form method="dialog" id="code-form">
         <input type="text" name="codeName" class="modal_dialog_input" />
-        <button value="ok">OK</button>
-        <button value="cancel" class="modal_dialog_cancel">Cancel</button>
+        <div class="button-container">
+          <button value="ok">OK</button>
+          <button value="cancel" class="modal_dialog_cancel">Cancel</button>
+        </div>
         <input type="hidden" id="actionType" value="save" />
       </form>
     </dialog>
     <dialog id="confirm-dialog" class="modal_dialog" closed>
       <p id="dialog-text" class="modal_dialog_content"></p>
-      <br />
       <form method="dialog">
-        <button id="confirm-button" value="ok">Yes</button>
-        <button id="cancel-button" value="cancel" class="modal_dialog_cancel">No</button>
+        <div class="button-container">
+          <button id="confirm-button" value="ok">Yes</button>
+          <button id="cancel-button" value="cancel" class="modal_dialog_cancel">No</button>
+        </div>
       </form>
     </dialog>
   </main>

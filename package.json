@@ -27,11 +27,12 @@
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
-    "@lvcabral/zip": "lvcabral/zip",
-    "@zenfs/core": "1.6.16",
-    "@zenfs/dom": "1.0.7",
+    "@zenfs/archives": "^1.0.5",
+    "@zenfs/core": "^1.11.4",
+    "@zenfs/dom": "^1.1.5",
     "brs-engine": "^1.8.5",
     "codemirror": "^5.65.12",
+    "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
     "json-url": "^3.0.0",
     "nanoid": "^4.0.1",

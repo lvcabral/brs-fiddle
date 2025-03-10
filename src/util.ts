@@ -1,3 +1,17 @@
+/*---------------------------------------------------------------------------------------------
+ *  BrightScript Fiddle (https://github.com/lvcabral/brs-fiddle)
+ *
+ *  Copyright (c) 2023-2025 Marcelo Lv Cabral. All Rights Reserved.
+ *
+ *  Licensed under the MIT License. See LICENSE in the repository root for license information.
+ *--------------------------------------------------------------------------------------------*/
+import Toastify from "toastify-js";
+import { nanoid } from "nanoid";
+
+export function generateId() {
+    return nanoid(10);
+}
+
 export const getOS = () => {
     const userAgent = window.navigator.userAgent;
     const platform = window.navigator.platform;
@@ -18,6 +32,12 @@ export const getOS = () => {
     }
     return os;
 };
+
+export function isImageFile(fileName: string): boolean {
+    const imageExtensions = ["png", "jpg", "jpeg", "gif", "bmp", "webp"];
+    const extension = getFileExtension(fileName).toLowerCase();
+    return imageExtensions.includes(extension);
+}
 
 export function getFileExtension(filename: string): string {
     return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
@@ -73,4 +93,31 @@ export function arrayBufferToBase64(buffer: ArrayBufferLike) {
         binary += String.fromCharCode(bytes[i]);
     }
     return window.btoa(binary);
+}
+
+export function showToast(message: string, duration = 3000, error = false) {
+    Toastify({
+        text: message,
+        duration: duration,
+        close: false,
+        gravity: "bottom",
+        position: "center",
+        stopOnFocus: true,
+        className: error ? "toastify-error" : "toastify-success",
+    }).showToast();
+}
+
+export function calculateLocalStorageUsage() {
+    let _lsTotal = 0,
+        _xLen,
+        _x;
+    for (_x in localStorage) {
+        if (!localStorage.hasOwnProperty(_x)) {
+            continue;
+        }
+        _xLen = (localStorage[_x].length + _x.length) * 2;
+        _lsTotal += _xLen;
+    }
+    console.log("Current Local Storage usage is " + (_lsTotal / 1024).toFixed(2) + " KB");
+    return (_lsTotal / 1024).toFixed(2);
 }
