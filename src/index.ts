@@ -7,11 +7,39 @@
  *--------------------------------------------------------------------------------------------*/
 import * as brs from "brs-engine";
 import Codec from "json-url";
-import Toastify from "toastify-js";
 import VanillaTerminal from "vanilla-terminal";
-import { nanoid } from "nanoid";
-import { saveAs } from "file-saver";
-import { getOS } from "./util";
+import {
+    initializeFileSystem,
+    hideImage,
+    highlightSelectedFile,
+    showImage,
+    readFileContent,
+    loadZipTemplate,
+    populateCodeSelector,
+    updateCodeSelector,
+    codeSnippetExists,
+    deleteCodeSnippet,
+    codeNameExists,
+    renameCodeSnippet,
+    loadCodeSnippet,
+    saveCodeSnippet,
+    saveCodeSnippetAs,
+    saveCodeSnippetMaster,
+    loadBrsTemplate,
+    hasManifest,
+    createZipFromCodeSnippet,
+    exportAllCode,
+    exportCodeSnippet,
+    importCodeSnippet,
+} from "./snippets";
+import {
+    calculateLocalStorageUsage,
+    generateId,
+    getFileExtension,
+    getOS,
+    isImageFile,
+    showToast,
+} from "./util";
 import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
 import packageInfo from "../package.json";
 
@@ -48,6 +76,22 @@ const confirmButton = document.getElementById("confirm-button") as HTMLButtonEle
 const cancelButton = document.getElementById("cancel-button") as HTMLButtonElement;
 const moreButton = document.getElementById("more-options") as HTMLButtonElement;
 const dropdown = document.getElementById("more-options-dropdown") as HTMLDivElement;
+const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
+const fileSystemDiv = document.getElementById("file-system") as HTMLDivElement;
+const simpleFileSystem = fileSystemDiv.innerHTML;
+const templateDialog = document.getElementById("template-dialog") as HTMLDialogElement;
+
+// Code Templates
+const templates = [
+    { name: "Hello World (Draw2D)", path: "hello-world.brs" },
+    { name: "Snake Game (Draw2D)", path: "snake-game.brs" },
+    { name: "Ball Boing (Draw2D)", path: "ball-boing.brs" },
+    { name: "Collisions (Draw2D)", path: "collisions.zip" },
+    { name: "Hello World (SceneGraph)", path: "hello-world.zip" },
+    { name: "Simple Task (SceneGraph)", path: "simple-task.zip" },
+    { name: "Bounding Rect (SceneGraph)", path: "bounding-rect.zip" },
+    { name: "Label List (SceneGraph)", path: "label-list.zip" },
+];
 
 // Restore Last State
 const lastState = loadState();
@@ -100,6 +144,7 @@ document.addEventListener("click", function (event: any) {
         dropdown.style.display = "none";
     }
 });
+document.getElementById("templates-option")?.addEventListener("click", selectTemplate);
 document.getElementById("rename-option")?.addEventListener("click", renameCode);
 document.getElementById("saveas-option")?.addEventListener("click", saveAsCode);
 document.getElementById("delete-option")?.addEventListener("click", deleteCode);
@@ -111,13 +156,16 @@ let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
 let editorManager: CodeMirrorManager;
-let currentId = nanoid(10);
+let currentId = generateId();
 let isCodeChanged = false;
 let unchangedCode = "";
 
-function main() {
+async function main() {
     updateButtons();
     initializeCodeEditor();
+    initFolderStructure();
+    await initializeFileSystem();
+    populateTemplateDialog();
     // Process Shared Token parameter
     const shareToken = getParameterByName("code");
     if (shareToken) {
@@ -166,6 +214,7 @@ function main() {
         });
     }
     editorManager.editor.focus();
+    calculateLocalStorageUsage();
 }
 
 function updateButtons() {
@@ -282,52 +331,12 @@ function scrollToBottom() {
 
 function markCodeAsChanged() {
     isCodeChanged = true;
-    updateCodeSelector();
+    updateCodeSelector(currentId, isCodeChanged);
 }
 
 function markCodeAsSaved() {
     isCodeChanged = false;
-    updateCodeSelector();
-}
-
-function updateCodeSelector() {
-    const options = Array.from(codeSelect.options);
-    for (const option of options) {
-        if (option.value === currentId) {
-            if (isCodeChanged) {
-                option.text = `⏺︎ ${option.text.replace(/^⏺︎ /, "")}`;
-            } else {
-                option.text = option.text.replace(/^⏺︎ /, "");
-            }
-        }
-    }
-}
-
-function populateCodeSelector(currentId: string) {
-    const arrCode = new Array();
-    for (let i = 0; i < localStorage.length; i++) {
-        const codeId = localStorage.key(i);
-        if (codeId && codeId.length === 10) {
-            let idx = arrCode.length;
-            arrCode.push([]);
-            let codeName = `Code #${i + 1}`;
-            const code = localStorage.getItem(codeId);
-            if (code?.startsWith("@=")) {
-                codeName = code.substring(2, code.indexOf("=@"));
-            }
-            arrCode[idx][0] = codeName;
-            arrCode[idx][1] = codeId;
-        }
-    }
-    arrCode.sort();
-
-    codeSelect.length = 1;
-    for (let i = 0; i < arrCode.length; i++) {
-        const codeId = arrCode[i][1];
-        const selected = codeId === currentId;
-        codeSelect.options[i + 1] = new Option(arrCode[i][0], codeId, false, selected);
-    }
-    updateCodeSelector();
+    updateCodeSelector(currentId, isCodeChanged);
 }
 
 let savedValue = codeSelect.value;
@@ -365,38 +374,76 @@ codeSelect.addEventListener("change", async (e) => {
             return;
         }
     }
-    if (codeSelect.value !== "0") {
-        loadCode(codeSelect.value);
+    if (codeSelect.value === "0") {
+        currentId = generateId();
+        resetApp(false);
+        fileSystemDiv.innerHTML = simpleFileSystem;
     } else {
-        currentId = nanoid(10);
-        resetApp();
+        loadCode(codeSelect.value);
     }
+    hideImage();
     resetUndoHistory();
 });
+
+function populateTemplateDialog() {
+    const templateList = document.getElementById("template-list") as HTMLUListElement;
+    templateList.innerHTML = "";
+    templates.forEach((template) => {
+        const li = document.createElement("li");
+        li.textContent = template.name;
+        li.dataset.path = template.path;
+        li.addEventListener("click", async () => {
+            templateDialog.close();
+            if (codeNameExists(template.name)) {
+                showToast("There is already a code snippet with this Name!", 3000, true);
+                return;
+            }
+            currentId = generateId();
+            if (getFileExtension(template.path) === "zip") {
+                await loadZipTemplate(currentId, template.name, template.path);
+            } else {
+                await loadBrsTemplate(currentId, template.name, template.path);
+            }
+            populateCodeSelector(currentId);
+            loadCode(currentId);
+        });
+        templateList.appendChild(li);
+    });
+    templateDialog.addEventListener("close", () => {
+        editorManager.editor.focus();
+    });
+}
 
 function resetUndoHistory() {
     editorManager?.editor?.clearHistory();
 }
 
 function loadCode(id: string) {
-    let code = localStorage.getItem(id);
-    if (code) {
-        currentId = id;
-        if (code.startsWith("@=")) {
-            code = code.substring(code.indexOf("=@") + 2);
+    if (codeSnippetExists(id)) {
+        if (currentApp.running) {
+            brs.terminate("EXIT_USER_NAV");
+            clearTerminal();
         }
-        resetApp(id, code);
+        currentId = id;
+        loadCodeSnippet(id);
+        unchangedCode = loadFile(`/code/${id}/source/main.brs`) ?? "";
+        lastState.codeId = id;
+        saveState();
         markCodeAsSaved();
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
 }
 
+function selectTemplate() {
+    templateDialog.showModal();
+}
+
 function renameCode() {
-    if (currentId && localStorage.getItem(currentId)) {
+    if (currentId && codeSnippetExists(currentId)) {
         actionType.value = "rename";
         const codeName = codeSelect.options[codeSelect.selectedIndex].text;
-        codeForm.codeName.value = codeName.replace(/^⏺︎ /, "");
+        codeForm.codeName.value = codeName.replace(/^• /, "");
         codeDialog.showModal();
     } else {
         showToast("There is no code snippet selected to rename!", 3000, true);
@@ -404,10 +451,10 @@ function renameCode() {
 }
 
 function saveAsCode() {
-    if (currentId && localStorage.getItem(currentId)) {
+    if (currentId && codeSnippetExists(currentId)) {
         actionType.value = "saveas";
         const codeName = codeSelect.options[codeSelect.selectedIndex].text + " (Copy)";
-        codeForm.codeName.value = codeName.replace(/^⏺︎ /, "");
+        codeForm.codeName.value = codeName.replace(/^• /, "");
         codeDialog.showModal();
     } else {
         showToast("There is no code snippet selected to save as!", 3000, true);
@@ -415,12 +462,13 @@ function saveAsCode() {
 }
 
 async function deleteCode() {
-    if (currentId && localStorage.getItem(currentId)) {
+    if (currentId && codeSnippetExists(currentId)) {
         const confirmed = await showDialog("Are you sure you want to delete this code?");
         if (confirmed) {
-            localStorage.removeItem(currentId);
-            currentId = nanoid(10);
-            resetApp();
+            deleteCodeSnippet(currentId);
+            currentId = generateId();
+            resetApp(true);
+            fileSystemDiv.innerHTML = simpleFileSystem;
             unchangedCode = "";
             showToast("Code deleted from the browser local storage!", 3000);
         }
@@ -429,103 +477,42 @@ async function deleteCode() {
     }
 }
 
-interface CodeSnippet {
-    name: string;
-    content: string;
-}
-
 function exportCode() {
-    const codes: { [key: string]: CodeSnippet } = {};
     let codeContent = editorManager.editor.getValue();
     if (codeContent && codeContent.trim() !== "") {
-        if (codeSelect.value !== "0") {
-            let codeName = codeSelect.options[codeSelect.selectedIndex].text;
-            codes[currentId] = { name: codeName, content: codeContent };
-            const safeFileName = codeName
-                .toLowerCase()
-                .replace(/\s+/g, "-")
-                .replace(/^⏺︎ /, "")
-                .replace(/[^a-z0-9-]/g, "");
-            const json = JSON.stringify(codes, null, 2);
-            const blob = new Blob([json], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            saveAs(blob, `${safeFileName}.json`);
-            URL.revokeObjectURL(url);
-        } else {
-            showToast("Please save your Code Snipped before exporting!", 3000, true);
-            return;
-        }
+        exportCodeSnippet(currentId);
     } else {
         showToast("There is no Code Snippet to Export", 3000, true);
     }
 }
 
-function exportAllCode() {
-    const codes: { [key: string]: CodeSnippet } = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.length === 10) {
-            const value = localStorage.getItem(key);
-            if (value?.startsWith("@=")) {
-                const codeName = value.substring(2, value.indexOf("=@"));
-                const codeContent = value.substring(value.indexOf("=@") + 2);
-                codes[key] = { name: codeName, content: codeContent };
-            }
-        }
-    }
-    const json = JSON.stringify(codes, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "codesnippets.json";
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
 function importCode() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
-    input.onchange = (e: Event) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e: ProgressEvent<FileReader>) => {
-                const json = e.target?.result as string;
-                const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
-                for (const id in codes) {
-                    const code = codes[id];
-                    const value = `@=${code.name}=@${code.content}`;
-                    localStorage.setItem(id, value);
-                }
-                populateCodeSelector(currentId);
-                if (Object.keys(codes).length === 1) {
-                    showToast("Code snippet imported to the browser local storage!", 3000);
-                    const loadId = Object.keys(codes)[0];
-                    loadCode(loadId);
-                } else {
-                    showToast("Code snippets imported to the browser local storage!", 3000);
-                }
-            };
-            reader.readAsText(file);
+    importCodeSnippet().then(() => {
+        showToast("Code snippet(s) imported to the browser local storage!", 3000);
+        if (currentId) {
+            populateCodeSelector(currentId);
+            updateCodeSelector(currentId, isCodeChanged);
+        } else {
+            resetApp(true);
         }
-    };
-    input.click();
+    });
 }
 
-function resetApp(id = "", code = "") {
-    populateCodeSelector(id);
+function resetApp(populate: boolean) {
+    if (populate) {
+        populateCodeSelector("");
+    }
     if (currentApp.running) {
         brs.terminate("EXIT_USER_NAV");
         clearTerminal();
     }
     const ctx = displayCanvas.getContext("2d", { alpha: false });
     ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
-    unchangedCode = code;
-    editorManager.editor.setValue(code);
+    unchangedCode = "";
+    editorManager.editor.setValue("");
+    editorManager.setMode("brightscript");
     editorManager.editor.focus();
-    lastState.codeId = id;
+    lastState.codeId = "";
     saveState();
     markCodeAsSaved();
 }
@@ -534,7 +521,7 @@ function shareCode() {
     let code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         if (codeSelect.value !== "0") {
-            let codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^⏺︎ /, "");
+            let codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^• /, "");
             code = `@=${codeName}=@${code}`;
         }
         const data = {
@@ -560,22 +547,24 @@ function shareCode() {
 
 function saveCode() {
     const code = editorManager.editor.getValue();
-    if (code && code.trim() !== "") {
-        if (codeSelect.value === "0") {
-            actionType.value = "save";
-            codeDialog.showModal();
-        } else {
-            const codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^⏺︎ /, "");
-            localStorage.setItem(currentId, `@=${codeName}=@${code}`);
-            unchangedCode = code;
-            showToast(
-                "Code saved in the browser local storage!\nTo share it use the Share button.",
-                5000
-            );
-            markCodeAsSaved();
-        }
-    } else {
+    if (!code?.trim()) {
         showToast("There is no Source Code to save", 3000, true);
+        return;
+    }
+    if (codeSelect.value === "0") {
+        actionType.value = "save";
+        codeDialog.showModal();
+        return;
+    }
+    const codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^• /, "");
+    if (saveCodeSnippet(currentId, code)) {
+        codeSelect.options[codeSelect.selectedIndex].text = codeName;
+        unchangedCode = code;
+        showToast(
+            "Code saved in the browser local storage!\nTo share it use the Share button.",
+            5000
+        );
+        markCodeAsSaved();
     }
 }
 
@@ -593,22 +582,28 @@ codeDialog.addEventListener("close", (e) => {
             return;
         }
         const code = editorManager.editor.getValue();
-        if (actionType.value === "saveas") {
-            currentId = nanoid(10);
+        if (actionType.value === "rename") {
+            renameCodeSnippet(currentId, codeName);
+            populateCodeSelector(currentId);
+            showToast("Code snippet renamed in the browser local storage.", 5000);
+            resetDialog();
+            return;
+        } else if (actionType.value === "saveas") {
+            const oldId = currentId;
+            currentId = generateId();
+            saveCodeSnippetAs(oldId, currentId, codeName);
+            saveCodeSnippet(currentId, code);
+        } else {
+            saveCodeSnippetMaster(currentId, codeName, code);
         }
-        localStorage.setItem(currentId, `@=${codeName}=@${code}`);
         unchangedCode = code;
         lastState.codeId = currentId;
         saveState();
         populateCodeSelector(currentId);
-        if (actionType.value === "rename") {
-            showToast("Code snippet renamed in the browser local storage.", 5000);
-        } else {
-            showToast(
-                "Code saved in the browser local storage!\nTo share it use the Share button.",
-                5000
-            );
-        }
+        showToast(
+            "Code saved in the browser local storage!\nTo share it use the Share button.",
+            5000
+        );
         markCodeAsSaved();
     }
     resetDialog();
@@ -617,29 +612,23 @@ codeDialog.addEventListener("close", (e) => {
 function resetDialog() {
     codeDialog.returnValue = "";
     codeForm.codeName.value = "";
-}
-
-function codeNameExists(codeName: string) {
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.length === 10) {
-            const value = localStorage.getItem(key);
-            if (value?.startsWith("@=")) {
-                const itemName = value.substring(2, value.indexOf("=@"));
-                if (itemName.toLocaleLowerCase() === codeName.toLocaleLowerCase()) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
+    editorManager.editor.focus();
 }
 
 function runCode() {
+    if (hasManifest(currentId)) {
+        const zipData = createZipFromCodeSnippet(currentId);
+        if (zipData) {
+            runZip(`${appId}.zip`, zipData.buffer);
+        } else {
+            showToast("There was an error creating the ZIP file!", 3000, true);
+        }
+        return;
+    }
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brs.execute(appId, editorManager.editor.getValue(), {
+            brs.execute(`${appId}.brs`, editorManager.editor.getValue(), {
                 clearDisplayOnExit: false,
                 debugOnCrash: true,
                 muteSound: !audioSwitch.checked,
@@ -652,6 +641,19 @@ function runCode() {
     } else {
         showToast("There is no Source Code to run", 3000, true);
     }
+}
+
+function runZip(pkg: string, zipData: ArrayBufferLike) {
+    brs.execute(
+        pkg,
+        zipData,
+        {
+            clearDisplayOnExit: false,
+            debugOnCrash: true,
+            muteSound: !audioSwitch.checked,
+        },
+        new Map([["source", "auto-run-dev"]])
+    );
 }
 
 function startDebug() {
@@ -858,18 +860,6 @@ function getBaseUrl(): string {
     return url;
 }
 
-function showToast(message: string, duration = 3000, error = false) {
-    Toastify({
-        text: message,
-        duration: duration,
-        close: false,
-        gravity: "bottom",
-        position: "center",
-        stopOnFocus: true,
-        className: error ? "toastify-error" : "toastify-success",
-    }).showToast();
-}
-
 function loadState() {
     let state = {
         codeId: "",
@@ -912,11 +902,74 @@ document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
 document.addEventListener("mousedown", onMouseDown, false);
-window.addEventListener('beforeunload', (event) => {
+window.addEventListener("beforeunload", (event) => {
     if (isCodeChanged) {
-        const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+        const confirmationMessage = "You have unsaved changes. Are you sure you want to leave?";
         event.returnValue = confirmationMessage; // Standard way to display a confirmation dialog
         return confirmationMessage; // For some browsers
     }
     return null;
 });
+
+export function initFolderStructure() {
+    const codeContent = document.querySelector(".code-content");
+    const editor = editorManager.editor;
+
+    folderStructure?.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (target.tagName === "LI" || target.tagName === "I") {
+            const fileName = target.textContent?.trim();
+            const isFolder = target.getAttribute("data-type") === "folder";
+            const filePath = target.getAttribute("data-path");
+            if (fileName && !isFolder && filePath) {
+                const targetPath = `/code/${currentId}`;
+                const file = `${targetPath}/${filePath}`;
+                if (isImageFile(file)) {
+                    showImage(file);
+                    return;
+                } else {
+                    hideImage();
+                }
+                loadFile(file);
+                highlightSelectedFile(target);
+            } else {
+                editor.focus();
+            }
+        }
+    });
+
+    codeContent?.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest(".folder-structure") && !target.closest(".CodeMirror")) {
+            editor.focus();
+        }
+    });
+}
+
+function loadFile(filePath: string) {
+    // Load the file content based on the fileName
+    const editor = editorManager.editor;
+    const fileContent = readFileContent(filePath);
+    let mode = "text";
+    const extention = getFileExtension(filePath);
+    switch (extention) {
+        case "brs":
+            mode = "brightscript";
+            break;
+        case "xml":
+            mode = "xml";
+            break;
+        case "":
+            mode = "properties";
+            break;
+        default:
+            showToast("Unknown file cannot be loaded in the code editor.", 3000, true);
+            return;
+    }
+
+    editor.setValue(fileContent);
+    editor.setOption("mode", mode);
+    markCodeAsSaved();
+    editor.focus();
+    return fileContent;
+}

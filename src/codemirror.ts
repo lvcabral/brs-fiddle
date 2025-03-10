@@ -2,7 +2,10 @@ import * as CodeMirror from "codemirror";
 import "codemirror/addon/comment/comment.js";
 import "codemirror/addon/edit/closebrackets.js";
 import "codemirror/addon/edit/matchbrackets.js";
+import "codemirror/mode/xml/xml.js";
+import "codemirror/mode/properties/properties.js";
 import { defineMode } from "./brightscript";
+
 
 export class CodeMirrorManager {
     public editor: CodeMirror.Editor;
@@ -29,6 +32,10 @@ export class CodeMirrorManager {
                 cm.toggleComment();
             },
         });
+    }
+
+    setMode(mode: string) {
+        this.editor.setOption("mode", mode);
     }
 }
 
