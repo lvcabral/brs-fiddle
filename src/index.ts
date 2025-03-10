@@ -950,7 +950,7 @@ function loadFile(filePath: string) {
     // Load the file content based on the fileName
     const editor = editorManager.editor;
     const fileContent = readFileContent(filePath);
-    let mode = "text";
+    let mode;
     const extention = getFileExtension(filePath);
     switch (extention) {
         case "brs":

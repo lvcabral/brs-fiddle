@@ -29,6 +29,31 @@ export async function initializeFileSystem() {
 }
 
 export function populateCodeSelector(currentId: string) {
+    migrateOldSnippets();
+    // Load from ZenFS
+    const arrCode = new Array();
+    codeMap.clear();
+    const entries = fs.readdirSync("/code");
+    for (const entry of entries) {
+        if (entry.length === 10) {
+            const codeName = readFileContent(`/code/${entry}/.snippet`);
+            arrCode.push([codeName, entry]);
+            codeMap.set(entry, codeName);
+        }
+    }
+    // Populate code selector
+    arrCode.sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+    const optionsOffset = 1;
+    codeSelect.length = optionsOffset;
+    for (let i = 0; i < arrCode.length; i++) {
+        const codeId = arrCode[i][1];
+        const selected = codeId === currentId;
+        codeSelect.options[i + optionsOffset] = new Option(arrCode[i][0], codeId, false, selected);
+    }
+    updateCodeSelector(currentId, false);
+}
+
+function migrateOldSnippets() {
     // Convert 1.x localStorage format to ZenFS
     const ids = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -56,27 +81,6 @@ export function populateCodeSelector(currentId: string) {
             }
         }
     }
-    // Load from ZenFS
-    const arrCode = new Array();
-    codeMap.clear();
-    const entries = fs.readdirSync("/code");
-    for (const entry of entries) {
-        if (entry.length === 10) {
-            const codeName = readFileContent(`/code/${entry}/.snippet`);
-            arrCode.push([codeName, entry]);
-            codeMap.set(entry, codeName);
-        }
-    }
-    // Populate code selector
-    arrCode.sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
-    const optionsOffset = 1;
-    codeSelect.length = optionsOffset;
-    for (let i = 0; i < arrCode.length; i++) {
-        const codeId = arrCode[i][1];
-        const selected = codeId === currentId;
-        codeSelect.options[i + optionsOffset] = new Option(arrCode[i][0], codeId, false, selected);
-    }
-    updateCodeSelector(currentId, false);
 }
 
 export function updateCodeSelector(currentId: string, isCodeChanged: boolean) {
@@ -158,16 +162,12 @@ export function createZipFromCodeSnippet(codeId: string): Uint8Array | null {
             const newPath = zipPath ? `${zipPath}/${entry}` : entry;
             if (stat.isDirectory()) {
                 addFilesToZip(entryPath, newPath);
+            } else if (isImageFile(entry)) {
+                const content = fs.readFileSync(entryPath);
+                newZip[newPath] = [content, { level: 0 }];
             } else {
-                if (isImageFile(entry)) {
-                    const content = fs.readFileSync(entryPath);
-                    console.log("Adding image: ", entryPath, content.length);
-                    newZip[newPath] = [content, { level: 0 }];
-                } else {
-                    const content = fs.readFileSync(entryPath, "utf-8");
-                    console.log("Adding file: ", entryPath, content.length);
-                    newZip[newPath] = [strToU8(content), {}];
-                }
+                const content = fs.readFileSync(entryPath, "utf-8");
+                newZip[newPath] = [strToU8(content), {}];
             }
         }
     }
@@ -311,7 +311,6 @@ export function saveCodeSnippetAs(oldId: string, newId: string, name: string) {
 export function renameCodeSnippet(codeId: string, codeName: string) {
     const targetPath = `/code/${codeId}/.snippet`;
     try {
-        console.log("Renaming code snippet: ", codeId, codeName);
         fs.writeFileSync(targetPath, codeName);
         codeMap.set(codeId, codeName);
     } catch (err: any) {
@@ -372,8 +371,7 @@ export function highlightSelectedFile(target: HTMLElement) {
         selected.classList.remove("selected");
     }
     target.classList.add("selected");
-    currSelectedPath = target.getAttribute("data-path") || "";
-    console.log("Selected file: ", currSelectedPath);
+    currSelectedPath = target.getAttribute("data-path") ?? "";
 }
 
 let imageClick = 0;
@@ -456,7 +454,7 @@ function readFilesRecursively(
 }
 
 function getFileExtension(fileName: string): string {
-    return fileName.split(".").pop() || "";
+    return fileName.split(".").pop() ?? "";
 }
 
 export function exportCodeSnippet(codeId: string) {
@@ -519,7 +517,7 @@ export async function importCodeSnippet(): Promise<void> {
                             }
                         }
                         resolve();
-                    } catch (error) {
+                    } catch (error: any) {
                         showToast("Failed to import code snippets", 3000, true);
                         reject(error);
                     }
