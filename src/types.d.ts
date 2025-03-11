@@ -1,2 +1,2 @@
 declare module "json-url";
-declare module "vanilla-terminal";
+declare module "@lvcabral/terminal";
