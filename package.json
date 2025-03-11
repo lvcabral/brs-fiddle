@@ -27,6 +27,7 @@
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
+    "@lvcabral/terminal": "^0.1.0",
     "@zenfs/archives": "^1.0.5",
     "@zenfs/core": "^1.11.4",
     "@zenfs/dom": "^1.1.5",
@@ -36,8 +37,7 @@
     "file-saver": "^2.0.5",
     "json-url": "^3.0.0",
     "nanoid": "^4.0.1",
-    "toastify-js": "^1.12.0",
-    "vanilla-terminal": "lvcabral/vanilla-terminal"
+    "toastify-js": "^1.12.0"
   },
   "devDependencies": {
     "@types/codemirror": "^5.60.7",

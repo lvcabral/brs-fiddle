@@ -7,7 +7,7 @@
  *--------------------------------------------------------------------------------------------*/
 import * as brs from "brs-engine";
 import Codec from "json-url";
-import VanillaTerminal from "vanilla-terminal";
+import WebTerminal from "@lvcabral/terminal";
 import {
     initializeFileSystem,
     hideImage,
@@ -110,7 +110,7 @@ const commands = {
         terminal.output(`<br />BrightScript Simulation Engine v${brs.getVersion()}<br />`);
     },
 };
-const terminal = new VanillaTerminal({
+const terminal = new WebTerminal({
     welcome: `<span style='color: #2e71ff'>BrightScript Console - ${packageInfo.name} v${
         packageInfo.version
     } -  brs-engine v${brs.getVersion()}</span>`,
