@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@lvcabral/terminal": "^0.1.0",
-    "@zenfs/archives": "^1.0.5",
+    "@zenfs/archives": "1.0.5",
     "@zenfs/core": "^1.11.4",
     "@zenfs/dom": "^1.1.5",
     "brs-engine": "^2.0.0-alpha.1",
