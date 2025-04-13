@@ -194,8 +194,12 @@ async function main() {
     localStorage.removeItem(`${appId}.load`);
     // Initialize Device Simulator
     if (displayCanvas) {
+        let corsProxy = "https://brs-cors-proxy.up.railway.app/";
+        if (window.location.hostname === "localhost") {
+            corsProxy = ""
+        }
         brs.initialize(
-            { developerId: appId },
+            { developerId: appId, corsProxy: corsProxy },
             {
                 debugToConsole: false,
                 disableKeys: !keyboardSwitch.checked,
