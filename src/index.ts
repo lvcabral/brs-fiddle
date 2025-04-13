@@ -91,6 +91,7 @@ const templates = [
     { name: "Simple Task (SceneGraph)", path: "simple-task.zip" },
     { name: "Bounding Rect (SceneGraph)", path: "bounding-rect.zip" },
     { name: "Label List (SceneGraph)", path: "label-list.zip" },
+    { name: "Markup Grid (SceneGraph)", path: "markup-grid.zip" },
 ];
 
 // Restore Last State
@@ -632,7 +633,7 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            brs.execute(`${appId}.brs`, editorManager.editor.getValue(), {
+            brs.execute(`main.brs`, editorManager.editor.getValue(), {
                 clearDisplayOnExit: false,
                 debugOnCrash: true,
                 muteSound: !audioSwitch.checked,
