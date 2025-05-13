@@ -364,7 +364,7 @@ pre {
 .folder-structure {
     display: block;
     width: 25%;
-    min-width: 230px;
+    min-width: 248px;
     padding: 10px;
     border-right: 1px solid #ccc;
     overflow-y: auto;

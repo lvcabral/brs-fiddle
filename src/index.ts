@@ -92,6 +92,7 @@ const templates = [
     { name: "Bounding Rect (SceneGraph)", path: "bounding-rect.zip" },
     { name: "Label List (SceneGraph)", path: "label-list.zip" },
     { name: "Markup Grid (SceneGraph)", path: "markup-grid.zip" },
+    { name: "Keyboard Dlg (SceneGraph)", path: "keyboard-dialog.zip" },
 ];
 
 // Restore Last State
@@ -378,6 +379,11 @@ codeSelect.addEventListener("change", async (e) => {
             codeSelect.value = savedValue;
             return;
         }
+        const options = Array.from(codeSelect.options);
+        options.forEach((option, index) => {
+            const codeName = option.text.replace(/^• /, "");
+            codeSelect.options[index].text = codeName;
+        });
     }
     if (codeSelect.value === "0") {
         currentId = generateId();
