@@ -168,9 +168,6 @@ export function createZipFromCodeSnippet(codeId: string): Uint8Array | null {
                 newZip[newPath] = [content, { level: 0 }];
             } else if (newPath !== ".snippet") {
                 let content = fs.readFileSync(entryPath, "utf-8");
-                if (newPath === "manifest" && !content.includes("cors_proxy")) {
-                   content = `${content}\ncors_proxy=1\n`;
-                }
                 newZip[newPath] = [strToU8(content), {}];
             }
         }
