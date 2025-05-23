@@ -628,7 +628,7 @@ function resetDialog() {
 
 function runCode() {
     if (hasManifest(currentId)) {
-        saveCode();
+        if (isCodeChanged) saveCode();
         const zipData = createZipFromCodeSnippet(currentId);
         if (zipData) {
             runZip(`${appId}.zip`, zipData.buffer);
@@ -640,7 +640,7 @@ function runCode() {
     const code = editorManager.editor.getValue();
     if (code && code.trim() !== "") {
         try {
-            if (codeSelect.value !== "0") {
+            if (codeSelect.value !== "0" && isCodeChanged) {
                 saveCode();
             }
             brs.execute(`main.brs`, editorManager.editor.getValue(), {
