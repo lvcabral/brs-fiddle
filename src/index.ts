@@ -93,6 +93,7 @@ const templates = [
     { name: "Label List (SceneGraph)", path: "label-list.zip" },
     { name: "Markup Grid (SceneGraph)", path: "markup-grid.zip" },
     { name: "Keyboard Dlg (SceneGraph)", path: "keyboard-dialog.zip" },
+    { name: "Video List (SceneGraph)", path: "video-list.zip" },
 ];
 
 // Restore Last State
