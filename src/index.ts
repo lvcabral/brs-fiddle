@@ -949,17 +949,15 @@ export function initFolderStructure() {
                 if (isImageFile(file)) {
                     showImage(file);
                     return;
-                } else {
-                    hideImage();
                 }
+                hideImage();
                 if (codeSelect.value !== "0" && isCodeChanged) {
                     saveCode(false);
                 }
                 loadFile(file);
                 highlightSelectedFile(target);
-            } else {
-                editor.focus();
             }
+            editor.focus();
         }
     });
 
