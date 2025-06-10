@@ -296,7 +296,9 @@ pre {
     z-index: 20;
 }
 #player {
-    display: none;
+    opacity: 0;
+    z-index: 30;
+    position: fixed;
 }
 .code {
     background: var(--background-color);
