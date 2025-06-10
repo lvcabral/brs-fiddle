@@ -93,6 +93,7 @@ const templates = [
     { name: "Label List (SceneGraph)", path: "label-list.zip" },
     { name: "Markup Grid (SceneGraph)", path: "markup-grid.zip" },
     { name: "Keyboard Dlg (SceneGraph)", path: "keyboard-dialog.zip" },
+    { name: "Video List (SceneGraph)", path: "video-list.zip" },
 ];
 
 // Restore Last State
@@ -161,6 +162,7 @@ let editorManager: CodeMirrorManager;
 let currentId = generateId();
 let isCodeChanged = false;
 let unchangedCode = "";
+let lastSelectedFile = "";
 
 async function main() {
     updateButtons();
@@ -556,7 +558,7 @@ function shareCode() {
     }
 }
 
-function saveCode() {
+function saveCode(toast?: any) {
     const code = editorManager.editor.getValue();
     if (!code?.trim()) {
         showToast("There is no Source Code to save", 3000, true);
@@ -571,10 +573,12 @@ function saveCode() {
     if (saveCodeSnippet(currentId, code)) {
         codeSelect.options[codeSelect.selectedIndex].text = codeName;
         unchangedCode = code;
-        showToast(
-            "Code saved in the browser local storage!\nTo share it use the Share button.",
-            5000
-        );
+        if (typeof toast !== "boolean" || toast) {
+            showToast(
+                "Code saved in the browser local storage!\nTo share it use the Share button.",
+                5000
+            );
+        }
         markCodeAsSaved();
     }
 }
@@ -628,7 +632,7 @@ function resetDialog() {
 
 function runCode() {
     if (hasManifest(currentId)) {
-        if (isCodeChanged) saveCode();
+        if (isCodeChanged) saveCode(false);
         const zipData = createZipFromCodeSnippet(currentId);
         if (zipData) {
             runZip(`${appId}.zip`, zipData.buffer);
@@ -641,7 +645,7 @@ function runCode() {
     if (code && code.trim() !== "") {
         try {
             if (codeSelect.value !== "0" && isCodeChanged) {
-                saveCode();
+                saveCode(false);
             }
             brs.execute(`main.brs`, editorManager.editor.getValue(), {
                 clearDisplayOnExit: false,
@@ -723,14 +727,13 @@ function controlModeSwitch() {
     lastState.keys = keyboardSwitch.checked;
     lastState.gamePads = gamePadSwitch.checked;
     saveState();
+    displayCanvas.focus();
 }
 
 //Keyboard Event
 function hotKeys(event: KeyboardEvent) {
-    const el = document.activeElement;
-    const isCodeEditor = el?.id === "brsCode";
     brs.setControlMode({
-        keyboard: isCodeEditor ? false : keyboardSwitch.checked,
+        keyboard: editorManager.editor.hasFocus() ? false : keyboardSwitch.checked,
         gamePads: gamePadSwitch.checked,
     });
     if (isHotKey(event, "KeyR")) {
@@ -939,17 +942,22 @@ export function initFolderStructure() {
             if (fileName && !isFolder && filePath) {
                 const targetPath = `/code/${currentId}`;
                 const file = `${targetPath}/${filePath}`;
+                if (lastSelectedFile === file) {
+                    editor.focus();
+                    return;
+                }
                 if (isImageFile(file)) {
                     showImage(file);
                     return;
-                } else {
-                    hideImage();
+                }
+                hideImage();
+                if (codeSelect.value !== "0" && isCodeChanged) {
+                    saveCode(false);
                 }
                 loadFile(file);
                 highlightSelectedFile(target);
-            } else {
-                editor.focus();
             }
+            editor.focus();
         }
     });
 
@@ -966,8 +974,8 @@ function loadFile(filePath: string) {
     const editor = editorManager.editor;
     const fileContent = readFileContent(filePath);
     let mode;
-    const extention = getFileExtension(filePath);
-    switch (extention) {
+    const extension = getFileExtension(filePath);
+    switch (extension) {
         case "brs":
             mode = "brightscript";
             break;
@@ -981,7 +989,7 @@ function loadFile(filePath: string) {
             showToast("Unknown file cannot be loaded in the code editor.", 3000, true);
             return;
     }
-
+    lastSelectedFile = filePath;
     editor.setValue(fileContent);
     editor.setOption("mode", mode);
     markCodeAsSaved();

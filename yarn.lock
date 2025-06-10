@@ -1011,10 +1011,10 @@ browserslist@^4.24.0:
     node-releases "^2.0.19"
     update-browserslist-db "^1.1.3"
 
-brs-engine@^2.0.0-alpha.6:
-  version "2.0.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-2.0.0-alpha.6.tgz#e42b5b458453561a1ea4f1ed50c1232bd807c313"
-  integrity sha512-N43PI0+HRU4Gx9EJqDGCGoxWheIQ0aOFn8j5LBsi/l2s51WCFXpdLEWDVcMUdaCLzxcE+dzzsN83ZmK5JtWlaw==
+brs-engine@^2.0.0-alpha.8:
+  version "2.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-2.0.0-alpha.8.tgz#816722ed27c31971ac4b1ae3a425bc35384a3d09"
+  integrity sha512-0Cr9FnWCT0FslBQlE4vgEE3s/jMSCOPhR7CJWyRbSuaG8+kBzxIn7gYVchF+CO43+4xymqO61MajUff6i4IDHA==
   dependencies:
     "@lvcabral/libwebp" "^0.1.0"
     "@lvcabral/memory-fs" "^0.5.1"
@@ -1038,7 +1038,7 @@ brs-engine@^2.0.0-alpha.6:
     fflate "^0.8.2"
     file-type "^12.4.2"
     gifuct-js "^2.1.2"
-    hls.js "^1.5.17"
+    hls.js "^1.6.2"
     howler "^2.2.3"
     jpeg-js "^0.4.4"
     long "^3.2.0"
@@ -2639,10 +2639,10 @@ he@^1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
-hls.js@^1.5.17:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/hls.js/-/hls.js-1.6.2.tgz#02272bea644b5f61f71741256618d6b629ae7834"
-  integrity sha512-rx+pETSCJEDThm/JCm8CuadcAC410cVjb1XVXFNDKFuylaayHk1+tFxhkjvnMDAfqsJHxZXDAJ3Uc2d5xQyWlQ==
+hls.js@^1.6.2:
+  version "1.6.5"
+  resolved "https://registry.yarnpkg.com/hls.js/-/hls.js-1.6.5.tgz#0912177e0663836c0f9469739c8deb3d8e598778"
+  integrity sha512-KMn5n7JBK+olC342740hDPHnGWfE8FiHtGMOdJPfUjRdARTWj9OB+8c13fnsf9sk1VtpuU2fKSgUjHvg4rNbzQ==
 
 hmac-drbg@^1.0.1:
   version "1.0.1"
