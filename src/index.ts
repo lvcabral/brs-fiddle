@@ -726,14 +726,13 @@ function controlModeSwitch() {
     lastState.keys = keyboardSwitch.checked;
     lastState.gamePads = gamePadSwitch.checked;
     saveState();
+    displayCanvas.focus();
 }
 
 //Keyboard Event
 function hotKeys(event: KeyboardEvent) {
-    const el = document.activeElement;
-    const isCodeEditor = el?.id === "brsCode";
     brs.setControlMode({
-        keyboard: isCodeEditor ? false : keyboardSwitch.checked,
+        keyboard: editorManager.editor.hasFocus() ? false : keyboardSwitch.checked,
         gamePads: gamePadSwitch.checked,
     });
     if (isHotKey(event, "KeyR")) {
