@@ -122,6 +122,7 @@ const terminal = new WebTerminal({
     prompt: prompt,
     ignoreBadCommand: true,
     autoFocus: false,
+    colorTheme: lastState.darkTheme ? "dark" : "light",
 });
 terminal.idle();
 
@@ -200,7 +201,7 @@ async function main() {
     if (displayCanvas) {
         let corsProxy = "https://brs-cors-proxy.up.railway.app/";
         if (window.location.hostname === "localhost") {
-            corsProxy = ""
+            corsProxy = "";
         }
         brs.initialize(
             { developerId: appId, corsProxy: corsProxy },
@@ -298,28 +299,32 @@ function handleEngineEvents(event: string, data: any) {
 }
 
 function logToTerminal(data: any) {
-    if (data.level === "stop") {
+    if (data?.level === "stop") {
         terminal.output("<br />");
         terminal.setPrompt();
         resumeButton.style.display = "inline";
         breakButton.style.display = "none";
-    } else if (data.level === "continue") {
+    } else if (data?.level === "continue") {
         terminal.idle();
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
-    } else if (data.level !== "beacon") {
-        let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    } else if (data?.level !== "beacon" && typeof data?.content === "string") {
+        let output: string = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
             if (output.slice(-promptLen) === `${prompt}&gt; `) {
                 output = output.slice(0, output.length - promptLen);
             }
+            output = output.replace(/ /g, "&nbsp;");
         } else if (data.level === "warning") {
-            output = "<span style='color: #d7ba7d;'>" + output + "</span>";
+            output = terminal.colorize(output.replace(/ /g, "&nbsp;"), "#d7ba7d");
         } else if (data.level === "error") {
-            output = "<span style='color: #e95449;'>" + output + "</span>";
+            output = terminal.colors.brightRed(output.replace(/ /g, "&nbsp;"));
         }
-        terminal.output(`<pre>${output}</pre>`);
+        const lines = output.split(/\r\n?|\n/);
+        lines.forEach((line) => {
+            terminal.output(line);
+        });
     }
 }
 
@@ -911,6 +916,7 @@ function setTheme(dark: boolean) {
     if (editorManager) {
         editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
     }
+    terminal.setColorTheme(theme);
 }
 
 // Event Listeners
