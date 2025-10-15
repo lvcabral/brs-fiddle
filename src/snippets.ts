@@ -10,7 +10,7 @@ import { Zip } from "@zenfs/archives";
 import { WebStorage } from "@zenfs/dom";
 import { zipSync, strToU8, Zippable } from "fflate";
 import { saveAs } from "file-saver";
-import { getIcon, getMimeType, isImageFile, showToast } from "./util";
+import { generateId, getIcon, getMimeType, isImageFile, showToast } from "./util";
 
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
@@ -378,7 +378,7 @@ export function highlightSelectedFile(target: HTMLElement) {
 let imageClick = 0;
 export function showImage(filePath: string) {
     const imageData = fs.readFileSync(filePath);
-    const blob = new Blob([imageData], { type: getMimeType(filePath) });
+    const blob = new Blob([imageData as any], { type: getMimeType(filePath) });
     const url = URL.createObjectURL(blob);
     imagePreview.src = url;
     imagePanel.style.display = "block";
@@ -487,13 +487,21 @@ export async function importCodeSnippet(): Promise<void> {
     return new Promise((resolve, reject) => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = "application/json";
+        input.accept = ".json,.brs,application/json,text/brs";
         input.onchange = (e: Event) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e: ProgressEvent<FileReader>) => {
                     try {
+                        if (file.name.endsWith(".brs")) {
+                            const codeId = generateId();
+                            const codeName = `Imported: ${file.name}`;
+                            const codeContent = e.target?.result as string;
+                            saveCodeSnippetMaster(codeId, codeName, codeContent);
+                            resolve();
+                            return;
+                        }
                         const json = e.target?.result as string;
                         const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
                         for (const id in codes) {
