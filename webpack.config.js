@@ -42,9 +42,9 @@ module.exports = env => {
                 }),
                 new CopyWebpackPlugin({
                     patterns: [
-                        { context: "node_modules/brs-engine/browser/lib", from: apiLib },
-                        { context: "node_modules/brs-engine/browser/lib", from: wrkLib },
-                        { context: "node_modules/brs-engine/browser/", from: "assets/**", to: ".." },
+                        { context: "node_modules/brs-engine/lib", from: apiLib },
+                        { context: "node_modules/brs-engine/lib", from: wrkLib },
+                        { context: "node_modules/brs-engine/", from: "assets/**", to: ".." },
                         { context: "node_modules/coi-serviceworker/", from: "coi-serviceworker.min.js", to: ".." },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/", from: "CNAME", to: ".." },

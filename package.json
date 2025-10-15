@@ -1,6 +1,6 @@
 {
   "name": "brs-fiddle",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "BrightScript Fiddle",
   "author": "Marcelo Lv Cabral <marcelo@lvcabral.com> (https://lvcabral.com/)",
   "homepage": "https://lvcabral.com/brs/",
@@ -33,7 +33,7 @@
     "@zenfs/archives": "1.0.5",
     "@zenfs/core": "^1.11.4",
     "@zenfs/dom": "1.1.5",
-    "brs-engine": "^2.0.0-alpha.9",
+    "brs-engine": "^2.0.0-alpha.12",
     "codemirror": "^5.65.12",
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
