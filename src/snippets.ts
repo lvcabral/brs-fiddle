@@ -10,7 +10,7 @@ import { Zip } from "@zenfs/archives";
 import { WebStorage } from "@zenfs/dom";
 import { zipSync, strToU8, Zippable } from "fflate";
 import { saveAs } from "file-saver";
-import { getIcon, getMimeType, isImageFile, showToast } from "./util";
+import { generateId, getIcon, getMimeType, isImageFile, showToast } from "./util";
 
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
@@ -372,13 +372,13 @@ export function highlightSelectedFile(target: HTMLElement) {
         selected.classList.remove("selected");
     }
     target.classList.add("selected");
-    currSelectedPath = target.getAttribute("data-path") ?? "";
+    currSelectedPath = target.dataset.path ?? "";
 }
 
 let imageClick = 0;
 export function showImage(filePath: string) {
     const imageData = fs.readFileSync(filePath);
-    const blob = new Blob([imageData], { type: getMimeType(filePath) });
+    const blob = new Blob([imageData as any], { type: getMimeType(filePath) });
     const url = URL.createObjectURL(blob);
     imagePreview.src = url;
     imagePanel.style.display = "block";
@@ -470,9 +470,9 @@ export function exportCodeSnippet(codeId: string) {
 
         const safeFileName = codeName
             .toLowerCase()
-            .replace(/\s+/g, "-")
+            .replaceAll(/\s+/g, "-")
             .replace(/^• /, "")
-            .replace(/[^a-z0-9-]/g, "");
+            .replaceAll(/[^a-z0-9-]/g, "");
         const json = JSON.stringify(codes, null, 2);
         const blob = new Blob([json], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -487,43 +487,46 @@ export async function importCodeSnippet(): Promise<void> {
     return new Promise((resolve, reject) => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = "application/json";
-        input.onchange = (e: Event) => {
+        input.accept = ".json,.brs,application/json,text/brs";
+        input.onchange = async (e: Event) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = (e: ProgressEvent<FileReader>) => {
-                    try {
-                        const json = e.target?.result as string;
-                        const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
-                        for (const id in codes) {
-                            const code = codes[id];
-                            const targetPath = `/code/${id}`;
-                            if (!fs.existsSync(targetPath)) {
-                                fs.mkdirSync(targetPath);
-                            }
-                            fs.writeFileSync(`${targetPath}/.snippet`, code.name);
-                            for (const filePath in code.files) {
-                                const fullPath = `${targetPath}/${filePath}`;
-                                ensureDirectoryExists(
-                                    fullPath.substring(0, fullPath.lastIndexOf("/"))
-                                );
-                                const content = code.files[filePath];
-                                if (content.startsWith("data:image/")) {
-                                    const base64Data = content.split(",")[1];
-                                    fs.writeFileSync(fullPath, Buffer.from(base64Data, "base64"));
-                                } else {
-                                    fs.writeFileSync(fullPath, content);
-                                }
+                try {
+                    const fileContent = await file.text();
+
+                    if (file.name.endsWith(".brs")) {
+                        const codeId = generateId();
+                        const codeName = file.name;
+                        saveCodeSnippetMaster(codeId, codeName, fileContent);
+                        resolve();
+                        return;
+                    }
+
+                    const codes: { [key: string]: CodeSnippet } = JSON.parse(fileContent);
+                    for (const id in codes) {
+                        const code = codes[id];
+                        const targetPath = `/code/${id}`;
+                        if (!fs.existsSync(targetPath)) {
+                            fs.mkdirSync(targetPath);
+                        }
+                        fs.writeFileSync(`${targetPath}/.snippet`, code.name);
+                        for (const filePath in code.files) {
+                            const fullPath = `${targetPath}/${filePath}`;
+                            ensureDirectoryExists(fullPath.substring(0, fullPath.lastIndexOf("/")));
+                            const content = code.files[filePath];
+                            if (content.startsWith("data:image/")) {
+                                const base64Data = content.split(",")[1];
+                                fs.writeFileSync(fullPath, Buffer.from(base64Data, "base64"));
+                            } else {
+                                fs.writeFileSync(fullPath, content);
                             }
                         }
-                        resolve();
-                    } catch (error: any) {
-                        showToast("Failed to import code snippets", 3000, true);
-                        reject(error);
                     }
-                };
-                reader.readAsText(file);
+                    resolve();
+                } catch (error: any) {
+                    showToast("Failed to import code snippets", 3000, true);
+                    reject(error);
+                }
             } else {
                 reject(new Error("No file selected"));
             }

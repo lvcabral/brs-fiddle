@@ -122,6 +122,7 @@ const terminal = new WebTerminal({
     prompt: prompt,
     ignoreBadCommand: true,
     autoFocus: false,
+    colorTheme: lastState.darkTheme ? "dark" : "light",
 });
 terminal.idle();
 
@@ -178,7 +179,7 @@ async function main() {
                 localStorage.setItem(data.id, data.code);
                 localStorage.setItem(`${appId}.load`, data.id);
             }
-            window.location.href = getBaseUrl();
+            globalThis.location.href = getBaseUrl();
         });
         return;
     }
@@ -186,7 +187,7 @@ async function main() {
     const paramId = getParameterByName("id");
     if (paramId?.length) {
         localStorage.setItem(`${appId}.load`, paramId);
-        window.location.href = getBaseUrl();
+        globalThis.location.href = getBaseUrl();
         return;
     }
     // Check saved id to load
@@ -199,8 +200,8 @@ async function main() {
     // Initialize Device Simulator
     if (displayCanvas) {
         let corsProxy = "https://brs-cors-proxy.up.railway.app/";
-        if (window.location.hostname === "localhost") {
-            corsProxy = ""
+        if (globalThis.location.hostname === "localhost") {
+            corsProxy = "";
         }
         brs.initialize(
             { developerId: appId, corsProxy: corsProxy },
@@ -264,10 +265,10 @@ function initializeCodeEditor() {
                 return;
             }
         }
-        if (editorManager.editor.getValue() !== unchangedCode) {
-            markCodeAsChanged();
-        } else {
+        if (editorManager.editor.getValue() === unchangedCode) {
             markCodeAsSaved();
+        } else {
+            markCodeAsChanged();
         }
     });
 }
@@ -298,28 +299,32 @@ function handleEngineEvents(event: string, data: any) {
 }
 
 function logToTerminal(data: any) {
-    if (data.level === "stop") {
+    if (data?.level === "stop") {
         terminal.output("<br />");
         terminal.setPrompt();
         resumeButton.style.display = "inline";
         breakButton.style.display = "none";
-    } else if (data.level === "continue") {
+    } else if (data?.level === "continue") {
         terminal.idle();
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
-    } else if (data.level !== "beacon") {
-        let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    } else if (data?.level !== "beacon" && typeof data?.content === "string") {
+        let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
-            if (output.slice(-promptLen) === `${prompt}&gt; `) {
+            if (output.endsWith(`${prompt}&gt; `)) {
                 output = output.slice(0, output.length - promptLen);
             }
+            output = output.replaceAll(" ", "&nbsp;");
         } else if (data.level === "warning") {
-            output = "<span style='color: #d7ba7d;'>" + output + "</span>";
+            output = terminal.colorize(output.replaceAll(" ", "&nbsp;"), "#d7ba7d");
         } else if (data.level === "error") {
-            output = "<span style='color: #e95449;'>" + output + "</span>";
+            output = terminal.colors.brightRed(output.replaceAll(" ", "&nbsp;"));
         }
-        terminal.output(`<pre>${output}</pre>`);
+        const lines = output.split(/\r\n?|\n/);
+        for (const line of lines) {
+            terminal.output(line);
+        }
     }
 }
 
@@ -382,10 +387,10 @@ codeSelect.addEventListener("change", async (e) => {
             return;
         }
         const options = Array.from(codeSelect.options);
-        options.forEach((option, index) => {
+        for (const [index, option] of options.entries()) {
             const codeName = option.text.replace(/^• /, "");
             codeSelect.options[index].text = codeName;
-        });
+        }
     }
     if (codeSelect.value === "0") {
         currentId = generateId();
@@ -401,7 +406,7 @@ codeSelect.addEventListener("change", async (e) => {
 function populateTemplateDialog() {
     const templateList = document.getElementById("template-list") as HTMLUListElement;
     templateList.innerHTML = "";
-    templates.forEach((template) => {
+    for (const template of templates) {
         const li = document.createElement("li");
         li.textContent = template.name;
         li.dataset.path = template.path;
@@ -421,7 +426,7 @@ function populateTemplateDialog() {
             loadCode(currentId);
         });
         templateList.appendChild(li);
-    });
+    }
     templateDialog.addEventListener("close", () => {
         editorManager.editor.focus();
     });
@@ -777,15 +782,15 @@ function resizeColumn() {
 function resizeCanvas() {
     let width = displayCanvas.width;
     let height = displayCanvas.height;
-    if (window.innerWidth >= 1220) {
+    if (globalThis.innerWidth >= 1220) {
         const rightRect = rightContainer.getBoundingClientRect();
         width = rightRect.width;
         height = Math.trunc((width * 9) / 16);
     } else {
-        height = window.innerHeight / 3;
+        height = globalThis.innerHeight / 3;
         width = Math.trunc((height * 16) / 9);
-        if (width > window.innerWidth) {
-            width = window.innerWidth;
+        if (width > globalThis.innerWidth) {
+            width = globalThis.innerWidth;
             height = Math.trunc((width * 9) / 16);
         }
     }
@@ -794,15 +799,15 @@ function resizeCanvas() {
 
 function onResize() {
     resizeCanvas();
-    if (window.innerWidth >= 1220) {
+    if (globalThis.innerWidth >= 1220) {
         const { height } = codeColumn.getBoundingClientRect();
         editorManager.editor.setSize("100%", `${height - 25}px`);
         consoleLogsContainer.style.height = `100%`;
     } else {
-        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight / 3.5)}px`);
+        editorManager.editor.setSize("100%", `${Math.trunc(globalThis.innerHeight / 3.5)}px`);
         codeColumn.style.width = "100%";
         const consoleRect = consoleLogsContainer.getBoundingClientRect();
-        const logHeight = window.innerHeight - consoleRect.top;
+        const logHeight = globalThis.innerHeight - consoleRect.top;
         consoleLogsContainer.style.height = `${logHeight}px`;
     }
     scrollToBottom();
@@ -840,13 +845,13 @@ function onMouseDown(event: Event) {
 }
 
 // Helper Functions
-function getParameterByName(name: string, url = window.location.href) {
-    name = name.replace(/[[\]]/g, "\\$&");
+function getParameterByName(name: string, url = globalThis.location.href) {
+    name = name.replaceAll(/[[\]]/g, "\\$&");
     const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
         results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return "";
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+    return decodeURIComponent(results[2].replaceAll("+", " "));
 }
 
 function getCodeFromToken(token: string) {
@@ -871,9 +876,9 @@ function getShareUrl(suite: any) {
 }
 
 function getBaseUrl(): string {
-    let url = window.location.origin + window.location.pathname;
+    let url = globalThis.location.origin + globalThis.location.pathname;
     if (url.endsWith("/")) {
-        url = url.slice(0, url.length - 1);
+        url = url.slice(0, -1);
     }
     return url;
 }
@@ -899,11 +904,11 @@ function saveState() {
 
 // Theme Management
 function isDarkTheme() {
-    return window.matchMedia("(prefers-color-scheme: dark)")?.matches;
+    return globalThis.matchMedia("(prefers-color-scheme: dark)")?.matches;
 }
 function setTheme(dark: boolean) {
     const theme = dark ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.dataset.theme = theme;
     document.body.style.colorScheme = theme;
     codeColumn.style.colorScheme = theme;
     consoleColumn.style.colorScheme = theme;
@@ -911,16 +916,17 @@ function setTheme(dark: boolean) {
     if (editorManager) {
         editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
     }
+    terminal.setColorTheme(theme);
 }
 
 // Event Listeners
-window.addEventListener("load", main, false);
-window.addEventListener("resize", onResize, false);
+globalThis.addEventListener("load", main, false);
+globalThis.addEventListener("resize", onResize, false);
 document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
 document.addEventListener("mousedown", onMouseDown, false);
-window.addEventListener("beforeunload", (event) => {
+globalThis.addEventListener("beforeunload", (event) => {
     if (isCodeChanged) {
         const confirmationMessage = "You have unsaved changes. Are you sure you want to leave?";
         event.returnValue = confirmationMessage; // Standard way to display a confirmation dialog
@@ -937,8 +943,8 @@ export function initFolderStructure() {
         const target = event.target as HTMLElement;
         if (target.tagName === "LI" || target.tagName === "I") {
             const fileName = target.textContent?.trim();
-            const isFolder = target.getAttribute("data-type") === "folder";
-            const filePath = target.getAttribute("data-path");
+            const isFolder = target.dataset.type === "folder";
+            const filePath = target.dataset.path;
             if (fileName && !isFolder && filePath) {
                 const targetPath = `/code/${currentId}`;
                 const file = `${targetPath}/${filePath}`;
