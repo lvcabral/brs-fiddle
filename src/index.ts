@@ -878,7 +878,7 @@ function getShareUrl(suite: any) {
 function getBaseUrl(): string {
     let url = globalThis.location.origin + globalThis.location.pathname;
     if (url.endsWith("/")) {
-        url = url.slice(0, url.length - 1);
+        url = url.slice(0, -1);
     }
     return url;
 }
