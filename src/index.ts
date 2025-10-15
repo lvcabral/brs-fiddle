@@ -908,7 +908,7 @@ function isDarkTheme() {
 }
 function setTheme(dark: boolean) {
     const theme = dark ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.dataset.theme = theme;
     document.body.style.colorScheme = theme;
     codeColumn.style.colorScheme = theme;
     consoleColumn.style.colorScheme = theme;
