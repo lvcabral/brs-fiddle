@@ -179,7 +179,7 @@ async function main() {
                 localStorage.setItem(data.id, data.code);
                 localStorage.setItem(`${appId}.load`, data.id);
             }
-            window.location.href = getBaseUrl();
+            globalThis.location.href = getBaseUrl();
         });
         return;
     }
@@ -187,7 +187,7 @@ async function main() {
     const paramId = getParameterByName("id");
     if (paramId?.length) {
         localStorage.setItem(`${appId}.load`, paramId);
-        window.location.href = getBaseUrl();
+        globalThis.location.href = getBaseUrl();
         return;
     }
     // Check saved id to load
@@ -200,7 +200,7 @@ async function main() {
     // Initialize Device Simulator
     if (displayCanvas) {
         let corsProxy = "https://brs-cors-proxy.up.railway.app/";
-        if (window.location.hostname === "localhost") {
+        if (globalThis.location.hostname === "localhost") {
             corsProxy = "";
         }
         brs.initialize(
@@ -265,10 +265,10 @@ function initializeCodeEditor() {
                 return;
             }
         }
-        if (editorManager.editor.getValue() !== unchangedCode) {
-            markCodeAsChanged();
-        } else {
+        if (editorManager.editor.getValue() === unchangedCode) {
             markCodeAsSaved();
+        } else {
+            markCodeAsChanged();
         }
     });
 }
@@ -312,7 +312,7 @@ function logToTerminal(data: any) {
         let output: string = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
-            if (output.slice(-promptLen) === `${prompt}&gt; `) {
+            if (output.endsWith(`${prompt}&gt; `)) {
                 output = output.slice(0, output.length - promptLen);
             }
             output = output.replace(/ /g, "&nbsp;");
@@ -322,9 +322,9 @@ function logToTerminal(data: any) {
             output = terminal.colors.brightRed(output.replace(/ /g, "&nbsp;"));
         }
         const lines = output.split(/\r\n?|\n/);
-        lines.forEach((line) => {
+        for (const line of lines) {
             terminal.output(line);
-        });
+        }
     }
 }
 
@@ -387,10 +387,10 @@ codeSelect.addEventListener("change", async (e) => {
             return;
         }
         const options = Array.from(codeSelect.options);
-        options.forEach((option, index) => {
+        for (const [index, option] of options.entries()) {
             const codeName = option.text.replace(/^• /, "");
             codeSelect.options[index].text = codeName;
-        });
+        }
     }
     if (codeSelect.value === "0") {
         currentId = generateId();
@@ -406,7 +406,7 @@ codeSelect.addEventListener("change", async (e) => {
 function populateTemplateDialog() {
     const templateList = document.getElementById("template-list") as HTMLUListElement;
     templateList.innerHTML = "";
-    templates.forEach((template) => {
+    for (const template of templates) {
         const li = document.createElement("li");
         li.textContent = template.name;
         li.dataset.path = template.path;
@@ -426,7 +426,7 @@ function populateTemplateDialog() {
             loadCode(currentId);
         });
         templateList.appendChild(li);
-    });
+    }
     templateDialog.addEventListener("close", () => {
         editorManager.editor.focus();
     });
@@ -782,15 +782,15 @@ function resizeColumn() {
 function resizeCanvas() {
     let width = displayCanvas.width;
     let height = displayCanvas.height;
-    if (window.innerWidth >= 1220) {
+    if (globalThis.innerWidth >= 1220) {
         const rightRect = rightContainer.getBoundingClientRect();
         width = rightRect.width;
         height = Math.trunc((width * 9) / 16);
     } else {
-        height = window.innerHeight / 3;
+        height = globalThis.innerHeight / 3;
         width = Math.trunc((height * 16) / 9);
-        if (width > window.innerWidth) {
-            width = window.innerWidth;
+        if (width > globalThis.innerWidth) {
+            width = globalThis.innerWidth;
             height = Math.trunc((width * 9) / 16);
         }
     }
@@ -799,15 +799,15 @@ function resizeCanvas() {
 
 function onResize() {
     resizeCanvas();
-    if (window.innerWidth >= 1220) {
+    if (globalThis.innerWidth >= 1220) {
         const { height } = codeColumn.getBoundingClientRect();
         editorManager.editor.setSize("100%", `${height - 25}px`);
         consoleLogsContainer.style.height = `100%`;
     } else {
-        editorManager.editor.setSize("100%", `${Math.trunc(window.innerHeight / 3.5)}px`);
+        editorManager.editor.setSize("100%", `${Math.trunc(globalThis.innerHeight / 3.5)}px`);
         codeColumn.style.width = "100%";
         const consoleRect = consoleLogsContainer.getBoundingClientRect();
-        const logHeight = window.innerHeight - consoleRect.top;
+        const logHeight = globalThis.innerHeight - consoleRect.top;
         consoleLogsContainer.style.height = `${logHeight}px`;
     }
     scrollToBottom();
@@ -845,7 +845,7 @@ function onMouseDown(event: Event) {
 }
 
 // Helper Functions
-function getParameterByName(name: string, url = window.location.href) {
+function getParameterByName(name: string, url = globalThis.location.href) {
     name = name.replace(/[[\]]/g, "\\$&");
     const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
         results = regex.exec(url);
@@ -876,7 +876,7 @@ function getShareUrl(suite: any) {
 }
 
 function getBaseUrl(): string {
-    let url = window.location.origin + window.location.pathname;
+    let url = globalThis.location.origin + globalThis.location.pathname;
     if (url.endsWith("/")) {
         url = url.slice(0, url.length - 1);
     }
@@ -904,7 +904,7 @@ function saveState() {
 
 // Theme Management
 function isDarkTheme() {
-    return window.matchMedia("(prefers-color-scheme: dark)")?.matches;
+    return globalThis.matchMedia("(prefers-color-scheme: dark)")?.matches;
 }
 function setTheme(dark: boolean) {
     const theme = dark ? "dark" : "light";
@@ -920,13 +920,13 @@ function setTheme(dark: boolean) {
 }
 
 // Event Listeners
-window.addEventListener("load", main, false);
-window.addEventListener("resize", onResize, false);
+globalThis.addEventListener("load", main, false);
+globalThis.addEventListener("resize", onResize, false);
 document.addEventListener("keydown", hotKeys, false);
 document.addEventListener("mousemove", onMouseMove, false);
 document.addEventListener("mouseup", onMouseUp, false);
 document.addEventListener("mousedown", onMouseDown, false);
-window.addEventListener("beforeunload", (event) => {
+globalThis.addEventListener("beforeunload", (event) => {
     if (isCodeChanged) {
         const confirmationMessage = "You have unsaved changes. Are you sure you want to leave?";
         event.returnValue = confirmationMessage; // Standard way to display a confirmation dialog
@@ -943,8 +943,8 @@ export function initFolderStructure() {
         const target = event.target as HTMLElement;
         if (target.tagName === "LI" || target.tagName === "I") {
             const fileName = target.textContent?.trim();
-            const isFolder = target.getAttribute("data-type") === "folder";
-            const filePath = target.getAttribute("data-path");
+            const isFolder = target.dataset.type === "folder";
+            const filePath = target.dataset.path;
             if (fileName && !isFolder && filePath) {
                 const targetPath = `/code/${currentId}`;
                 const file = `${targetPath}/${filePath}`;

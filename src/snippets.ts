@@ -372,7 +372,7 @@ export function highlightSelectedFile(target: HTMLElement) {
         selected.classList.remove("selected");
     }
     target.classList.add("selected");
-    currSelectedPath = target.getAttribute("data-path") ?? "";
+    currSelectedPath = target.dataset.path ?? "";
 }
 
 let imageClick = 0;
