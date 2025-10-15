@@ -488,50 +488,45 @@ export async function importCodeSnippet(): Promise<void> {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".json,.brs,application/json,text/brs";
-        input.onchange = (e: Event) => {
+        input.onchange = async (e: Event) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = (e: ProgressEvent<FileReader>) => {
-                    try {
-                        if (file.name.endsWith(".brs")) {
-                            const codeId = generateId();
-                            const codeName = `Imported: ${file.name}`;
-                            const codeContent = e.target?.result as string;
-                            saveCodeSnippetMaster(codeId, codeName, codeContent);
-                            resolve();
-                            return;
-                        }
-                        const json = e.target?.result as string;
-                        const codes: { [key: string]: CodeSnippet } = JSON.parse(json);
-                        for (const id in codes) {
-                            const code = codes[id];
-                            const targetPath = `/code/${id}`;
-                            if (!fs.existsSync(targetPath)) {
-                                fs.mkdirSync(targetPath);
-                            }
-                            fs.writeFileSync(`${targetPath}/.snippet`, code.name);
-                            for (const filePath in code.files) {
-                                const fullPath = `${targetPath}/${filePath}`;
-                                ensureDirectoryExists(
-                                    fullPath.substring(0, fullPath.lastIndexOf("/"))
-                                );
-                                const content = code.files[filePath];
-                                if (content.startsWith("data:image/")) {
-                                    const base64Data = content.split(",")[1];
-                                    fs.writeFileSync(fullPath, Buffer.from(base64Data, "base64"));
-                                } else {
-                                    fs.writeFileSync(fullPath, content);
-                                }
-                            }
-                        }
+                try {
+                    const fileContent = await file.text();
+
+                    if (file.name.endsWith(".brs")) {
+                        const codeId = generateId();
+                        const codeName = file.name;
+                        saveCodeSnippetMaster(codeId, codeName, fileContent);
                         resolve();
-                    } catch (error: any) {
-                        showToast("Failed to import code snippets", 3000, true);
-                        reject(error);
+                        return;
                     }
-                };
-                reader.readAsText(file);
+
+                    const codes: { [key: string]: CodeSnippet } = JSON.parse(fileContent);
+                    for (const id in codes) {
+                        const code = codes[id];
+                        const targetPath = `/code/${id}`;
+                        if (!fs.existsSync(targetPath)) {
+                            fs.mkdirSync(targetPath);
+                        }
+                        fs.writeFileSync(`${targetPath}/.snippet`, code.name);
+                        for (const filePath in code.files) {
+                            const fullPath = `${targetPath}/${filePath}`;
+                            ensureDirectoryExists(fullPath.substring(0, fullPath.lastIndexOf("/")));
+                            const content = code.files[filePath];
+                            if (content.startsWith("data:image/")) {
+                                const base64Data = content.split(",")[1];
+                                fs.writeFileSync(fullPath, Buffer.from(base64Data, "base64"));
+                            } else {
+                                fs.writeFileSync(fullPath, content);
+                            }
+                        }
+                    }
+                    resolve();
+                } catch (error: any) {
+                    showToast("Failed to import code snippets", 3000, true);
+                    reject(error);
+                }
             } else {
                 reject(new Error("No file selected"));
             }
