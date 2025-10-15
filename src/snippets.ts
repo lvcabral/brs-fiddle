@@ -470,9 +470,9 @@ export function exportCodeSnippet(codeId: string) {
 
         const safeFileName = codeName
             .toLowerCase()
-            .replace(/\s+/g, "-")
+            .replaceAll(/\s+/g, "-")
             .replace(/^• /, "")
-            .replace(/[^a-z0-9-]/g, "");
+            .replaceAll(/[^a-z0-9-]/g, "");
         const json = JSON.stringify(codes, null, 2);
         const blob = new Blob([json], { type: "application/json" });
         const url = URL.createObjectURL(blob);

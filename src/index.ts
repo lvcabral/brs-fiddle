@@ -309,17 +309,17 @@ function logToTerminal(data: any) {
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
-        let output: string = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
             if (output.endsWith(`${prompt}&gt; `)) {
                 output = output.slice(0, output.length - promptLen);
             }
-            output = output.replace(/ /g, "&nbsp;");
+            output = output.replaceAll(" ", "&nbsp;");
         } else if (data.level === "warning") {
-            output = terminal.colorize(output.replace(/ /g, "&nbsp;"), "#d7ba7d");
+            output = terminal.colorize(output.replaceAll(" ", "&nbsp;"), "#d7ba7d");
         } else if (data.level === "error") {
-            output = terminal.colors.brightRed(output.replace(/ /g, "&nbsp;"));
+            output = terminal.colors.brightRed(output.replaceAll(" ", "&nbsp;"));
         }
         const lines = output.split(/\r\n?|\n/);
         for (const line of lines) {
@@ -846,12 +846,12 @@ function onMouseDown(event: Event) {
 
 // Helper Functions
 function getParameterByName(name: string, url = globalThis.location.href) {
-    name = name.replace(/[[\]]/g, "\\$&");
+    name = name.replaceAll(/[[\]]/g, "\\$&");
     const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
         results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return "";
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+    return decodeURIComponent(results[2].replaceAll("+", " "));
 }
 
 function getCodeFromToken(token: string) {
