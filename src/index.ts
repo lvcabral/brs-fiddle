@@ -469,14 +469,20 @@ function renameCode() {
 }
 
 function saveAsCode() {
+    const code = editorManager.editor.getValue();
+    if (!code?.trim()) {
+        showToast("There is no Source Code to save", 3000, true);
+        return;
+    }
     if (currentId && codeSnippetExists(currentId)) {
         actionType.value = "saveas";
         const codeName = codeSelect.options[codeSelect.selectedIndex].text + " (Copy)";
         codeForm.codeName.value = codeName.replace(/^• /, "");
-        codeDialog.showModal();
     } else {
-        showToast("There is no code snippet selected to save as!", 3000, true);
+        actionType.value = "save";
+        codeForm.codeName.value = "";
     }
+    codeDialog.showModal();
 }
 
 async function deleteCode() {
