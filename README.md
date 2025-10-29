@@ -2,7 +2,7 @@
 
 Simple Code Editor for playing with BrightScript language.
 
-[![Version 2.0.8](https://img.shields.io/badge/Version-2.0.8-blue.svg?logo=github)](https://github.com/lvcabral/brs-fiddle/releases/tag/v2.0.8)
+[![Version 2.0.9](https://img.shields.io/badge/Version-2.0.9-blue.svg?logo=github)](https://github.com/lvcabral/brs-fiddle/releases/tag/v2.0.9)
 [![License](https://img.shields.io/github/license/lvcabral/brs-fiddle?logo=github)](./LICENSE)
 [![Build and Deploy](https://github.com/lvcabral/brs-fiddle/actions/workflows/build-github.yml/badge.svg)](https://github.com/lvcabral/brs-fiddle/actions/workflows/build-github.yml)
 [![Slack](https://img.shields.io/badge/Slack-RokuCommunity-4A154B?logo=slack)](https://join.slack.com/t/rokudevelopers/shared_invite/zt-4vw7rg6v-NH46oY7hTktpRIBM_zGvwA)
