@@ -33,7 +33,7 @@
     "@zenfs/archives": "1.0.5",
     "@zenfs/core": "^1.11.4",
     "@zenfs/dom": "1.1.5",
-    "brs-engine": "^2.0.0-alpha.17",
+    "brs-engine": "^2.0.0-alpha.18",
     "codemirror": "^5.65.12",
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",

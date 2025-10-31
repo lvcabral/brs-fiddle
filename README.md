@@ -60,6 +60,8 @@ css
 fonts
 images
 lib
+CNAME
+coi-serviceworker.min.js
 index.html
 web.config
 ```
