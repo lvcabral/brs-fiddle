@@ -278,10 +278,10 @@ function initializeCodeEditor() {
 
 function initFileTreeState() {
     // Restore file tree visibility from saved state
-    if (!lastState.showFileTree) {
-        folderStructure.style.display = "none";
-    } else {
+    if (lastState.showFileTree) {
         folderStructure.style.display = "block";
+    } else {
+        folderStructure.style.display = "none";
     }
 }
 
