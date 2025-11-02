@@ -54,6 +54,7 @@ const breakButton = document.querySelector("button.break") as HTMLButtonElement;
 const resumeButton = document.querySelector("button.resume") as HTMLButtonElement;
 const endButton = document.querySelector("button.end") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
+const toggleTreeButton = document.querySelector("button.toggle-tree") as HTMLButtonElement;
 const layoutContainer = document.querySelector("main.editor") as HTMLElement;
 const layoutSeparator = document.querySelector("div.layout-separator") as HTMLDivElement;
 const codeColumn = document.querySelector("div.code") as HTMLDivElement;
@@ -134,6 +135,7 @@ breakButton.addEventListener("click", startDebug);
 resumeButton.addEventListener("click", resumeExecution);
 endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
+toggleTreeButton.addEventListener("click", toggleFileTree);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 moreButton.addEventListener("click", function (event) {
     event.stopPropagation();
@@ -169,6 +171,7 @@ async function main() {
     updateButtons();
     initializeCodeEditor();
     initFolderStructure();
+    initFileTreeState();
     await initializeFileSystem();
     populateTemplateDialog();
     // Process Shared Token parameter
@@ -271,6 +274,15 @@ function initializeCodeEditor() {
             markCodeAsChanged();
         }
     });
+}
+
+function initFileTreeState() {
+    // Restore file tree visibility from saved state
+    if (!lastState.showFileTree) {
+        folderStructure.style.display = "none";
+    } else {
+        folderStructure.style.display = "block";
+    }
 }
 
 function handleEngineEvents(event: string, data: any) {
@@ -567,6 +579,35 @@ function shareCode() {
     } else {
         showToast("There is no Source Code to share", 3000, true);
     }
+}
+
+function toggleFileTree() {
+    const isVisible = folderStructure.style.display !== "none";
+
+    if (isVisible) {
+        // Hide folder structure
+        folderStructure.style.display = "none";
+        lastState.showFileTree = false;
+    } else {
+        // Show folder structure
+        folderStructure.style.display = "block";
+        lastState.showFileTree = true;
+    }
+
+    saveState();
+
+    // Recalculate editor size
+    const codeRect = codeColumn.getBoundingClientRect();
+    const folderRect = folderStructure?.getBoundingClientRect();
+    const editorWidth =
+        folderRect && folderStructure.style.display !== "none"
+            ? codeRect.width - folderRect.width
+            : codeRect.width;
+    const editorHeight = codeRect.height - 40;
+
+    editorManager.editor.setSize(`${editorWidth}px`, `${editorHeight}px`);
+    editorManager.editor.refresh();
+    editorManager.editor.focus();
 }
 
 function saveCode(toast?: any) {
@@ -908,6 +949,7 @@ function loadState() {
         keys: true,
         gamePads: true,
         darkTheme: isDarkTheme(),
+        showFileTree: true,
     };
     const savedState = localStorage.getItem(`${appId}.state`);
     if (savedState) {
