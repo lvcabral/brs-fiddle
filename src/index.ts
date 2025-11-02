@@ -54,6 +54,7 @@ const breakButton = document.querySelector("button.break") as HTMLButtonElement;
 const resumeButton = document.querySelector("button.resume") as HTMLButtonElement;
 const endButton = document.querySelector("button.end") as HTMLButtonElement;
 const shareButton = document.querySelector("button.share") as HTMLButtonElement;
+const toggleTreeButton = document.querySelector("button.toggle-tree") as HTMLButtonElement;
 const layoutContainer = document.querySelector("main.editor") as HTMLElement;
 const layoutSeparator = document.querySelector("div.layout-separator") as HTMLDivElement;
 const codeColumn = document.querySelector("div.code") as HTMLDivElement;
@@ -134,6 +135,7 @@ breakButton.addEventListener("click", startDebug);
 resumeButton.addEventListener("click", resumeExecution);
 endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
+toggleTreeButton.addEventListener("click", toggleFileTree);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
 moreButton.addEventListener("click", function (event) {
     event.stopPropagation();
@@ -169,6 +171,7 @@ async function main() {
     updateButtons();
     initializeCodeEditor();
     initFolderStructure();
+    initFileTreeState();
     await initializeFileSystem();
     populateTemplateDialog();
     // Process Shared Token parameter
@@ -273,6 +276,15 @@ function initializeCodeEditor() {
     });
 }
 
+function initFileTreeState() {
+    // Restore file tree visibility from saved state
+    if (lastState.showFileTree) {
+        folderStructure.style.display = "block";
+    } else {
+        folderStructure.style.display = "none";
+    }
+}
+
 function handleEngineEvents(event: string, data: any) {
     if (event === "loaded") {
         currentApp = data;
@@ -321,9 +333,9 @@ function logToTerminal(data: any) {
         } else if (data.level === "error") {
             output = terminal.colors.brightRed(output.replaceAll(" ", "&nbsp;"));
         }
-        const lines = output.split(/\r\n?|\n/);
+        const lines = output.trim().split(/\r?\n/);
         for (const line of lines) {
-            terminal.output(line);
+            terminal.output(line || "&zwnj;");
         }
     }
 }
@@ -567,6 +579,35 @@ function shareCode() {
     } else {
         showToast("There is no Source Code to share", 3000, true);
     }
+}
+
+function toggleFileTree() {
+    const isVisible = folderStructure.style.display !== "none";
+
+    if (isVisible) {
+        // Hide folder structure
+        folderStructure.style.display = "none";
+        lastState.showFileTree = false;
+    } else {
+        // Show folder structure
+        folderStructure.style.display = "block";
+        lastState.showFileTree = true;
+    }
+
+    saveState();
+
+    // Recalculate editor size
+    const codeRect = codeColumn.getBoundingClientRect();
+    const folderRect = folderStructure?.getBoundingClientRect();
+    const editorWidth =
+        folderRect && folderStructure.style.display !== "none"
+            ? codeRect.width - folderRect.width
+            : codeRect.width;
+    const editorHeight = codeRect.height - 40;
+
+    editorManager.editor.setSize(`${editorWidth}px`, `${editorHeight}px`);
+    editorManager.editor.refresh();
+    editorManager.editor.focus();
 }
 
 function saveCode(toast?: any) {
@@ -833,6 +874,16 @@ function onMouseMove(e: any) {
         codeColumn.style.width = codeColumnWidth;
         rightContainer.style.width = `${rightRect.width}px`;
         resizeCanvas();
+
+        // Calculate actual editor width (code column minus folder structure width)
+        const codeRect = codeColumn.getBoundingClientRect();
+        const folderRect = folderStructure?.getBoundingClientRect();
+        const editorWidth = folderRect ? codeRect.width - folderRect.width : codeRect.width;
+        const editorHeight = codeRect.height - 40;
+
+        // Set explicit width and refresh CodeMirror to recalculate line wrapping
+        editorManager.editor.setSize(`${editorWidth}px`, `${editorHeight}px`);
+        editorManager.editor.refresh();
     }
 }
 
@@ -840,6 +891,8 @@ function onMouseUp() {
     if (isResizing) {
         resizeCanvas();
         scrollToBottom();
+        // Ensure CodeMirror line wrapping is updated after resize
+        editorManager.editor.refresh();
     }
     isResizing = false;
 }
@@ -896,6 +949,7 @@ function loadState() {
         keys: true,
         gamePads: true,
         darkTheme: isDarkTheme(),
+        showFileTree: true,
     };
     const savedState = localStorage.getItem(`${appId}.state`);
     if (savedState) {

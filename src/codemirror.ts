@@ -5,6 +5,7 @@ import "codemirror/addon/edit/matchbrackets.js";
 import "codemirror/mode/xml/xml.js";
 import "codemirror/mode/properties/properties.js";
 import { defineMode } from "./brightscript";
+import { getOS } from "./util";
 
 
 export class CodeMirrorManager {
@@ -25,10 +26,12 @@ export class CodeMirrorManager {
     // CTOR
     constructor(private readonly tagElement: HTMLTextAreaElement, theme: string) {
         defineMode(CodeMirror);
+        const isMacOS = getOS() === "MacOS";
         this.config.theme = getCodeMirrorTheme(theme);
         this.editor = CodeMirror.fromTextArea(this.tagElement, this.config);
+        const commentShortcut = isMacOS ? "Cmd-/" : "Ctrl-/";
         this.editor.setOption("extraKeys", {
-            "Ctrl-/": function (cm) {
+            [commentShortcut]: function (cm) {
                 cm.toggleComment();
             },
         });
