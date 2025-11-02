@@ -833,6 +833,16 @@ function onMouseMove(e: any) {
         codeColumn.style.width = codeColumnWidth;
         rightContainer.style.width = `${rightRect.width}px`;
         resizeCanvas();
+
+        // Calculate actual editor width (code column minus folder structure width)
+        const codeRect = codeColumn.getBoundingClientRect();
+        const folderRect = folderStructure?.getBoundingClientRect();
+        const editorWidth = folderRect ? codeRect.width - folderRect.width : codeRect.width;
+        const editorHeight = codeRect.height - 40;
+
+        // Set explicit width and refresh CodeMirror to recalculate line wrapping
+        editorManager.editor.setSize(`${editorWidth}px`, `${editorHeight}px`);
+        editorManager.editor.refresh();
     }
 }
 
@@ -840,6 +850,8 @@ function onMouseUp() {
     if (isResizing) {
         resizeCanvas();
         scrollToBottom();
+        // Ensure CodeMirror line wrapping is updated after resize
+        editorManager.editor.refresh();
     }
     isResizing = false;
 }
