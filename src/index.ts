@@ -321,9 +321,9 @@ function logToTerminal(data: any) {
         } else if (data.level === "error") {
             output = terminal.colors.brightRed(output.replaceAll(" ", "&nbsp;"));
         }
-        const lines = output.split(/\r\n?|\n/);
+        const lines = output.trim().split(/\r?\n/);
         for (const line of lines) {
-            terminal.output(line);
+            terminal.output(line || "&zwnj;");
         }
     }
 }
