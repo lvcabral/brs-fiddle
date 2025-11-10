@@ -5,7 +5,7 @@
  *
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as fs from "@zenfs/core";
+import { configure, fs, resolveMountConfig } from "@zenfs/core";
 import { Zip } from "@zenfs/archives";
 import { WebStorage } from "@zenfs/dom";
 import { zipSync, strToU8, Zippable } from "fflate";
@@ -21,11 +21,7 @@ const imagePreview = document.getElementById("image-preview") as HTMLImageElemen
 const codeMap = new Map<string, string>();
 
 export async function initializeFileSystem() {
-    await fs.configure({
-        mounts: {
-            "/code": { backend: WebStorage, storage: localStorage },
-        },
-    });
+    await configure({ mounts: { "/code": { backend: WebStorage } } });
 }
 
 export function populateCodeSelector(currentId: string) {
@@ -105,7 +101,7 @@ async function mountZip(zipName: string) {
     const templateZip = await res.arrayBuffer();
     if (templateZip) {
         fs.umount("/mnt/zip");
-        const zipFs = await fs.resolveMountConfig({
+        const zipFs = await resolveMountConfig({
             backend: Zip,
             data: templateZip,
         });
