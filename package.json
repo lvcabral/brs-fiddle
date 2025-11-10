@@ -29,7 +29,7 @@
     "prettier": "prettier --check \"{app,src,test}/**/*.{js,ts}\""
   },
   "dependencies": {
-    "@lvcabral/terminal": "^1.1.0",
+    "@lvcabral/terminal": "^0.1.0",
     "@zenfs/archives": "1.0.5",
     "@zenfs/core": "^1.11.4",
     "@zenfs/dom": "1.1.5",
