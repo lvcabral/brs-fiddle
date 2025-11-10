@@ -123,7 +123,6 @@ const terminal = new WebTerminal({
     prompt: prompt,
     ignoreBadCommand: true,
     autoFocus: false,
-    colorTheme: lastState.darkTheme ? "dark" : "light",
 });
 terminal.idle();
 
@@ -321,22 +320,18 @@ function logToTerminal(data: any) {
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
-        let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        let output = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
-            if (output.endsWith(`${prompt}&gt; `)) {
+            if (output.slice(-promptLen) === `${prompt}&gt; `) {
                 output = output.slice(0, output.length - promptLen);
             }
-            output = output.replaceAll(" ", "&nbsp;");
         } else if (data.level === "warning") {
-            output = terminal.colorize(output.replaceAll(" ", "&nbsp;"), "#d7ba7d");
+            output = "<span style='color: #d7ba7d;'>" + output + "</span>";
         } else if (data.level === "error") {
-            output = terminal.colors.brightRed(output.replaceAll(" ", "&nbsp;"));
+            output = "<span style='color: #e95449;'>" + output + "</span>";
         }
-        const lines = output.trim().split(/\r?\n/);
-        for (const line of lines) {
-            terminal.output(line || "&zwnj;");
-        }
+        terminal.output(`<pre>${output}</pre>`);
     }
 }
 
@@ -976,7 +971,6 @@ function setTheme(dark: boolean) {
     if (editorManager) {
         editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
     }
-    terminal.setColorTheme(theme);
 }
 
 // Event Listeners
