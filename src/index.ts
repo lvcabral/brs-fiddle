@@ -320,7 +320,7 @@ function logToTerminal(data: any) {
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
-        let output = data.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let output = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
             if (output.slice(-promptLen) === `${prompt}&gt; `) {
