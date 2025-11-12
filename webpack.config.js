@@ -53,6 +53,7 @@ module.exports = env => {
                         { context: "src/images/", from: "**/*", to: "../images/" },
                         { context: "src/fonts/", from: "**/*", to: "../fonts/" },
                         { context: "src/templates/", from: "**/*", to: "../templates/" },
+                        { context: "src/data/", from: "**/*", to: "../data/" },
                     ]
                 }),
                 new webpack.ProvidePlugin({
