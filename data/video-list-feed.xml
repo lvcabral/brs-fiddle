@@ -1,0 +1,10 @@
+<!--   ********** Copyright 2016 Roku Corp.  All Rights Reserved. **********   -->
+<Content>
+<item title="Bip and Bop" description="Apple test stream" hdposterurl="https://lvcabral.com/images/brs/apple-stream-test.png" streamformat="hls" url="https://playertest.longtailvideo.com/adaptive/bipbop/bipbop.m3u8"/>
+<item title="Sintel the Movie" description="A short 15-minute fantasy film " hdposterurl="https://durian.blender.org/wp-content/uploads/2010/04/Sintel1.png" streamformat="mp4" url="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"/>
+<item title="The Biker" description="Biker rides along the coast" hdposterurl="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Bicycle_with_Rider.svg/1182px-Bicycle_with_Rider.svg.png" streamformat="hls" url="https://content.jwplatform.com/manifests/yp34SRmf.m3u8"/>
+<item title="Parkour in Santorini, Greece" description="Hardcore Parkour!" hdposterurl="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Running_icon_-_Noun_Project_22889.svg/1024px-Running_icon_-_Noun_Project_22889.svg.png" streamformat="hls" url="https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"/>
+<item title="HLS Test 1" description="Use ⬆ or ⬇ to cycle caption &amp; audio tracks" hdposterurl="https://lvcabral.com/images/brs/star-trek.png" streamformat="hls" url="https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8"/>
+<item title="HLS Test 2" description="Quality adaptive HLS video" hdposterurl="https://lvcabral.com/images/brs/forbidden-planet.png" streamformat="hls" url="http://sample.vodobox.com/planete_interdite/planete_interdite_alternate.m3u8"/>
+<item title="MKV Test" description="MKV video stream" hdposterurl="https://lvcabral.com/images/brs/mkv.png" streamformat="mkv" url="https://github.com/ietf-wg-cellar/matroska-test-files/raw/refs/heads/master/test_files/test5.mkv"/>
+</Content>
