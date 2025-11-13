@@ -14,8 +14,8 @@
         hdposterurl="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Bicycle_with_Rider.svg/1182px-Bicycle_with_Rider.svg.png"
         streamformat="hls"
         url="https://content.jwplatform.com/manifests/yp34SRmf.m3u8"/>
-    <item title="Parkour in Santorini, Greece (HLS)"
-        description="Hardcore Parkour!"
+    <item title="Parkour in Santorini (HLS)"
+        description="Hardcore Parkour in Greece!"
         hdposterurl="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Running_icon_-_Noun_Project_22889.svg/1024px-Running_icon_-_Noun_Project_22889.svg.png"
         streamformat="hls"
         url="https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"/>
@@ -24,7 +24,7 @@
         hdposterurl="https://brsfiddle.net/images/star-trek.png"
         streamformat="hls"
         url="https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8"/>
-    <item title="Forbidden Planet - Adaptive Quality (HLS)"
+    <item title="Forbidden Planet (HLS)"
         description="Quality adaptive HLS video"
         hdposterurl="https://brsfiddle.net/images/forbidden-planet.png"
         streamformat="hls"
