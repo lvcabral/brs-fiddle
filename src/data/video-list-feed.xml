@@ -9,8 +9,8 @@
         hdposterurl="https://brsfiddle.net/images/Sintel1.png"
         streamformat="mp4"
         url="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"/>
-    <item title="The Biker"
-        description="Biker rides along the coast (HLS)"
+    <item title="The Biker (HLS)"
+        description="Biker rides along the coast"
         hdposterurl="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Bicycle_with_Rider.svg/1182px-Bicycle_with_Rider.svg.png"
         streamformat="hls"
         url="https://content.jwplatform.com/manifests/yp34SRmf.m3u8"/>
@@ -19,7 +19,7 @@
         hdposterurl="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Running_icon_-_Noun_Project_22889.svg/1024px-Running_icon_-_Noun_Project_22889.svg.png"
         streamformat="hls"
         url="https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"/>
-    <item title="Star Trek Clip - Multi-track (HLS)"
+    <item title="Star Trek Clip (Multi-track HLS)"
         description="Use ⬆ or ⬇ to cycle caption &amp; audio tracks"
         hdposterurl="https://brsfiddle.net/images/star-trek.png"
         streamformat="hls"
