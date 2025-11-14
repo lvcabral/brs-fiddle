@@ -887,10 +887,10 @@ browserslist@^4.24.0:
     node-releases "^2.0.19"
     update-browserslist-db "^1.1.3"
 
-brs-engine@^2.0.0-alpha.22:
-  version "2.0.0-alpha.22"
-  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-2.0.0-alpha.22.tgz#c3b73a625f680c8c18676dd6799986480e4eb144"
-  integrity sha512-1l1/GPi2Nhm4/QJGkLS0yyEHMJRh8A94Wy9ZmOpsdHsF+yNjEsV8d8F61nDzQshk6Mb7vb9DYucohyNctyWzlw==
+brs-engine@^2.0.0-alpha.23:
+  version "2.0.0-alpha.23"
+  resolved "https://registry.yarnpkg.com/brs-engine/-/brs-engine-2.0.0-alpha.23.tgz#4d511283305fd75ccddf9d1e00fc569b7db48511"
+  integrity sha512-vqEfndPN1cSg5SnycQ+xRzQATD2L342bmqVctF+nM/JiJSM+IJz2XaP43kCxuCBsxSnU95r6CZG5sJLof/pabQ==
   dependencies:
     "@lvcabral/libwebp" "^0.1.0"
     "@lvcabral/sprintf" "^1.2.2"
