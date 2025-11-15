@@ -27,12 +27,6 @@ Click on the links below to launch `brsFiddle.net` website and start playing wit
 
 As it builds in `node`, so you'll need to [install that first](https://nodejs.org).
 
-Once that's ready, install [yarn](https://yarnpkg.com).  Installing it with `npm` is probably the simplest:
-
-```shell
-$ npm install -g yarn
-```
-
 ### Setup
 
 1. Clone this repo:
