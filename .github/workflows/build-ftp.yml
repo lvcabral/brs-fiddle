@@ -16,8 +16,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 22
-    - run: yarn install
-    - run: yarn release
+    - run: npm install
+    - run: npm run release
     - name: Push files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:

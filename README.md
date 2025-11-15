@@ -2,7 +2,7 @@
 
 Simple Code Editor for playing with BrightScript language.
 
-[![Version 2.0.15](https://img.shields.io/badge/Version-2.0.15-blue.svg?logo=github)](https://github.com/lvcabral/brs-fiddle/releases/tag/v2.0.15)
+[![Version 2.0.17](https://img.shields.io/badge/Version-2.0.17-blue.svg?logo=github)](https://github.com/lvcabral/brs-fiddle/releases/tag/v2.0.17)
 [![License](https://img.shields.io/github/license/lvcabral/brs-fiddle?logo=github)](./LICENSE)
 [![Build and Deploy](https://github.com/lvcabral/brs-fiddle/actions/workflows/build-github.yml/badge.svg)](https://github.com/lvcabral/brs-fiddle/actions/workflows/build-github.yml)
 [![Slack](https://img.shields.io/badge/Slack-RokuCommunity-4A154B?logo=slack)](https://join.slack.com/t/rokudevelopers/shared_invite/zt-4vw7rg6v-NH46oY7hTktpRIBM_zGvwA)
@@ -44,7 +44,7 @@ $ npm install -g yarn
 2. Install dependencies:
 
     ```shell
-    $ yarn install     # or just `yarn`
+    $ npm install     # or just `yarn`
     ```
 
 ### Build
@@ -52,7 +52,7 @@ $ npm install -g yarn
 This project is written in TypeScript, so it needs to be compiled before it can be executed. `yarn build` compiles files in `src/` into JavaScript and TypeScript declarations, and puts them in `app/`.
 
 ```shell
-$ yarn build
+$ npm run build
 
 $ ls app/
 assets

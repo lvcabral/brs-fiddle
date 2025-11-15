@@ -22,8 +22,8 @@ jobs:
       with:
         node-version: 22
 
-    - run: yarn install
-    - run: yarn release
+    - run: npm install
+    - run: npm run release
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
