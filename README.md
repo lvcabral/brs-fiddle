@@ -38,7 +38,7 @@ As it builds in `node`, so you'll need to [install that first](https://nodejs.or
 2. Install dependencies:
 
     ```shell
-    $ npm install     # or just `yarn`
+    $ npm install     # or just `npm i`
     ```
 
 ### Build
@@ -62,11 +62,11 @@ web.config
 
 ### Release
 
-To release a smaller version of the app Webpack can create a *minified* version by running `yarn release`.
+To release a smaller version of the app Webpack can create a *minified* version by running `npm run release`.
 
 ### Running the Web Application
 
-To build and start the web application on your default browser just execute `yarn start`.
+To build and start the web application on your default browser just execute `npm run start`.
 
 ## Developer Links
 
