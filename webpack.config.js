@@ -2,6 +2,7 @@ const path = require("node:path");
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 module.exports = env => {
     const libraryName = "brsFiddle";
@@ -32,10 +33,25 @@ module.exports = env => {
                 headers: {
                     "cross-origin-embedder-policy": "require-corp",
                     "cross-origin-opener-policy": "same-origin",
-                }
+                },
+                // Allow web workers to be loaded
+                allowedHosts: "all",
             },
             devtool: devtool,
             plugins: [
+                new MonacoWebpackPlugin({
+                    // Only include built-in languages - brightscript is registered manually
+                    languages: ['xml', 'ini'],
+                    // Disable features we don't need to reduce bundle size
+                    features: [
+                        '!gotoSymbol',
+                        '!quickCommand',
+                        '!quickOutline',
+                        '!format',
+                        '!codeAction',
+                        '!suggest',
+                    ],
+                }),
                 new HtmlWebpackPlugin({
                     filename: "../index.html",
                     templateParameters: { brsApi: apiLib, gtag: process.env.GTAG },
@@ -58,7 +74,7 @@ module.exports = env => {
                 }),
                 new webpack.ProvidePlugin({
                     process: 'process/browser',
-                  }),
+                }),
             ],
             module: {
                 rules: [
@@ -66,6 +82,14 @@ module.exports = env => {
                         test: /\.tsx?$/,
                         loader: "ts-loader",
                         exclude: /node_modules/,
+                    },
+                    {
+                        test: /\.css$/,
+                        use: ["style-loader", "css-loader"],
+                    },
+                    {
+                        test: /\.ttf$/,
+                        type: "asset/resource",
                     },
                 ],
             },
@@ -77,7 +101,7 @@ module.exports = env => {
                 filename: outputLib,
                 library: libraryName,
                 path: path.resolve(__dirname, distPath),
-                globalObject: "global",
+                globalObject: "globalThis",
             },
         }
     ];

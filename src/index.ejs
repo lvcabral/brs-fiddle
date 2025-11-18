@@ -37,11 +37,13 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="css/default.css" />
-  <link rel="stylesheet" href="css/codemirror.css" />
   <link rel="stylesheet" href="css/fontello.css" />
-  <link rel="stylesheet" href="css/vscode-dark.css" />
-  <link rel="stylesheet" href="css/coda.css" />
+  <!-- Monaco Editor CSS will be loaded by webpack -->
   <script>
+    // Define global for Monaco Editor compatibility
+    if (typeof global === 'undefined') {
+      var global = globalThis || window;
+    }
     let theme = window.matchMedia("(prefers-color-scheme: dark)")?.matches
       ? "dark"
       : "light";
@@ -139,7 +141,7 @@
           </div>
         </div>
         <div class="editor-wrapper">
-          <textarea id="brsCode" placeholder="Loading..." spellcheck="false"></textarea>
+          <div id="brsCode"></div>
         </div>
       </div>
     </div>
