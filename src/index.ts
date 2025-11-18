@@ -859,8 +859,10 @@ function onMouseMove(e: any) {
         rightContainer.style.width = `${rightRect.width}px`;
         resizeCanvas();
 
-        // Monaco handles automatic layout, just trigger layout update
-        editorManager.editor.layout();
+        // Force Monaco editor to recalculate layout during drag
+        setTimeout(() => {
+            editorManager.editor.layout();
+        }, 0);
     }
 }
 
