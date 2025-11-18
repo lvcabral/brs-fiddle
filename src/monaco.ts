@@ -15,7 +15,7 @@ export class MonacoManager {
     constructor(private readonly containerElement: HTMLElement, theme: string) {
         // Register BrightScript language
         defineBrightScriptLanguage(monaco);
-        
+
         // Define BrightScript theme matching VS Code colors and get the theme name
         const brightscriptTheme = defineBrightScriptTheme(monaco, theme);
 
@@ -42,7 +42,6 @@ export class MonacoManager {
         });
 
         // Add comment toggle shortcut
-        const commentShortcut = isMacOS ? "Cmd-/" : "Ctrl-/";
         this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
             this.editor.getAction("editor.action.commentLine")?.run();
         });
@@ -78,4 +77,3 @@ export class MonacoManager {
         this.editor.dispose();
     }
 }
-
