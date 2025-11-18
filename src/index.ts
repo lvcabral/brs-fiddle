@@ -40,13 +40,13 @@ import {
     isImageFile,
     showToast,
 } from "./util";
-import { CodeMirrorManager, getCodeMirrorTheme } from "./codemirror";
+import { MonacoManager } from "./monaco";
 import packageInfo from "../package.json";
 
 const appId = "brsFiddle";
 const isMacOS = getOS() === "MacOS";
 const codec = Codec("lzma");
-const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
+const brsCodeField = document.getElementById("brsCode") as HTMLElement;
 const saveButton = document.querySelector("button.save") as HTMLButtonElement;
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
@@ -160,7 +160,7 @@ document.getElementById("import-option")?.addEventListener("click", importCode);
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
-let editorManager: CodeMirrorManager;
+let editorManager: MonacoManager;
 let currentId = generateId();
 let isCodeChanged = false;
 let unchangedCode = "";
@@ -224,7 +224,7 @@ async function main() {
             }
         });
     }
-    editorManager.editor.focus();
+    editorManager.focus();
     calculateLocalStorageUsage();
 }
 
@@ -248,26 +248,19 @@ function updateButtons() {
 
 function initializeCodeEditor() {
     if (brsCodeField) {
-        editorManager = new CodeMirrorManager(brsCodeField, "dark");
-        if (isMacOS) {
-            // Remove binding for Ctrl+V on MacOS to allow remapping
-            // https://github.com/codemirror/codemirror5/issues/5848
-            const cm = document.querySelector(".CodeMirror") as any;
-            if (cm) delete cm.CodeMirror.constructor.keyMap.emacsy["Ctrl-V"];
-        }
+        editorManager = new MonacoManager(brsCodeField, "dark");
     }
     setTheme(lastState.darkTheme);
-    const { height } = codeColumn.getBoundingClientRect();
-    editorManager.editor.setSize("100%", `${height - 40}px`);
-    editorManager.editor.on("change", () => {
+    // Monaco handles automatic layout, so we don't need to set size manually
+    editorManager.editor.onDidChangeModelContent(() => {
         if (codeSelect.value === "0") {
-            const code = editorManager.editor.getValue();
+            const code = editorManager.getValue();
             if (code && code.trim() === "") {
                 isCodeChanged = false;
                 return;
             }
         }
-        if (editorManager.editor.getValue() === unchangedCode) {
+        if (editorManager.getValue() === unchangedCode) {
             markCodeAsSaved();
         } else {
             markCodeAsChanged();
@@ -435,12 +428,18 @@ function populateTemplateDialog() {
         templateList.appendChild(li);
     }
     templateDialog.addEventListener("close", () => {
-        editorManager.editor.focus();
+        editorManager.focus();
     });
 }
 
 function resetUndoHistory() {
-    editorManager?.editor?.clearHistory();
+    // Monaco doesn't have a clearHistory method, but we can set the value to itself
+    // to effectively reset undo history
+    if (editorManager?.editor) {
+        const value = editorManager.getValue();
+        editorManager.setValue("");
+        editorManager.setValue(value);
+    }
 }
 
 function loadCode(id: string) {
@@ -476,7 +475,7 @@ function renameCode() {
 }
 
 function saveAsCode() {
-    const code = editorManager.editor.getValue();
+    const code = editorManager.getValue();
     if (!code?.trim()) {
         showToast("There is no Source Code to save", 3000, true);
         return;
@@ -509,7 +508,7 @@ async function deleteCode() {
 }
 
 function exportCode() {
-    let codeContent = editorManager.editor.getValue();
+    let codeContent = editorManager.getValue();
     if (codeContent && codeContent.trim() !== "") {
         exportCodeSnippet(currentId);
     } else {
@@ -540,16 +539,16 @@ function resetApp(populate: boolean) {
     const ctx = displayCanvas.getContext("2d", { alpha: false });
     ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
     unchangedCode = "";
-    editorManager.editor.setValue("");
+    editorManager.setValue("");
     editorManager.setMode("brightscript");
-    editorManager.editor.focus();
+    editorManager.focus();
     lastState.codeId = "";
     saveState();
     markCodeAsSaved();
 }
 
 function shareCode() {
-    let code = editorManager.editor.getValue();
+    let code = editorManager.getValue();
     if (code && code.trim() !== "") {
         if (codeSelect.value !== "0") {
             let codeName = codeSelect.options[codeSelect.selectedIndex].text.replace(/^• /, "");
@@ -591,22 +590,13 @@ function toggleFileTree() {
 
     saveState();
 
-    // Recalculate editor size
-    const codeRect = codeColumn.getBoundingClientRect();
-    const folderRect = folderStructure?.getBoundingClientRect();
-    const editorWidth =
-        folderRect && folderStructure.style.display !== "none"
-            ? codeRect.width - folderRect.width
-            : codeRect.width;
-    const editorHeight = codeRect.height - 40;
-
-    editorManager.editor.setSize(`${editorWidth}px`, `${editorHeight}px`);
-    editorManager.editor.refresh();
-    editorManager.editor.focus();
+    // Monaco handles automatic layout, so we just need to trigger a layout update
+    editorManager.editor.layout();
+    editorManager.focus();
 }
 
 function saveCode(toast?: any) {
-    const code = editorManager.editor.getValue();
+    const code = editorManager.getValue();
     if (!code?.trim()) {
         showToast("There is no Source Code to save", 3000, true);
         return;
@@ -643,7 +633,7 @@ codeDialog.addEventListener("close", (e) => {
             resetDialog();
             return;
         }
-        const code = editorManager.editor.getValue();
+        const code = editorManager.getValue();
         if (actionType.value === "rename") {
             renameCodeSnippet(currentId, codeName);
             populateCodeSelector(currentId);
@@ -674,7 +664,7 @@ codeDialog.addEventListener("close", (e) => {
 function resetDialog() {
     codeDialog.returnValue = "";
     codeForm.codeName.value = "";
-    editorManager.editor.focus();
+    editorManager.focus();
 }
 
 function runCode() {
@@ -688,13 +678,13 @@ function runCode() {
         }
         return;
     }
-    const code = editorManager.editor.getValue();
+    const code = editorManager.getValue();
     if (code && code.trim() !== "") {
         try {
             if (codeSelect.value !== "0" && isCodeChanged) {
                 saveCode(false);
             }
-            brs.execute(`main.brs`, editorManager.editor.getValue(), {
+            brs.execute(`main.brs`, editorManager.getValue(), {
                 clearDisplayOnExit: false,
                 debugOnCrash: true,
                 muteSound: !audioSwitch.checked,
@@ -780,7 +770,7 @@ function controlModeSwitch() {
 //Keyboard Event
 function hotKeys(event: KeyboardEvent) {
     brs.setControlMode({
-        keyboard: editorManager.editor.hasFocus() ? false : keyboardSwitch.checked,
+        keyboard: editorManager.hasFocus() ? false : keyboardSwitch.checked,
         gamePads: gamePadSwitch.checked,
     });
     if (isHotKey(event, "KeyR")) {
@@ -841,12 +831,11 @@ function resizeCanvas() {
 
 function onResize() {
     resizeCanvas();
+    // Monaco handles automatic layout, just trigger layout update
+    editorManager.editor.layout();
     if (globalThis.innerWidth >= 1220) {
-        const { height } = codeColumn.getBoundingClientRect();
-        editorManager.editor.setSize("100%", `${height - 25}px`);
         consoleLogsContainer.style.height = `100%`;
     } else {
-        editorManager.editor.setSize("100%", `${Math.trunc(globalThis.innerHeight / 3.5)}px`);
         codeColumn.style.width = "100%";
         const consoleRect = consoleLogsContainer.getBoundingClientRect();
         const logHeight = globalThis.innerHeight - consoleRect.top;
@@ -870,15 +859,8 @@ function onMouseMove(e: any) {
         rightContainer.style.width = `${rightRect.width}px`;
         resizeCanvas();
 
-        // Calculate actual editor width (code column minus folder structure width)
-        const codeRect = codeColumn.getBoundingClientRect();
-        const folderRect = folderStructure?.getBoundingClientRect();
-        const editorWidth = folderRect ? codeRect.width - folderRect.width : codeRect.width;
-        const editorHeight = codeRect.height - 40;
-
-        // Set explicit width and refresh CodeMirror to recalculate line wrapping
-        editorManager.editor.setSize(`${editorWidth}px`, `${editorHeight}px`);
-        editorManager.editor.refresh();
+        // Monaco handles automatic layout, just trigger layout update
+        editorManager.editor.layout();
     }
 }
 
@@ -886,8 +868,8 @@ function onMouseUp() {
     if (isResizing) {
         resizeCanvas();
         scrollToBottom();
-        // Ensure CodeMirror line wrapping is updated after resize
-        editorManager.editor.refresh();
+        // Monaco handles automatic layout
+        editorManager.editor.layout();
     }
     isResizing = false;
 }
@@ -969,7 +951,7 @@ function setTheme(dark: boolean) {
     consoleColumn.style.colorScheme = theme;
     rightContainer.style.colorScheme = theme;
     if (editorManager) {
-        editorManager.editor.setOption("theme", getCodeMirrorTheme(theme));
+        editorManager.setTheme(theme);
     }
 }
 
@@ -991,7 +973,6 @@ globalThis.addEventListener("beforeunload", (event) => {
 
 export function initFolderStructure() {
     const codeContent = document.querySelector(".code-content");
-    const editor = editorManager.editor;
 
     folderStructure?.addEventListener("click", (event) => {
         const target = event.target as HTMLElement;
@@ -1003,7 +984,7 @@ export function initFolderStructure() {
                 const targetPath = `/code/${currentId}`;
                 const file = `${targetPath}/${filePath}`;
                 if (lastSelectedFile === file) {
-                    editor.focus();
+                    editorManager.focus();
                     return;
                 }
                 if (isImageFile(file)) {
@@ -1017,21 +998,20 @@ export function initFolderStructure() {
                 loadFile(file);
                 highlightSelectedFile(target);
             }
-            editor.focus();
+            editorManager.focus();
         }
     });
 
     codeContent?.addEventListener("click", (event) => {
         const target = event.target as HTMLElement;
-        if (!target.closest(".folder-structure") && !target.closest(".CodeMirror")) {
-            editor.focus();
+        if (!target.closest(".folder-structure") && !target.closest(".monaco-editor")) {
+            editorManager.focus();
         }
     });
 }
 
 function loadFile(filePath: string) {
     // Load the file content based on the fileName
-    const editor = editorManager.editor;
     const fileContent = readFileContent(filePath);
     let mode;
     const extension = getFileExtension(filePath);
@@ -1043,16 +1023,16 @@ function loadFile(filePath: string) {
             mode = "xml";
             break;
         case "":
-            mode = "properties";
+            mode = "ini"; // Monaco uses "ini" for properties files
             break;
         default:
             showToast("Unknown file cannot be loaded in the code editor.", 3000, true);
             return;
     }
     lastSelectedFile = filePath;
-    editor.setValue(fileContent);
-    editor.setOption("mode", mode);
+    editorManager.setValue(fileContent);
+    editorManager.setMode(mode);
     markCodeAsSaved();
-    editor.focus();
+    editorManager.focus();
     return fileContent;
 }

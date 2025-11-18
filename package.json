@@ -34,7 +34,7 @@
     "@zenfs/core": "^1.11.4",
     "@zenfs/dom": "1.1.5",
     "brs-engine": "^2.0.0-alpha.25",
-    "codemirror": "^5.65.12",
+    "monaco-editor": "^0.45.0",
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
     "json-url": "^3.0.0",
@@ -42,7 +42,6 @@
     "toastify-js": "^1.12.0"
   },
   "devDependencies": {
-    "@types/codemirror": "^5.60.7",
     "@types/file-saver": "^2.0.7",
     "@types/nanoid": "^3.0.0",
     "@types/node": "^22.15.17",
@@ -51,6 +50,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^5.2.7",
     "html-webpack-plugin": "^5.5.3",
+    "monaco-editor-webpack-plugin": "^7.1.0",
     "npm-run-all": "^4.1.2",
     "prettier": "2",
     "rimraf": "^2.6.2",

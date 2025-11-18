@@ -305,6 +305,8 @@ pre {
     height: calc(100vh - 72px);
     width: 60%;
     min-width: 750px;
+    display: flex;
+    flex-direction: column;
 }
 .code .code-header {
     background: var(--header-background-color);
@@ -350,17 +352,27 @@ pre {
     border: none;
     background: var(--sidebar-background-color);
     color: var(--header-color);
-    font-size: 18px;
-    padding: 16px;
+    flex: 1;
+    min-height: 0;
 }
 .code #brsCode:focus,
 .code #brsCode:active {
     outline-color: transparent;
     box-shadow: none;
 }
+/* Monaco Editor container styling */
+.code #brsCode .monaco-editor {
+    height: 100% !important;
+}
+.code #brsCode .monaco-editor .monaco-editor-background {
+    background-color: var(--sidebar-background-color) !important;
+}
 
 .code-content {
     display: flex;
+    flex: 1;
+    min-height: 0;
+    height: calc(100% - 44px);
 }
 
 .folder-structure {
