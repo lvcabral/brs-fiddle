@@ -1,9 +1,7 @@
 import * as monaco from "monaco-editor";
 // Import Monaco Editor CSS
 require("monaco-editor/min/vs/editor/editor.main.css");
-import { getOS } from "./util";
-import { defineBrightScriptLanguage } from "./brightscript-monaco";
-import { defineBrightScriptTheme } from "./brightscript-theme";
+import { defineBrightScriptLanguage, defineBrightScriptTheme } from "./brightscript-monaco";
 
 // MonacoEnvironment is automatically configured by monaco-editor-webpack-plugin
 // No manual configuration needed - webpack plugin handles web workers
@@ -12,14 +10,17 @@ export class MonacoManager {
     public editor: monaco.editor.IStandaloneCodeEditor;
 
     // CTOR
-    constructor(private readonly containerElement: HTMLElement, theme: string) {
+    constructor(
+        private readonly containerElement: HTMLElement,
+        theme: string,
+        indentationType: "spaces" | "tabs" = "spaces",
+        indentationSize: number = 4
+    ) {
         // Register BrightScript language
         defineBrightScriptLanguage(monaco);
 
         // Define BrightScript theme matching VS Code colors and get the theme name
         const brightscriptTheme = defineBrightScriptTheme(monaco, theme);
-
-        const isMacOS = getOS() === "MacOS";
 
         this.editor = monaco.editor.create(containerElement, {
             value: "",
@@ -27,8 +28,9 @@ export class MonacoManager {
             theme: brightscriptTheme,
             lineNumbers: "on",
             wordWrap: "on",
-            tabSize: 4,
-            insertSpaces: false, // Use tabs
+            tabSize: indentationSize,
+            insertSpaces: indentationType === "spaces",
+            detectIndentation: false,
             automaticLayout: true,
             minimap: {
                 enabled: false,
@@ -71,6 +73,18 @@ export class MonacoManager {
 
     hasFocus(): boolean {
         return this.editor.hasTextFocus();
+    }
+
+    setIndentationType(useSpaces: boolean) {
+        this.editor.updateOptions({
+            insertSpaces: useSpaces,
+        });
+    }
+
+    setIndentationSize(size: number) {
+        this.editor.updateOptions({
+            tabSize: size,
+        });
     }
 
     dispose() {

@@ -157,6 +157,28 @@ document.getElementById("export-option")?.addEventListener("click", exportCode);
 document.getElementById("export-all-option")?.addEventListener("click", exportAllCode);
 document.getElementById("import-option")?.addEventListener("click", importCode);
 
+// Indentation Type Event Listeners
+const indentTypeElements = document.querySelectorAll(".indent-type");
+indentTypeElements.forEach((element) => {
+    element.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = e.currentTarget as HTMLElement;
+        const type = target.dataset.type as "spaces" | "tabs";
+        setIndentationType(type);
+    });
+});
+
+// Indentation Size Event Listeners
+const indentSizeElements = document.querySelectorAll(".indent-size");
+indentSizeElements.forEach((element) => {
+    element.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = e.currentTarget as HTMLElement;
+        const size = parseInt(target.dataset.size || "4", 10);
+        setIndentationSize(size);
+    });
+});
+
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
@@ -169,6 +191,7 @@ let lastSelectedFile = "";
 async function main() {
     updateButtons();
     initializeCodeEditor();
+    initIndentationCheckmarks();
     initFolderStructure();
     initFileTreeState();
     await initializeFileSystem();
@@ -248,7 +271,12 @@ function updateButtons() {
 
 function initializeCodeEditor() {
     if (brsCodeField) {
-        editorManager = new MonacoManager(brsCodeField, "dark");
+        editorManager = new MonacoManager(
+            brsCodeField,
+            "dark",
+            lastState.indentationType,
+            lastState.indentationSize
+        );
     }
     setTheme(lastState.darkTheme);
     // Monaco handles automatic layout, so we don't need to set size manually
@@ -275,6 +303,29 @@ function initFileTreeState() {
     } else {
         folderStructure.style.display = "none";
     }
+}
+
+function initIndentationCheckmarks() {
+    // Set initial checkmarks for indentation type
+    const spacesCheck = document.getElementById("indent-spaces-check") as HTMLElement;
+    const tabsCheck = document.getElementById("indent-tabs-check") as HTMLElement;
+    
+    if (lastState.indentationType === "spaces") {
+        spacesCheck.style.visibility = "visible";
+        tabsCheck.style.visibility = "hidden";
+    } else {
+        spacesCheck.style.visibility = "hidden";
+        tabsCheck.style.visibility = "visible";
+    }
+    
+    // Set initial checkmarks for indentation size
+    const check2 = document.getElementById("indent-size-2-check") as HTMLElement;
+    const check3 = document.getElementById("indent-size-3-check") as HTMLElement;
+    const check4 = document.getElementById("indent-size-4-check") as HTMLElement;
+    
+    check2.style.visibility = lastState.indentationSize === 2 ? "visible" : "hidden";
+    check3.style.visibility = lastState.indentationSize === 3 ? "visible" : "hidden";
+    check4.style.visibility = lastState.indentationSize === 4 ? "visible" : "hidden";
 }
 
 function handleEngineEvents(event: string, data: any) {
@@ -929,6 +980,8 @@ function loadState() {
         gamePads: true,
         darkTheme: isDarkTheme(),
         showFileTree: true,
+        indentationType: "spaces" as "spaces" | "tabs",
+        indentationSize: 4,
     };
     const savedState = localStorage.getItem(`${appId}.state`);
     if (savedState) {
@@ -939,6 +992,43 @@ function loadState() {
 
 function saveState() {
     localStorage.setItem(`${appId}.state`, JSON.stringify(lastState));
+}
+
+function setIndentationType(type: "spaces" | "tabs") {
+    lastState.indentationType = type;
+    saveState();
+    
+    // Update checkmarks
+    const spacesCheck = document.getElementById("indent-spaces-check") as HTMLElement;
+    const tabsCheck = document.getElementById("indent-tabs-check") as HTMLElement;
+    
+    if (type === "spaces") {
+        spacesCheck.style.visibility = "visible";
+        tabsCheck.style.visibility = "hidden";
+    } else {
+        spacesCheck.style.visibility = "hidden";
+        tabsCheck.style.visibility = "visible";
+    }
+    
+    // Update Monaco editor settings
+    editorManager.setIndentationType(type === "spaces");
+}
+
+function setIndentationSize(size: number) {
+    lastState.indentationSize = size;
+    saveState();
+    
+    // Update checkmarks
+    const check2 = document.getElementById("indent-size-2-check") as HTMLElement;
+    const check3 = document.getElementById("indent-size-3-check") as HTMLElement;
+    const check4 = document.getElementById("indent-size-4-check") as HTMLElement;
+    
+    check2.style.visibility = size === 2 ? "visible" : "hidden";
+    check3.style.visibility = size === 3 ? "visible" : "hidden";
+    check4.style.visibility = size === 4 ? "visible" : "hidden";
+    
+    // Update Monaco editor settings
+    editorManager.setIndentationSize(size);
 }
 
 // Theme Management

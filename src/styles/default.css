@@ -155,6 +155,45 @@ pre {
     color: var(--button-color);
     background-color: var(--button-background-color);
 }
+.dropdown li.menu-separator {
+    padding: 8px 6px 4px 6px;
+    margin-top: 6px;
+    border-top: 1px solid var(--control-border-color);
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--header-color);
+    opacity: 0.7;
+    cursor: default;
+}
+.dropdown li.submenu {
+    position: relative;
+}
+.dropdown li.submenu > a::after {
+    content: "▸";
+    margin-left: auto;
+    padding-left: 8px;
+}
+.dropdown .submenu-content {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background-color: var(--control-background-color);
+    border: 1px solid var(--control-border-color);
+    padding: 2px;
+    border-radius: 0.25em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    z-index: 2;
+}
+.dropdown li.submenu:hover > .submenu-content {
+    display: block;
+}
+.dropdown .submenu-content li a i.icon-ok {
+    width: 12px;
+    font-size: 12px;
+}
 .console {
     width: 100%;
     display: contents;
