@@ -416,11 +416,13 @@ pre {
 
 .folder-structure {
     display: block;
-    width: 25%;
-    min-width: 248px;
-    padding: 10px;
+    width: fit-content;
+    min-width: min-content;
+    max-width: 400px;
+    padding: 10px 15px 10px 10px;
     border-right: 1px solid #ccc;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .folder-structure ul {
@@ -431,6 +433,7 @@ pre {
 .folder-structure li {
     cursor: pointer;
     margin: 10px 0;
+    white-space: nowrap;
 }
 
 .folder-structure li ul {
