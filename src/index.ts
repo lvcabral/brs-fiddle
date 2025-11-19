@@ -163,25 +163,25 @@ document.getElementById("import-option")?.addEventListener("click", importCode);
 
 // Indentation Type Event Listeners
 const indentTypeElements = document.querySelectorAll(".indent-type");
-indentTypeElements.forEach((element) => {
-    element.addEventListener("click", (e) => {
+for (const element of Array.from(indentTypeElements)) {
+    element.addEventListener("click", (e: Event) => {
         e.preventDefault();
         const target = e.currentTarget as HTMLElement;
         const type = target.dataset.type as "spaces" | "tabs";
         setIndentationType(type);
     });
-});
+}
 
 // Indentation Size Event Listeners
 const indentSizeElements = document.querySelectorAll(".indent-size");
-indentSizeElements.forEach((element) => {
-    element.addEventListener("click", (e) => {
+for (const element of Array.from(indentSizeElements)) {
+    element.addEventListener("click", (e: Event) => {
         e.preventDefault();
         const target = e.currentTarget as HTMLElement;
-        const size = parseInt(target.dataset.size || "4", 10);
+        const size = Number.parseInt(target.dataset.size || "4", 10);
         setIndentationSize(size);
     });
-});
+}
 
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
@@ -925,7 +925,7 @@ function onMouseMove(e: any) {
         resizeCanvas();
 
         setTimeout(() => {
-            editorManager.layout!();
+            editorManager.layout();
         }, 0);
     }
 }
