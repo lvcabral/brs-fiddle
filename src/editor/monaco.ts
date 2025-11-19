@@ -2,11 +2,12 @@ import * as monaco from "monaco-editor";
 // Import Monaco Editor CSS
 require("monaco-editor/min/vs/editor/editor.main.css");
 import { defineBrightScriptLanguage, defineBrightScriptTheme } from "./brightscript-monaco";
+import { IEditorManager } from "./types";
 
 // MonacoEnvironment is automatically configured by monaco-editor-webpack-plugin
 // No manual configuration needed - webpack plugin handles web workers
 
-export class MonacoManager {
+export class MonacoManager implements IEditorManager {
     public editor: monaco.editor.IStandaloneCodeEditor;
 
     // CTOR
@@ -85,6 +86,21 @@ export class MonacoManager {
         this.editor.updateOptions({
             tabSize: size,
         });
+    }
+
+    onDidChangeModelContent(callback: () => void): void {
+        this.editor.onDidChangeModelContent(callback);
+    }
+
+    layout(): void {
+        this.editor.layout();
+    }
+
+    clearHistory(): void {
+        // Reset undo history by setting value twice
+        const value = this.editor.getValue();
+        this.editor.setValue("");
+        this.editor.setValue(value);
     }
 
     dispose() {

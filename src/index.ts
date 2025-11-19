@@ -40,13 +40,17 @@ import {
     isImageFile,
     showToast,
 } from "./util";
-import { MonacoManager } from "./monaco";
+import { CodeMirrorManager } from "./editor/codemirror";
+import { MonacoManager } from "./editor/monaco";
+import { IEditorManager } from "./editor/types";
 import packageInfo from "../package.json";
 
 const appId = "brsFiddle";
-const isMacOS = getOS() === "MacOS";
+const OS = getOS();
+const isMacOS = OS === "MacOS";
+const isMobile = OS === "iOS" || OS === "Android";
 const codec = Codec("lzma");
-const brsCodeField = document.getElementById("brsCode") as HTMLElement;
+const brsCodeField = document.getElementById("brsCode") as HTMLTextAreaElement;
 const saveButton = document.querySelector("button.save") as HTMLButtonElement;
 const runButton = document.querySelector("button.run") as HTMLButtonElement;
 const clearAllButton = document.querySelector("button.clear-all") as HTMLButtonElement;
@@ -182,7 +186,7 @@ indentSizeElements.forEach((element) => {
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
-let editorManager: MonacoManager;
+let editorManager: IEditorManager;
 let currentId = generateId();
 let isCodeChanged = false;
 let unchangedCode = "";
@@ -270,17 +274,32 @@ function updateButtons() {
 }
 
 function initializeCodeEditor() {
-    if (brsCodeField) {
-        editorManager = new MonacoManager(
+    const theme = lastState.darkTheme ? "dark" : "light";
+    if (isMobile) {
+        // For mobile, use CodeMirror with the textarea
+        editorManager = new CodeMirrorManager(
             brsCodeField,
-            "dark",
+            theme,
+            lastState.indentationType,
+            lastState.indentationSize
+        );
+    } else {
+        // For desktop, hide textarea and create a div for Monaco
+        brsCodeField.style.display = "none";
+        const monacoContainer = document.createElement("div");
+        monacoContainer.id = "monacoEditor";
+        monacoContainer.style.height = "100%";
+        monacoContainer.style.width = "100%";
+        brsCodeField.parentElement?.appendChild(monacoContainer);
+        editorManager = new MonacoManager(
+            monacoContainer,
+            theme,
             lastState.indentationType,
             lastState.indentationSize
         );
     }
     setTheme(lastState.darkTheme);
-    // Monaco handles automatic layout, so we don't need to set size manually
-    editorManager.editor.onDidChangeModelContent(() => {
+    editorManager.onDidChangeModelContent(() => {
         if (codeSelect.value === "0") {
             const code = editorManager.getValue();
             if (code && code.trim() === "") {
@@ -294,6 +313,12 @@ function initializeCodeEditor() {
             markCodeAsChanged();
         }
     });
+    // Ensure layout is properly calculated after initialization
+    if (isMobile) {
+        setTimeout(() => {
+            editorManager.layout();
+        }, 100);
+    }
 }
 
 function initFileTreeState() {
@@ -309,7 +334,7 @@ function initIndentationCheckmarks() {
     // Set initial checkmarks for indentation type
     const spacesCheck = document.getElementById("indent-spaces-check") as HTMLElement;
     const tabsCheck = document.getElementById("indent-tabs-check") as HTMLElement;
-    
+
     if (lastState.indentationType === "spaces") {
         spacesCheck.style.visibility = "visible";
         tabsCheck.style.visibility = "hidden";
@@ -317,12 +342,12 @@ function initIndentationCheckmarks() {
         spacesCheck.style.visibility = "hidden";
         tabsCheck.style.visibility = "visible";
     }
-    
+
     // Set initial checkmarks for indentation size
     const check2 = document.getElementById("indent-size-2-check") as HTMLElement;
     const check3 = document.getElementById("indent-size-3-check") as HTMLElement;
     const check4 = document.getElementById("indent-size-4-check") as HTMLElement;
-    
+
     check2.style.visibility = lastState.indentationSize === 2 ? "visible" : "hidden";
     check3.style.visibility = lastState.indentationSize === 3 ? "visible" : "hidden";
     check4.style.visibility = lastState.indentationSize === 4 ? "visible" : "hidden";
@@ -451,7 +476,7 @@ codeSelect.addEventListener("change", async (e) => {
         loadCode(codeSelect.value);
     }
     hideImage();
-    resetUndoHistory();
+    editorManager.clearHistory();
 });
 
 function populateTemplateDialog() {
@@ -483,15 +508,6 @@ function populateTemplateDialog() {
     });
 }
 
-function resetUndoHistory() {
-    // Monaco doesn't have a clearHistory method, but we can set the value to itself
-    // to effectively reset undo history
-    if (editorManager?.editor) {
-        const value = editorManager.getValue();
-        editorManager.setValue("");
-        editorManager.setValue(value);
-    }
-}
 
 function loadCode(id: string) {
     if (codeSnippetExists(id)) {
@@ -641,8 +657,7 @@ function toggleFileTree() {
 
     saveState();
 
-    // Monaco handles automatic layout, so we just need to trigger a layout update
-    editorManager.editor.layout();
+    editorManager.layout();
     editorManager.focus();
 }
 
@@ -882,8 +897,7 @@ function resizeCanvas() {
 
 function onResize() {
     resizeCanvas();
-    // Monaco handles automatic layout, just trigger layout update
-    editorManager.editor.layout();
+    editorManager.layout();
     if (globalThis.innerWidth >= 1220) {
         consoleLogsContainer.style.height = `100%`;
     } else {
@@ -910,9 +924,8 @@ function onMouseMove(e: any) {
         rightContainer.style.width = `${rightRect.width}px`;
         resizeCanvas();
 
-        // Force Monaco editor to recalculate layout during drag
         setTimeout(() => {
-            editorManager.editor.layout();
+            editorManager.layout!();
         }, 0);
     }
 }
@@ -921,8 +934,7 @@ function onMouseUp() {
     if (isResizing) {
         resizeCanvas();
         scrollToBottom();
-        // Monaco handles automatic layout
-        editorManager.editor.layout();
+        editorManager.layout();
     }
     isResizing = false;
 }
@@ -997,11 +1009,11 @@ function saveState() {
 function setIndentationType(type: "spaces" | "tabs") {
     lastState.indentationType = type;
     saveState();
-    
+
     // Update checkmarks
     const spacesCheck = document.getElementById("indent-spaces-check") as HTMLElement;
     const tabsCheck = document.getElementById("indent-tabs-check") as HTMLElement;
-    
+
     if (type === "spaces") {
         spacesCheck.style.visibility = "visible";
         tabsCheck.style.visibility = "hidden";
@@ -1009,7 +1021,7 @@ function setIndentationType(type: "spaces" | "tabs") {
         spacesCheck.style.visibility = "hidden";
         tabsCheck.style.visibility = "visible";
     }
-    
+
     // Update Monaco editor settings
     editorManager.setIndentationType(type === "spaces");
 }
@@ -1017,16 +1029,16 @@ function setIndentationType(type: "spaces" | "tabs") {
 function setIndentationSize(size: number) {
     lastState.indentationSize = size;
     saveState();
-    
+
     // Update checkmarks
     const check2 = document.getElementById("indent-size-2-check") as HTMLElement;
     const check3 = document.getElementById("indent-size-3-check") as HTMLElement;
     const check4 = document.getElementById("indent-size-4-check") as HTMLElement;
-    
+
     check2.style.visibility = size === 2 ? "visible" : "hidden";
     check3.style.visibility = size === 3 ? "visible" : "hidden";
     check4.style.visibility = size === 4 ? "visible" : "hidden";
-    
+
     // Update Monaco editor settings
     editorManager.setIndentationSize(size);
 }
