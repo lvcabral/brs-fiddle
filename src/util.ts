@@ -19,11 +19,11 @@ export const getOS = () => {
     const windowsPlatforms = ["Win32", "Win64", "Windows", "WinCE"];
     const iosPlatforms = ["iPhone", "iPad", "iPod"];
     let os = null;
-    if (macosPlatforms.indexOf(platform) !== -1) {
+    if (macosPlatforms.includes(platform)) {
         os = "MacOS";
-    } else if (iosPlatforms.indexOf(platform) !== -1) {
+    } else if (iosPlatforms.includes(platform)) {
         os = "iOS";
-    } else if (windowsPlatforms.indexOf(platform) !== -1) {
+    } else if (windowsPlatforms.includes(platform)) {
         os = "Windows";
     } else if (/Android/.test(userAgent)) {
         os = "Android";

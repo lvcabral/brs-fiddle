@@ -82,4 +82,6 @@
 .icon-share:before { content: '\f1e0'; } /* '' */
 .icon-tv:before { content: '\f26c'; } /* '' */
 .icon-pause:before { content: '\f28c'; } /* '' */
-.icon-stop:before { content: '\f28e'; } /* '' */
+.icon-stop:before { content: '\f28e'; } /* '' */
+.icon-ok:before { content: '✓'; } /* checkmark */
+.icon-indent-right:before { content: '\f03b'; } /* '' */
