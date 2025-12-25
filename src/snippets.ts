@@ -162,6 +162,7 @@ export function createZipFromCodeSnippet(codeId: string): Uint8Array | null {
             const stat = fs.statSync(entryPath);
             const newPath = zipPath ? `${zipPath}/${entry}` : entry;
             if (stat.isDirectory()) {
+                newZip[newPath] = {};
                 addFilesToZip(entryPath, newPath);
             } else if (isImageFile(entry)) {
                 const content = fs.readFileSync(entryPath);

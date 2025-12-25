@@ -1,15 +1,16 @@
 const path = require("node:path");
-const webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const webpack = require("webpack");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
-module.exports = env => {
+module.exports = (env) => {
     const libraryName = "brsFiddle";
-    const brsLibName = "brs"
-    const apiLib = brsLibName + ".api.js";
-    const wrkLib = brsLibName + ".worker.js";
-    const distPath = "app/lib"
+    const brsLibName = "brs";
+    const apiLib = `${brsLibName}.api.js`;
+    const wrkLib = `${brsLibName}.worker.js`;
+    const rsgLib = `${brsLibName}-sg.js`;
+    const distPath = "app/lib";
     let mode = "development";
     let outputLib = libraryName + ".js";
     let devtool = "inline-source-map";
@@ -24,32 +25,34 @@ module.exports = env => {
             target: "web",
             mode: mode,
             externals: {
-                "brs-engine": "brs"
+                "brs-engine": "brs",
             },
             devServer: {
-                static: "./app",
+                server: "http",
+                static: {
+                    directory: path.join(__dirname, "app"),
+                },
                 hot: true,
                 port: 8500,
                 headers: {
+                    "Access-Control-Allow-Origin": "*",
                     "cross-origin-embedder-policy": "require-corp",
                     "cross-origin-opener-policy": "same-origin",
                 },
-                // Allow web workers to be loaded
-                allowedHosts: "all",
             },
             devtool: devtool,
             plugins: [
                 new MonacoWebpackPlugin({
-                    // Only include built-in languages - brightscript is registered manually
-                    languages: ['xml', 'ini'],
+                    // Only include built-in languages - BrightScript is registered manually
+                    languages: ["xml", "ini"],
                     // Disable features we don't need to reduce bundle size
                     features: [
-                        '!gotoSymbol',
-                        '!quickCommand',
-                        '!quickOutline',
-                        '!format',
-                        '!codeAction',
-                        '!suggest',
+                        "!gotoSymbol",
+                        "!quickCommand",
+                        "!quickOutline",
+                        "!format",
+                        "!codeAction",
+                        "!suggest",
                     ],
                 }),
                 new HtmlWebpackPlugin({
@@ -60,8 +63,13 @@ module.exports = env => {
                     patterns: [
                         { context: "node_modules/brs-engine/lib", from: apiLib },
                         { context: "node_modules/brs-engine/lib", from: wrkLib },
-                        { context: "node_modules/brs-engine/", from: "assets/**", to: ".." },
-                        { context: "node_modules/coi-serviceworker/", from: "coi-serviceworker.min.js", to: ".." },
+                        { context: "node_modules/brs-scenegraph/lib", from: rsgLib },
+                        { context: "node_modules/brs-scenegraph/", from: "assets/**", to: ".." },
+                        {
+                            context: "node_modules/coi-serviceworker/",
+                            from: "coi-serviceworker.min.js",
+                            to: "..",
+                        },
                         { context: "src/", from: "web.config", to: ".." },
                         { context: "src/", from: "CNAME", to: ".." },
                         { context: "src/styles/", from: "**/*", to: "../css/" },
@@ -70,10 +78,10 @@ module.exports = env => {
                         { context: "src/fonts/", from: "**/*", to: "../fonts/" },
                         { context: "src/templates/", from: "**/*", to: "../templates/" },
                         { context: "src/data/", from: "**/*", to: "../data/" },
-                    ]
+                    ],
                 }),
                 new webpack.ProvidePlugin({
-                    process: 'process/browser',
+                    process: "process/browser",
                 }),
             ],
             module: {
@@ -103,6 +111,6 @@ module.exports = env => {
                 path: path.resolve(__dirname, distPath),
                 globalObject: "globalThis",
             },
-        }
+        },
     ];
 };

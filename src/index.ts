@@ -233,7 +233,11 @@ async function main() {
             corsProxy = "";
         }
         brs.initialize(
-            { developerId: appId, corsProxy: corsProxy },
+            {
+                developerId: appId,
+                corsProxy: corsProxy,
+                extensions: new Map([[brs.SupportedExtension.SceneGraph, "./brs-sg.js"]]),
+            },
             {
                 debugToConsole: false,
                 disableKeys: !keyboardSwitch.checked,
@@ -388,6 +392,10 @@ function logToTerminal(data: any) {
         terminal.idle();
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
+    } else if (data?.level === "beacon") {
+            console.info(`%c${data.content}`, "color: #4A90E2");
+    } else if (data?.level === "debug") {
+            console.debug(`%c${data.content}`, "color: #888888")
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
         let output = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
@@ -508,11 +516,10 @@ function populateTemplateDialog() {
     });
 }
 
-
 function loadCode(id: string) {
     if (codeSnippetExists(id)) {
         if (currentApp.running) {
-            brs.terminate("EXIT_USER_NAV");
+            brs.terminate(brs.AppExitReason.UserNav);
             clearTerminal();
         }
         currentId = id;
@@ -600,7 +607,7 @@ function resetApp(populate: boolean) {
         populateCodeSelector("");
     }
     if (currentApp.running) {
-        brs.terminate("EXIT_USER_NAV");
+        brs.terminate(brs.AppExitReason.UserNav);
         clearTerminal();
     }
     const ctx = displayCanvas.getContext("2d", { alpha: false });
@@ -794,7 +801,7 @@ function resumeExecution() {
 
 function endExecution() {
     if (currentApp.running) {
-        brs.terminate("EXIT_USER_NAV");
+        brs.terminate(brs.AppExitReason.UserNav);
     } else {
         showToast("There is nothing running to terminate", 3000, true);
     }
