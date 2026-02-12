@@ -232,7 +232,7 @@ async function main() {
         if (globalThis.location.hostname === "localhost") {
             corsProxy = "";
         }
-        brs.initialize(
+        await brs.initialize(
             {
                 developerId: appId,
                 corsProxy: corsProxy,
