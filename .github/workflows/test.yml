@@ -1,9 +1,11 @@
 name: Test
 
+# Only master on push: any other branch is covered by pull_request, and
+# listening to both made every PR from a branch in this repo run twice.
 on:
   push:
-    branches-ignore:
-      - old
+    branches:
+      - master
   pull_request:
 
 jobs:
@@ -21,6 +23,10 @@ jobs:
         node-version: 22
         cache: npm
 
-    - run: npm ci
+    # --ignore-scripts keeps dependency lifecycle scripts from executing on CI.
+    # Nothing here needs them: esbuild resolves its binary from the platform
+    # package, fsevents is optional and macOS-only, and core-js only prints a
+    # funding banner.
+    - run: npm ci --ignore-scripts
     - run: npm test
     - run: npm run build

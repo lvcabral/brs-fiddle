@@ -73,7 +73,9 @@ export function listFiles(root: string): string[] {
         }
     };
     walk(root, "");
-    return found.sort();
+    // Locale pinned so the order these assertions compare against is the same on
+    // CI as it is locally; a bare localeCompare() follows the host locale.
+    return found.sort((a, b) => a.localeCompare(b, "en"));
 }
 
 /**
