@@ -131,7 +131,7 @@ GitHub Pages cannot set these, so `coi-serviceworker` installs a service worker 
 Network calls from BrightScript go through the proxy configured as `corsProxy` in `main()`; it is disabled when running on `localhost`.
 
 ### File System Abstraction
-ZenFS provides Node.js-like filesystem APIs in browser. `/code` is mounted on **IndexedDB**; `src/snippets.ts` stays fully synchronous because `IndexedDB.create()` preloads the store into memory before resolving — so nothing may call `fs.*Sync` before `await initializeFileSystem()`. If IndexedDB is unavailable it falls back to `InMemory` with a warning toast (`isStoragePersistent()` reports which).
+ZenFS provides Node.js-like filesystem APIs in browser. `/code` is mounted on **IndexedDB**; `src/snippets.ts` stays fully synchronous because `IndexedDB.create()` preloads the store into memory before resolving — so nothing may call `fs.*Sync` before `await initializeFileSystem()`. If IndexedDB is unavailable it falls back to `InMemory` with a warning toast (`isStoragePersistent()` reports which). After mounting it calls `requestPersistentStorage()` to avoid eviction, which **skips Firefox** — Firefox shows a permission prompt for this while Chromium/WebKit decide silently, and prompting on page load is discouraged.
 ```typescript
 fs.readdirSync("/code")           // List code snippets
 fs.writeFileSync(path, content)   // Save files

@@ -72,6 +72,8 @@ ZenFS provides a Node-like `fs` API in the browser. `/code` is mounted on the **
 
 ZenFS never closes the `IDBDatabase` it opens, so anything that unmounts `/code` must close it first or a later `deleteDatabase()` blocks forever — see `unmountCode()` in `test/fs-helpers.ts`.
 
+After mounting, `initializeFileSystem()` calls `requestPersistentStorage()` (`src/util.ts`) to exempt the store from eviction. **It deliberately skips Firefox**, which implements this as a user-facing permission prompt while Chromium and WebKit decide silently from engagement heuristics; prompting on page load is discouraged and a denial is sticky. Skipping Firefox is what makes a startup call safe everywhere else. Note that gating on the Permissions API instead would not work — Chrome reports `persistent-storage` as `"prompt"` yet never shows UI, so the state cannot distinguish "will prompt" from "decides silently".
+
 Layout of a snippet:
 
 ```

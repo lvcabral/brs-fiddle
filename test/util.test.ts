@@ -16,8 +16,10 @@ import {
     getImageUrlFromArrBuffer,
     getMimeType,
     getOS,
+    isFirefox,
     isImageFile,
     logStorageUsage,
+    requestPersistentStorage,
     showToast,
 } from "../src/util";
 
@@ -207,6 +209,113 @@ describe("logStorageUsage", () => {
 
         await expect(logStorageUsage()).resolves.toBeNull();
         vi.unstubAllGlobals();
+    });
+});
+
+describe("isFirefox", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    const withUserAgent = (ua: string) => {
+        vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(ua);
+    };
+
+    it("matches desktop Firefox", () => {
+        withUserAgent("Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0");
+        expect(isFirefox()).toBe(true);
+    });
+
+    it("matches Firefox for Android", () => {
+        withUserAgent("Mozilla/5.0 (Android 14; Mobile; rv:141.0) Gecko/141.0 Firefox/141.0");
+        expect(isFirefox()).toBe(true);
+    });
+
+    it("does not match Firefox on iOS, which runs on WebKit", () => {
+        // FxiOS uses WebKit, so it behaves like Safari and must not be gated.
+        withUserAgent(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 FxiOS/128.0 Mobile/15E148 Safari/605.1.15"
+        );
+        expect(isFirefox()).toBe(false);
+    });
+
+    it.each([
+        [
+            "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36",
+        ],
+        [
+            "Mozilla/5.0 (Macintosh) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+        ],
+        [
+            "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Edg/140.0",
+        ],
+    ])("does not match other engines: %s", (ua) => {
+        withUserAgent(ua);
+        expect(isFirefox()).toBe(false);
+    });
+});
+
+describe("requestPersistentStorage", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
+    });
+
+    const stubStorage = (storage: unknown, userAgent = "Chrome/140.0") => {
+        vi.stubGlobal("navigator", { ...navigator, userAgent, storage });
+    };
+
+    it("returns false when the Storage API is missing", async () => {
+        stubStorage(undefined);
+        await expect(requestPersistentStorage()).resolves.toBe(false);
+    });
+
+    it("does not re-request when persistence is already granted", async () => {
+        const persist = vi.fn();
+        stubStorage({ persisted: async () => true, persist });
+
+        await expect(requestPersistentStorage()).resolves.toBe(true);
+        expect(persist).not.toHaveBeenCalled();
+    });
+
+    it("requests persistence on engines that decide silently", async () => {
+        const persist = vi.fn(async () => true);
+        stubStorage({ persisted: async () => false, persist });
+
+        await expect(requestPersistentStorage()).resolves.toBe(true);
+        expect(persist).toHaveBeenCalledOnce();
+    });
+
+    it("passes through a silent denial", async () => {
+        stubStorage({ persisted: async () => false, persist: async () => false });
+
+        await expect(requestPersistentStorage()).resolves.toBe(false);
+    });
+
+    it("never requests on Firefox, which would show a permission prompt", async () => {
+        const persist = vi.fn(async () => true);
+        stubStorage({ persisted: async () => false, persist }, "Gecko/20100101 Firefox/141.0");
+
+        await expect(requestPersistentStorage()).resolves.toBe(false);
+        expect(persist).not.toHaveBeenCalled();
+    });
+
+    it("still reports already-granted persistence on Firefox", async () => {
+        // If the user granted it themselves through site permissions, say so.
+        stubStorage({ persisted: async () => true, persist: vi.fn() }, "Firefox/141.0");
+
+        await expect(requestPersistentStorage()).resolves.toBe(true);
+    });
+
+    it("returns false instead of throwing when the request rejects", async () => {
+        stubStorage({
+            persisted: async () => false,
+            persist: async () => {
+                throw new Error("denied");
+            },
+        });
+
+        await expect(requestPersistentStorage()).resolves.toBe(false);
     });
 });
 

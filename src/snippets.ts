@@ -14,7 +14,14 @@ import { IndexedDB } from "@zenfs/dom";
 import { Buffer } from "buffer";
 import { zipSync, strToU8, Zippable } from "fflate";
 import { saveAs } from "file-saver";
-import { generateId, getIcon, getMimeType, isImageFile, showToast } from "./util";
+import {
+    generateId,
+    getIcon,
+    getMimeType,
+    isImageFile,
+    requestPersistentStorage,
+    showToast,
+} from "./util";
 
 const codeSelect = document.getElementById("code-selector") as HTMLSelectElement;
 const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
@@ -47,6 +54,10 @@ export async function initializeFileSystem() {
             mounts: { "/code": { backend: IndexedDB, storeName: STORE_NAME } },
         });
         storageIsPersistent = true;
+        // Best effort, and never blocking: without this the store is "best-effort" and the
+        // browser may evict it when the device runs short on space.
+        const durable = await requestPersistentStorage();
+        console.info(`Storage eviction protection ${durable ? "granted" : "not granted"}`);
         return;
     }
     // Hardened privacy settings and some embedded webviews block IndexedDB. Keep the editor
