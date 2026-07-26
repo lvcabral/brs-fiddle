@@ -113,7 +113,8 @@ pre {
     max-height: fill-available;
     background: var(--background-color);
 }
-.more-options {
+.more-options,
+.menu-button {
     position: relative;
 }
 .dropdown {
@@ -193,6 +194,11 @@ pre {
 .dropdown .submenu-content li a i.icon-ok {
     width: 12px;
     font-size: 12px;
+}
+/* The template registry grows over time, so this menu scrolls instead of overflowing the page. */
+.templates-dropdown {
+    max-height: 60vh;
+    overflow-y: auto;
 }
 .console {
     width: 100%;
@@ -694,24 +700,6 @@ select {
     justify-content: center;
     width: 100%;
     margin-top: 10px;
-}
-
-.template-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.template-list li {
-    padding: 10px;
-    margin: 5px 0;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.template-list li:hover {
-    background-color: var(--button-background-color);
 }
 
 /*!

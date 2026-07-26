@@ -33,7 +33,6 @@ import {
     importCodeSnippet,
 } from "./snippets";
 import {
-    logStorageUsage,
     generateId,
     getFileExtension,
     getOS,
@@ -86,7 +85,8 @@ const dropdown = document.getElementById("more-options-dropdown") as HTMLDivElem
 const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
 const fileSystemDiv = document.getElementById("file-system") as HTMLDivElement;
 const simpleFileSystem = fileSystemDiv.innerHTML;
-const templateDialog = document.getElementById("template-dialog") as HTMLDialogElement;
+const templatesButton = document.getElementById("templates-button") as HTMLButtonElement;
+const templatesDropdown = document.getElementById("templates-dropdown") as HTMLDivElement;
 
 // Restore Last State
 const lastState = loadState();
@@ -127,20 +127,26 @@ endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 toggleTreeButton.addEventListener("click", toggleFileTree);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
-moreButton.addEventListener("click", function (event) {
-    event.stopPropagation();
-    if (dropdown.style.display === "block") {
-        dropdown.style.display = "none";
-    } else {
-        dropdown.style.display = "block";
-    }
-});
+// Header dropdown menus: opening one closes the other, a click anywhere else closes both.
+const headerMenus: [HTMLButtonElement, HTMLDivElement][] = [
+    [moreButton, dropdown],
+    [templatesButton, templatesDropdown],
+];
+for (const [button, menu] of headerMenus) {
+    button.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const show = menu.style.display !== "block";
+        closeHeaderMenus();
+        menu.style.display = show ? "block" : "none";
+    });
+}
 document.addEventListener("click", function (event: any) {
-    if (!dropdown.contains(event.target) && event.target !== moreButton) {
-        dropdown.style.display = "none";
+    for (const [button, menu] of headerMenus) {
+        if (!menu.contains(event.target) && event.target !== button) {
+            menu.style.display = "none";
+        }
     }
 });
-document.getElementById("templates-option")?.addEventListener("click", selectTemplate);
 document.getElementById("rename-option")?.addEventListener("click", renameCode);
 document.getElementById("saveas-option")?.addEventListener("click", saveAsCode);
 document.getElementById("delete-option")?.addEventListener("click", deleteCode);
@@ -189,7 +195,7 @@ async function main() {
     // Carries snippets over from the pre-2.2 localStorage filesystem. No-op once done.
     // The result is handled at the end of main(), so a modal cannot block the rest of startup.
     const migration = await migrateLegacyStorage();
-    populateTemplateDialog();
+    populateTemplatesMenu();
     // Process Shared Token parameter
     const shareToken = getParameterByName("code");
     if (shareToken) {
@@ -246,7 +252,6 @@ async function main() {
         });
     }
     editorManager.focus();
-    logStorageUsage();
     await offerExportIfNotPersisted(migration);
 }
 
@@ -411,7 +416,7 @@ function logToTerminal(data: any) {
     } else if (data?.level === "debug") {
         console.debug(`%c${data.content}`, "color: #888888");
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
-        let output = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
             const promptLen = `${prompt}&gt; `.length;
             if (output.slice(-promptLen) === `${prompt}&gt; `) {
@@ -455,7 +460,7 @@ codeSelect.addEventListener("mousedown", async (e) => {
     savedValue = codeSelect.value;
 });
 
-function showDialog(
+async function showDialog(
     message?: string,
     confirmLabel?: string,
     cancelLabel?: string
@@ -513,15 +518,23 @@ codeSelect.addEventListener("change", async (e) => {
     editorManager.clearHistory();
 });
 
-function populateTemplateDialog() {
+function populateTemplatesMenu() {
     const templateList = document.getElementById("template-list") as HTMLUListElement;
     templateList.innerHTML = "";
     for (const template of templates) {
         const li = document.createElement("li");
-        li.textContent = template.name;
-        li.dataset.path = template.path;
-        li.addEventListener("click", async () => {
-            templateDialog.close();
+        const link = document.createElement("a");
+        link.href = "#";
+        link.dataset.path = template.path;
+        const icon = document.createElement("i");
+        icon.className = "icon-file-archive";
+        link.appendChild(icon);
+        link.appendChild(document.createTextNode(template.name));
+        link.addEventListener("click", async (event) => {
+            event.preventDefault();
+            // The menu lives inside the button; without this the toggle handler reopens it.
+            event.stopPropagation();
+            closeHeaderMenus();
             if (codeNameExists(template.name)) {
                 showToast("There is already a code snippet with this Name!", 3000, true);
                 return;
@@ -534,12 +547,17 @@ function populateTemplateDialog() {
             }
             populateCodeSelector(currentId);
             loadCode(currentId);
+            editorManager.focus();
         });
+        li.appendChild(link);
         templateList.appendChild(li);
     }
-    templateDialog.addEventListener("close", () => {
-        editorManager.focus();
-    });
+}
+
+function closeHeaderMenus() {
+    for (const [, menu] of headerMenus) {
+        menu.style.display = "none";
+    }
 }
 
 function loadCode(id: string) {
@@ -557,10 +575,6 @@ function loadCode(id: string) {
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
-}
-
-function selectTemplate() {
-    templateDialog.showModal();
 }
 
 function renameCode() {

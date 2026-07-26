@@ -91,7 +91,6 @@
               <i class="icon-wrench"></i>
               <div class="dropdown" id="more-options-dropdown">
                 <ul>
-                  <li><a href="#" id="templates-option"><i class="icon-file-archive"></i> Templates</a></li>
                   <li><a href="#" id="rename-option"><i class="icon-edit"></i> Rename</a></li>
                   <li><a href="#" id="saveas-option"><i class="icon-save"></i> Save as</a></li>
                   <li><a href="#" id="delete-option"><i class="icon-trash"></i> Delete</a></li>
@@ -114,6 +113,14 @@
                       <li><a href="#" class="indent-size" data-size="4"><i class="icon-ok" id="indent-size-4-check"></i> 4</a></li>
                     </ul>
                   </li>
+                </ul>
+              </div>
+            </button>
+            <button title="Code Templates" class="menu-button" id="templates-button">
+              <i class="icon-file-archive"></i>
+              <div class="dropdown templates-dropdown" id="templates-dropdown">
+                <ul id="template-list">
+                  <!-- Template items will be populated here -->
                 </ul>
               </div>
             </button>
@@ -213,17 +220,6 @@
         <div id="console-logs" class="active"></div>
       </div>
     </div>
-    <dialog id="template-dialog" class="modal_dialog" closed>
-      <p class="modal_dialog_content">Select a Template to use:</p>
-      <ul id="template-list" class="template-list">
-        <!-- Template items will be populated here -->
-      </ul>
-      <form method="dialog">
-        <div class="button-container">
-          <button id="template-cancel-button" value="cancel" class="modal_dialog_cancel">Cancel</button>
-        </div>
-      </form>
-    </dialog>
     <dialog id="code-dialog" class="modal_dialog" closed>
       <p class="modal_dialog_content">Enter the name of the code snippet:</p>
       <form method="dialog" id="code-form">

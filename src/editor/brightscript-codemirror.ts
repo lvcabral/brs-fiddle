@@ -360,7 +360,7 @@ export function defineMode(CodeMirror: any) {
         }
 
         function tokenStringFactory(delimiter: string) {
-            const singleline = delimiter.length == 1;
+            const singleline = delimiter.length === 1;
             const OUTCLASS = "string";
 
             return function (stream: StringStream, state: any) {

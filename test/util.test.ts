@@ -9,7 +9,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import Toastify from "toastify-js";
 import {
     arrayBufferToBase64,
-    calculateLocalStorageUsage,
     generateId,
     getFileExtension,
     getIcon,
@@ -18,7 +17,6 @@ import {
     getOS,
     isFirefox,
     isImageFile,
-    logStorageUsage,
     requestPersistentStorage,
     showToast,
 } from "../src/util";
@@ -142,73 +140,6 @@ describe("showToast", () => {
         expect(Toastify).toHaveBeenCalledWith(
             expect.objectContaining({ text: "Broke", duration: 5000, className: "toastify-error" })
         );
-    });
-});
-
-describe("calculateLocalStorageUsage", () => {
-    afterEach(() => {
-        localStorage.clear();
-    });
-
-    it("reports usage in KB as a 2-decimal string", () => {
-        localStorage.clear();
-        expect(calculateLocalStorageUsage()).toBe("0.00");
-
-        // Avoid key names that collide with Storage methods ("key", "clear", ...) -- jsdom does
-        // not expose those as own properties, so the function would skip them.
-        localStorage.setItem("snippet", "x".repeat(1024));
-        // (value length + key length) * 2 bytes / 1024
-        expect(calculateLocalStorageUsage()).toBe((((1024 + 7) * 2) / 1024).toFixed(2));
-    });
-
-    it("adds up multiple entries", () => {
-        localStorage.clear();
-        localStorage.setItem("aa", "bb");
-        localStorage.setItem("cc", "dd");
-
-        expect(calculateLocalStorageUsage()).toBe(((4 * 2 * 2) / 1024).toFixed(2));
-    });
-});
-
-describe("logStorageUsage", () => {
-    afterEach(() => {
-        vi.restoreAllMocks();
-    });
-
-    it("reports usage and quota when the browser supports it", async () => {
-        vi.stubGlobal("navigator", {
-            ...navigator,
-            storage: {
-                estimate: async () => ({ usage: 2 * 1024 * 1024, quota: 100 * 1024 * 1024 }),
-            },
-        });
-
-        await expect(logStorageUsage()).resolves.toEqual({
-            usage: 2 * 1024 * 1024,
-            quota: 100 * 1024 * 1024,
-        });
-        vi.unstubAllGlobals();
-    });
-
-    it("returns null when the Storage API is missing", async () => {
-        vi.stubGlobal("navigator", { ...navigator, storage: undefined });
-
-        await expect(logStorageUsage()).resolves.toBeNull();
-        vi.unstubAllGlobals();
-    });
-
-    it("returns null instead of throwing when estimate() rejects", async () => {
-        vi.stubGlobal("navigator", {
-            ...navigator,
-            storage: {
-                estimate: async () => {
-                    throw new Error("denied");
-                },
-            },
-        });
-
-        await expect(logStorageUsage()).resolves.toBeNull();
-        vi.unstubAllGlobals();
     });
 });
 

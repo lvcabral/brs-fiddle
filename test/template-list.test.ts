@@ -15,7 +15,7 @@ import { templates } from "../src/template-list";
 const TEMPLATE_DIR = resolve(__dirname, "../src/templates");
 
 /**
- * The registry drives the templates dialog and the file names are fetched at runtime, so a typo
+ * The registry drives the templates menu and the file names are fetched at runtime, so a typo
  * only shows up as a "template is missing" toast in production. These checks catch it at build.
  */
 describe("template registry", () => {

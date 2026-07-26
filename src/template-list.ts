@@ -7,14 +7,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 export interface CodeTemplate {
-    /** Display name shown in the templates dialog, also stored as the snippet name */
+    /** Display name shown in the templates menu, also stored as the snippet name */
     name: string;
     /** File name inside `src/templates/`, copied to `app/templates/` at build time */
     path: string;
 }
 
 /**
- * Code templates offered in the templates dialog.
+ * Code templates offered in the templates menu.
  * A `.brs` file loads as a single source file, a `.zip` as a full project.
  */
 export const templates: CodeTemplate[] = [

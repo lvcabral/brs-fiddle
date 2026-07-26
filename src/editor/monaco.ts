@@ -1,6 +1,6 @@
 import * as monaco from "monaco-editor";
 // Import Monaco Editor CSS
-require("monaco-editor/min/vs/editor/editor.main.css");
+import "monaco-editor/min/vs/editor/editor.main.css";
 import { defineBrightScriptLanguage, defineBrightScriptTheme } from "./brightscript-monaco";
 import { IEditorManager } from "./types";
 
