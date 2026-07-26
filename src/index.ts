@@ -33,16 +33,17 @@ import {
     importCodeSnippet,
 } from "./snippets";
 import {
-    calculateLocalStorageUsage,
     generateId,
     getFileExtension,
     getOS,
     isImageFile,
     showToast,
 } from "./util";
+import { migrateLegacyStorage, MigrationResult } from "./legacy-storage";
 import { CodeMirrorManager } from "./editor/codemirror";
 import { MonacoManager } from "./editor/monaco";
 import { IEditorManager } from "./editor/types";
+import { templates } from "./template-list";
 import packageInfo from "../package.json";
 
 const appId = "brsFiddle";
@@ -84,22 +85,8 @@ const dropdown = document.getElementById("more-options-dropdown") as HTMLDivElem
 const folderStructure = document.querySelector(".folder-structure") as HTMLDivElement;
 const fileSystemDiv = document.getElementById("file-system") as HTMLDivElement;
 const simpleFileSystem = fileSystemDiv.innerHTML;
-const templateDialog = document.getElementById("template-dialog") as HTMLDialogElement;
-
-// Code Templates
-const templates = [
-    { name: "Hello World (Draw2D)", path: "hello-world.brs" },
-    { name: "Snake Game (Draw2D)", path: "snake-game.brs" },
-    { name: "Ball Boing (Draw2D)", path: "ball-boing.brs" },
-    { name: "Collisions (Draw2D)", path: "collisions.zip" },
-    { name: "Hello World (SceneGraph)", path: "hello-world.zip" },
-    { name: "Simple Task (SceneGraph)", path: "simple-task.zip" },
-    { name: "Bounding Rect (SceneGraph)", path: "bounding-rect.zip" },
-    { name: "Label List (SceneGraph)", path: "label-list.zip" },
-    { name: "Markup Grid (SceneGraph)", path: "markup-grid.zip" },
-    { name: "Keyboard Dlg (SceneGraph)", path: "keyboard-dialog.zip" },
-    { name: "Video List (SceneGraph)", path: "video-list.zip" },
-];
+const templatesButton = document.getElementById("templates-button") as HTMLButtonElement;
+const templatesDropdown = document.getElementById("templates-dropdown") as HTMLDivElement;
 
 // Restore Last State
 const lastState = loadState();
@@ -140,20 +127,26 @@ endButton.addEventListener("click", endExecution);
 shareButton.addEventListener("click", shareCode);
 toggleTreeButton.addEventListener("click", toggleFileTree);
 layoutSeparator.addEventListener("mousedown", resizeColumn);
-moreButton.addEventListener("click", function (event) {
-    event.stopPropagation();
-    if (dropdown.style.display === "block") {
-        dropdown.style.display = "none";
-    } else {
-        dropdown.style.display = "block";
-    }
-});
+// Header dropdown menus: opening one closes the other, a click anywhere else closes both.
+const headerMenus: [HTMLButtonElement, HTMLDivElement][] = [
+    [moreButton, dropdown],
+    [templatesButton, templatesDropdown],
+];
+for (const [button, menu] of headerMenus) {
+    button.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const show = menu.style.display !== "block";
+        closeHeaderMenus();
+        menu.style.display = show ? "block" : "none";
+    });
+}
 document.addEventListener("click", function (event: any) {
-    if (!dropdown.contains(event.target) && event.target !== moreButton) {
-        dropdown.style.display = "none";
+    for (const [button, menu] of headerMenus) {
+        if (!menu.contains(event.target) && event.target !== button) {
+            menu.style.display = "none";
+        }
     }
 });
-document.getElementById("templates-option")?.addEventListener("click", selectTemplate);
 document.getElementById("rename-option")?.addEventListener("click", renameCode);
 document.getElementById("saveas-option")?.addEventListener("click", saveAsCode);
 document.getElementById("delete-option")?.addEventListener("click", deleteCode);
@@ -186,6 +179,14 @@ for (const element of Array.from(indentSizeElements)) {
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
+// Widths set by dragging the column separator, reapplied when the layout returns
+// to two columns (the stacked layout forces both to 100%).
+let draggedCodeWidth = "";
+let draggedRightWidth = "";
+// Must match the .display-header/.console-header height and #console-logs
+// min-height in default.css.
+const HEADER_HEIGHT = 44;
+const MIN_CONSOLE_HEIGHT = 60;
 let editorManager: IEditorManager;
 let currentId = generateId();
 let isCodeChanged = false;
@@ -199,7 +200,10 @@ async function main() {
     initFolderStructure();
     initFileTreeState();
     await initializeFileSystem();
-    populateTemplateDialog();
+    // Carries snippets over from the pre-2.2 localStorage filesystem. No-op once done.
+    // The result is handled at the end of main(), so a modal cannot block the rest of startup.
+    const migration = await migrateLegacyStorage();
+    populateTemplatesMenu();
     // Process Shared Token parameter
     const shareToken = getParameterByName("code");
     if (shareToken) {
@@ -236,7 +240,7 @@ async function main() {
             {
                 developerId: appId,
                 corsProxy: corsProxy,
-                extensions: new Map([[brs.SupportedExtension.SceneGraph, "./brs-sg.js"]]),
+                extensions: new Map([[brs.SupportedExtension.SceneGraph, `./brs-sg.js?v=${packageInfo.version}`]]),
             },
             {
                 debugToConsole: false,
@@ -256,7 +260,30 @@ async function main() {
         });
     }
     editorManager.focus();
-    calculateLocalStorageUsage();
+    await offerExportIfNotPersisted(migration);
+}
+
+/**
+ * When the browser blocks persistent storage there is nothing to migrate *into* -- the snippets
+ * were copied into memory and disappear when the page closes. A toast is too easy to miss for
+ * something that loses work, so explain it properly and offer to save the snippets to a file.
+ */
+async function offerExportIfNotPersisted(migration: MigrationResult) {
+    if (migration.persisted || migration.migrated === 0) {
+        return;
+    }
+    const count = migration.migrated;
+    const exportNow = await showDialog(
+        `This browser is blocking persistent storage, so the ${count} code snippet(s) saved ` +
+            `here could not be upgraded. They are available in this session, but will be lost ` +
+            `when you close the page.\n\n` +
+            `Export them to a file now? You can bring them back later using the Import option.`,
+        "Export",
+        "Not Now"
+    );
+    if (exportNow) {
+        exportAllCode();
+    }
 }
 
 function updateButtons() {
@@ -393,15 +420,15 @@ function logToTerminal(data: any) {
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
     } else if (data?.level === "beacon") {
-            console.info(`%c${data.content}`, "color: #4A90E2");
+        console.info(`%c${data.content}`, "color: #4A90E2");
     } else if (data?.level === "debug") {
-            console.debug(`%c${data.content}`, "color: #888888")
+        console.debug(`%c${data.content}`, "color: #888888");
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
-        let output = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
-            const promptLen = `${prompt}&gt; `.length;
-            if (output.slice(-promptLen) === `${prompt}&gt; `) {
-                output = output.slice(0, output.length - promptLen);
+            const promptSuffix = `${prompt}&gt; `;
+            if (output.endsWith(promptSuffix)) {
+                output = output.slice(0, -promptSuffix.length);
             }
         } else if (data.level === "warning") {
             output = "<span style='color: #d7ba7d;'>" + output + "</span>";
@@ -441,22 +468,34 @@ codeSelect.addEventListener("mousedown", async (e) => {
     savedValue = codeSelect.value;
 });
 
-function showDialog(message?: string): Promise<boolean> {
+async function showDialog(
+    message?: string,
+    confirmLabel?: string,
+    cancelLabel?: string
+): Promise<boolean> {
     return new Promise((resolve) => {
         if (message) {
             dialogText.innerText = message;
         }
+        // The dialog is shared, so remember the default Yes/No labels and put them back.
+        const defaultConfirm = confirmButton.textContent;
+        const defaultCancel = cancelButton.textContent;
+        if (confirmLabel) {
+            confirmButton.textContent = confirmLabel;
+        }
+        if (cancelLabel) {
+            cancelButton.textContent = cancelLabel;
+        }
+        const finish = (result: boolean) => {
+            confirmButton.textContent = defaultConfirm;
+            cancelButton.textContent = defaultCancel;
+            confirmDialog.close();
+            resolve(result);
+        };
         confirmDialog.showModal();
 
-        confirmButton.onclick = () => {
-            confirmDialog.close();
-            resolve(true);
-        };
-
-        cancelButton.onclick = () => {
-            confirmDialog.close();
-            resolve(false);
-        };
+        confirmButton.onclick = () => finish(true);
+        cancelButton.onclick = () => finish(false);
     });
 }
 
@@ -487,17 +526,38 @@ codeSelect.addEventListener("change", async (e) => {
     editorManager.clearHistory();
 });
 
-function populateTemplateDialog() {
+function populateTemplatesMenu() {
     const templateList = document.getElementById("template-list") as HTMLUListElement;
     templateList.innerHTML = "";
     for (const template of templates) {
         const li = document.createElement("li");
-        li.textContent = template.name;
-        li.dataset.path = template.path;
-        li.addEventListener("click", async () => {
-            templateDialog.close();
-            if (codeNameExists(template.name)) {
-                showToast("There is already a code snippet with this Name!", 3000, true);
+        const link = document.createElement("a");
+        link.href = "#";
+        link.dataset.path = template.path;
+        const icon = document.createElement("i");
+        icon.className = "icon-file-archive";
+        link.appendChild(icon);
+        link.appendChild(document.createTextNode(template.name));
+        link.addEventListener("click", async (event) => {
+            event.preventDefault();
+            // The menu lives inside the button; without this the toggle handler reopens it.
+            event.stopPropagation();
+            closeHeaderMenus();
+            const existingId = codeNameExists(template.name);
+            if (existingId) {
+                // Snippet with this name already exists — switch to it
+                if (isCodeChanged) {
+                    const confirmed = await showDialog(
+                        "There are unsaved changes, do you want to save before switching?"
+                    );
+                    if (confirmed) {
+                        saveCode(false);
+                    }
+                }
+                populateCodeSelector(existingId);
+                loadCode(existingId);
+                editorManager.clearHistory();
+                editorManager.focus();
                 return;
             }
             currentId = generateId();
@@ -508,12 +568,17 @@ function populateTemplateDialog() {
             }
             populateCodeSelector(currentId);
             loadCode(currentId);
+            editorManager.focus();
         });
+        li.appendChild(link);
         templateList.appendChild(li);
     }
-    templateDialog.addEventListener("close", () => {
-        editorManager.focus();
-    });
+}
+
+function closeHeaderMenus() {
+    for (const [, menu] of headerMenus) {
+        menu.style.display = "none";
+    }
 }
 
 function loadCode(id: string) {
@@ -531,10 +596,6 @@ function loadCode(id: string) {
     } else {
         showToast("Could not find the code in the Local Storage!", 3000, true);
     }
-}
-
-function selectTemplate() {
-    templateDialog.showModal();
 }
 
 function renameCode() {
@@ -885,34 +946,36 @@ function resizeColumn() {
 }
 
 function resizeCanvas() {
-    let width = displayCanvas.width;
-    let height = displayCanvas.height;
-    if (globalThis.innerWidth >= 1220) {
-        const rightRect = rightContainer.getBoundingClientRect();
-        width = rightRect.width;
-        height = Math.trunc((width * 9) / 16);
-    } else {
-        height = globalThis.innerHeight / 3;
+    const rightRect = rightContainer.getBoundingClientRect();
+    let width = rightRect.width;
+    let height = Math.trunc((width * 9) / 16);
+    // The display shares its column with the console, so cap its height and let
+    // the 16:9 ratio give back the width. Stacked layout gets the tighter cap
+    // because the column is only half as tall to begin with. The column is
+    // `flex: 1 1 0`, so its height doesn't depend on the canvas — measuring it
+    // here can't feed back into the size we're computing.
+    const maxHeight =
+        globalThis.innerWidth < 1220
+            ? Math.trunc(rightRect.height / 2)
+            : rightRect.height - 2 * HEADER_HEIGHT - MIN_CONSOLE_HEIGHT;
+    if (height > maxHeight) {
+        height = Math.max(maxHeight, 0);
         width = Math.trunc((height * 16) / 9);
-        if (width > globalThis.innerWidth) {
-            width = globalThis.innerWidth;
-            height = Math.trunc((width * 9) / 16);
-        }
     }
     brs.redraw(false, width, height);
 }
 
 function onResize() {
+    if (globalThis.innerWidth < 1220) {
+        codeColumn.style.width = "100%";
+    } else {
+        // Restore whatever the separator was last dragged to (empty string falls
+        // back to the stylesheet default).
+        codeColumn.style.width = draggedCodeWidth;
+        rightContainer.style.width = draggedRightWidth;
+    }
     resizeCanvas();
     editorManager.layout();
-    if (globalThis.innerWidth >= 1220) {
-        consoleLogsContainer.style.height = `100%`;
-    } else {
-        codeColumn.style.width = "100%";
-        const consoleRect = consoleLogsContainer.getBoundingClientRect();
-        const logHeight = globalThis.innerHeight - consoleRect.top;
-        consoleLogsContainer.style.height = `${logHeight}px`;
-    }
     scrollToBottom();
 }
 
@@ -927,8 +990,10 @@ function onMouseMove(e: any) {
         const codeColumnWidth = `${width - separatorPosition}px`;
 
         const rightRect = rightContainer.getBoundingClientRect();
-        codeColumn.style.width = codeColumnWidth;
-        rightContainer.style.width = `${rightRect.width}px`;
+        draggedCodeWidth = codeColumnWidth;
+        draggedRightWidth = `${rightRect.width}px`;
+        codeColumn.style.width = draggedCodeWidth;
+        rightContainer.style.width = draggedRightWidth;
         resizeCanvas();
 
         setTimeout(() => {

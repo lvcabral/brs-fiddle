@@ -33,6 +33,44 @@ export const getOS = () => {
     return os;
 };
 
+/**
+ * Gecko-based Firefox only. Firefox on iOS reports `FxiOS` and runs on WebKit, so it behaves
+ * like Safari and is deliberately not matched here.
+ */
+export function isFirefox(): boolean {
+    return /\bFirefox\/\d/.test(globalThis.navigator.userAgent);
+}
+
+/**
+ * Asks the browser to exempt our storage from eviction under storage pressure.
+ *
+ * Firefox is skipped on purpose. It implements this as a user-facing permission prompt, while
+ * Chromium and WebKit decide silently from engagement heuristics. Prompting on page load is
+ * explicitly discouraged — the user has not asked to save anything yet, so the request has no
+ * context and is likely to be denied, and a denial sticks. Skipping Firefox means no browser
+ * can prompt, which is what makes it safe to call this during startup.
+ *
+ * Firefox users keep best-effort storage, which is only at risk when the device is genuinely
+ * short on space. They can still grant persistence themselves through site permissions.
+ */
+export async function requestPersistentStorage(): Promise<boolean> {
+    const storage = navigator.storage;
+    if (!storage?.persist || !storage?.persisted) {
+        return false;
+    }
+    try {
+        if (await storage.persisted()) {
+            return true; // already granted, asking again would be a no-op
+        }
+        if (isFirefox()) {
+            return false;
+        }
+        return await storage.persist();
+    } catch {
+        return false;
+    }
+}
+
 export function isImageFile(fileName: string): boolean {
     const imageExtensions = ["png", "jpg", "jpeg", "gif", "bmp", "webp"];
     const extension = getFileExtension(fileName).toLowerCase();
@@ -105,19 +143,4 @@ export function showToast(message: string, duration = 3000, error = false) {
         stopOnFocus: true,
         className: error ? "toastify-error" : "toastify-success",
     }).showToast();
-}
-
-export function calculateLocalStorageUsage() {
-    let _lsTotal = 0,
-        _xLen,
-        _x;
-    for (_x in localStorage) {
-        if (!localStorage.hasOwnProperty(_x)) {
-            continue;
-        }
-        _xLen = (localStorage[_x].length + _x.length) * 2;
-        _lsTotal += _xLen;
-    }
-    console.log("Current Local Storage usage is " + (_lsTotal / 1024).toFixed(2) + " KB");
-    return (_lsTotal / 1024).toFixed(2);
 }
