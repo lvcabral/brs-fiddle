@@ -6,8 +6,9 @@
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as fs from "@zenfs/core";
+import { InMemory } from "@zenfs/core";
 import { Zip } from "@zenfs/archives";
-import { WebStorage } from "@zenfs/dom";
+import { IndexedDB } from "@zenfs/dom";
 // `Buffer` is a Node global, not a browser one, and webpack does not provide it. Importing it
 // explicitly keeps base64 image decoding working in the bundle.
 import { Buffer } from "buffer";
@@ -23,12 +24,49 @@ const imagePreview = document.getElementById("image-preview") as HTMLImageElemen
 
 const codeMap = new Map<string, string>();
 
+/** IndexedDB database name. Distinct from ZenFS's default so nothing else can collide with it. */
+export const STORE_NAME = "brsFiddle";
+
+let storageIsPersistent = false;
+
+/** False when IndexedDB was unavailable and the session is running on a throwaway store. */
+export function isStoragePersistent() {
+    return storageIsPersistent;
+}
+
+/**
+ * Mounts `/code` on IndexedDB, which lifts the ~5MB localStorage ceiling the app used to have.
+ *
+ * The backend is async, but `create()` preloads the whole store into an in-memory cache before
+ * resolving, so every synchronous `fs.*Sync` call in this module keeps working as long as
+ * callers await this first.
+ */
 export async function initializeFileSystem() {
-    await fs.configure({
-        mounts: {
-            "/code": { backend: WebStorage, storage: localStorage },
-        },
-    });
+    if (await indexedDbAvailable()) {
+        await fs.configure({
+            mounts: { "/code": { backend: IndexedDB, storeName: STORE_NAME } },
+        });
+        storageIsPersistent = true;
+        return;
+    }
+    // Hardened privacy settings and some embedded webviews block IndexedDB. Keep the editor
+    // fully usable rather than failing to start; only persistence is lost.
+    await fs.configure({ mounts: { "/code": { backend: InMemory } } });
+    storageIsPersistent = false;
+    showToast("Storage unavailable, snippets will not be saved this session.", 7000, true);
+}
+
+async function indexedDbAvailable() {
+    // `isAvailable` does `idbFactory instanceof IDBFactory`, which throws rather than returning
+    // false when the environment has no IndexedDB at all, so check for it first.
+    if (!globalThis.indexedDB || typeof globalThis.IDBFactory === "undefined") {
+        return false;
+    }
+    try {
+        return await IndexedDB.isAvailable({ idbFactory: globalThis.indexedDB });
+    } catch {
+        return false;
+    }
 }
 
 export function populateCodeSelector(currentId: string) {
@@ -200,7 +238,7 @@ export function replicateContent(sourcePath: string, targetPath: string) {
     }
 }
 
-function ensureDirectoryExists(directoryPath: string) {
+export function ensureDirectoryExists(directoryPath: string) {
     const pathParts = directoryPath.split("/");
     let currentPath = "";
 

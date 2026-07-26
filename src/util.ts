@@ -121,3 +121,24 @@ export function calculateLocalStorageUsage() {
     console.log("Current Local Storage usage is " + (_lsTotal / 1024).toFixed(2) + " KB");
     return (_lsTotal / 1024).toFixed(2);
 }
+
+/**
+ * Reports how much of the browser's storage quota the snippets occupy.
+ *
+ * Snippets live in IndexedDB now, so `calculateLocalStorageUsage()` only accounts for the
+ * settings and the pre-2.2 backup. `navigator.storage.estimate()` covers the real store.
+ */
+export async function logStorageUsage() {
+    calculateLocalStorageUsage();
+    if (!navigator.storage?.estimate) {
+        return null;
+    }
+    try {
+        const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+        const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(2);
+        console.log(`Current storage usage is ${mb(usage)} MB of ${mb(quota)} MB available`);
+        return { usage, quota };
+    } catch {
+        return null;
+    }
+}

@@ -9,7 +9,12 @@ export default defineConfig({
         coverage: {
             provider: "v8",
             reporter: ["text", "html"],
-            include: ["src/snippets.ts", "src/util.ts", "src/template-list.ts"],
+            include: [
+                "src/snippets.ts",
+                "src/util.ts",
+                "src/template-list.ts",
+                "src/legacy-storage.ts",
+            ],
         },
     },
 });

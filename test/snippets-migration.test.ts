@@ -87,9 +87,10 @@ describe("v1.x storage migration", () => {
         expect(selectorNames()).toEqual([]);
     });
 
-    it("does not mistake ZenFS's own storage keys for legacy snippets", () => {
-        // The migration scans localStorage for 10-character keys, and ZenFS stores its inodes in
-        // the same localStorage. This pins the assumption that its keys never reach that length.
+    it("keeps live snippet data out of localStorage entirely", () => {
+        // Snippets live in IndexedDB now. Both localStorage scanners -- migrateOldSnippets()
+        // looking for 10-character keys and legacyDataPresent() looking for numeric ones -- would
+        // misread live data as something to migrate, so nothing may leak back into localStorage.
         for (let i = 0; i < 20; i++) {
             saveCodeSnippetMaster(
                 `snippet-${i}`.padEnd(10, "x").slice(0, 10),
@@ -98,9 +99,9 @@ describe("v1.x storage migration", () => {
             );
         }
 
-        const zenfsKeys = Object.keys(localStorage).filter((key) => /^\d+$/.test(key));
-        expect(zenfsKeys.length).toBeGreaterThan(0);
-        expect(zenfsKeys.filter((key) => key.length === 10)).toEqual([]);
+        const keys = Object.keys(localStorage);
+        expect(keys.filter((key) => /^\d+$/.test(key))).toEqual([]);
+        expect(keys.filter((key) => key.length === 10)).toEqual([]);
     });
 });
 

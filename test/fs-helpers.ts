@@ -6,10 +6,25 @@
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as fs from "@zenfs/core";
-import { initializeFileSystem } from "../src/snippets";
+import { initializeFileSystem, STORE_NAME } from "../src/snippets";
 
 /**
- * Puts ZenFS back to an empty `/code` mounted on a cleared localStorage.
+ * Unmounts `/code`, closing the IndexedDB connection first.
+ *
+ * ZenFS never closes the `IDBDatabase` it opens, so unmounting alone leaks the connection and a
+ * later `deleteDatabase()` blocks forever. Reach through StoreFS -> IndexedDBStore -> db.
+ */
+function unmountCode() {
+    if (!fs.mounts.has("/code")) {
+        return;
+    }
+    const store = (fs.mounts.get("/code") as any)?.store;
+    store?.db?.close?.();
+    fs.umount("/code");
+}
+
+/**
+ * Puts ZenFS back to an empty `/code`, with both backing stores wiped.
  *
  * The unmounts are required: `fs.mount()` throws EINVAL on a mount point that is already in
  * use, so calling `initializeFileSystem()` twice without them fails.
@@ -18,21 +33,28 @@ export async function resetFs() {
     if (fs.mounts.has("/mnt/zip")) {
         fs.umount("/mnt/zip");
     }
-    if (fs.mounts.has("/code")) {
-        fs.umount("/code");
-    }
+    unmountCode();
     localStorage.clear();
+    await deleteDatabase();
     await initializeFileSystem();
 }
 
+function deleteDatabase() {
+    return new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(STORE_NAME);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () =>
+            reject(new Error("deleteDatabase blocked: an IDB connection is still open"));
+    });
+}
+
 /**
- * Remounts `/code` over the *same* localStorage, simulating a page reload. Used to prove a
- * snippet really persisted rather than living in an in-memory cache.
+ * Remounts `/code` over the *same* IndexedDB store, simulating a page reload. Used to prove a
+ * snippet really persisted rather than living in the backend's in-memory cache.
  */
 export async function remountFs() {
-    if (fs.mounts.has("/code")) {
-        fs.umount("/code");
-    }
+    unmountCode();
     await initializeFileSystem();
 }
 

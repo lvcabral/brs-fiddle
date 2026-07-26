@@ -33,13 +33,14 @@ import {
     importCodeSnippet,
 } from "./snippets";
 import {
-    calculateLocalStorageUsage,
+    logStorageUsage,
     generateId,
     getFileExtension,
     getOS,
     isImageFile,
     showToast,
 } from "./util";
+import { migrateLegacyStorage, MigrationResult } from "./legacy-storage";
 import { CodeMirrorManager } from "./editor/codemirror";
 import { MonacoManager } from "./editor/monaco";
 import { IEditorManager } from "./editor/types";
@@ -185,6 +186,9 @@ async function main() {
     initFolderStructure();
     initFileTreeState();
     await initializeFileSystem();
+    // Carries snippets over from the pre-2.2 localStorage filesystem. No-op once done.
+    // The result is handled at the end of main(), so a modal cannot block the rest of startup.
+    const migration = await migrateLegacyStorage();
     populateTemplateDialog();
     // Process Shared Token parameter
     const shareToken = getParameterByName("code");
@@ -242,7 +246,31 @@ async function main() {
         });
     }
     editorManager.focus();
-    calculateLocalStorageUsage();
+    logStorageUsage();
+    await offerExportIfNotPersisted(migration);
+}
+
+/**
+ * When the browser blocks persistent storage there is nothing to migrate *into* -- the snippets
+ * were copied into memory and disappear when the page closes. A toast is too easy to miss for
+ * something that loses work, so explain it properly and offer to save the snippets to a file.
+ */
+async function offerExportIfNotPersisted(migration: MigrationResult) {
+    if (migration.persisted || migration.migrated === 0) {
+        return;
+    }
+    const count = migration.migrated;
+    const exportNow = await showDialog(
+        `This browser is blocking persistent storage, so the ${count} code snippet(s) saved ` +
+            `here could not be upgraded. They are available in this session, but will be lost ` +
+            `when you close the page.\n\n` +
+            `Export them to a file now? You can bring them back later using the Import option.`,
+        "Export",
+        "Not Now"
+    );
+    if (exportNow) {
+        exportAllCode();
+    }
 }
 
 function updateButtons() {
@@ -379,9 +407,9 @@ function logToTerminal(data: any) {
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
     } else if (data?.level === "beacon") {
-            console.info(`%c${data.content}`, "color: #4A90E2");
+        console.info(`%c${data.content}`, "color: #4A90E2");
     } else if (data?.level === "debug") {
-            console.debug(`%c${data.content}`, "color: #888888")
+        console.debug(`%c${data.content}`, "color: #888888");
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
         let output = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
@@ -427,22 +455,34 @@ codeSelect.addEventListener("mousedown", async (e) => {
     savedValue = codeSelect.value;
 });
 
-function showDialog(message?: string): Promise<boolean> {
+function showDialog(
+    message?: string,
+    confirmLabel?: string,
+    cancelLabel?: string
+): Promise<boolean> {
     return new Promise((resolve) => {
         if (message) {
             dialogText.innerText = message;
         }
+        // The dialog is shared, so remember the default Yes/No labels and put them back.
+        const defaultConfirm = confirmButton.textContent;
+        const defaultCancel = cancelButton.textContent;
+        if (confirmLabel) {
+            confirmButton.textContent = confirmLabel;
+        }
+        if (cancelLabel) {
+            cancelButton.textContent = cancelLabel;
+        }
+        const finish = (result: boolean) => {
+            confirmButton.textContent = defaultConfirm;
+            cancelButton.textContent = defaultCancel;
+            confirmDialog.close();
+            resolve(result);
+        };
         confirmDialog.showModal();
 
-        confirmButton.onclick = () => {
-            confirmDialog.close();
-            resolve(true);
-        };
-
-        cancelButton.onclick = () => {
-            confirmDialog.close();
-            resolve(false);
-        };
+        confirmButton.onclick = () => finish(true);
+        cancelButton.onclick = () => finish(false);
     });
 }
 

@@ -66,7 +66,11 @@ Editor modes map from file extension in `loadFile()`: `.brs` → `brightscript`,
 
 ### Storage — `src/snippets.ts`
 
-ZenFS provides a Node-like `fs` API in the browser. `/code` is mounted on the `WebStorage` backend over `localStorage`; template zips are temporarily mounted at `/mnt/zip` via the `Zip` backend and copied out.
+ZenFS provides a Node-like `fs` API in the browser. `/code` is mounted on the **`IndexedDB`** backend (database `brsFiddle`, see `STORE_NAME`); template zips are temporarily mounted at `/mnt/zip` via the `Zip` backend and copied out.
+
+**Everything in `src/snippets.ts` is synchronous even though IndexedDB is async.** `IndexedDB.create()` preloads the whole store into an in-memory cache before resolving, and sync writes are queued back to IDB. That only holds because `main()` awaits `initializeFileSystem()` before the first read — do not call any `fs.*Sync` before it resolves. Where IndexedDB is unavailable, `initializeFileSystem()` falls back to `InMemory` and toasts a warning; `isStoragePersistent()` reports which happened.
+
+ZenFS never closes the `IDBDatabase` it opens, so anything that unmounts `/code` must close it first or a later `deleteDatabase()` blocks forever — see `unmountCode()` in `test/fs-helpers.ts`.
 
 Layout of a snippet:
 
@@ -78,7 +82,21 @@ Layout of a snippet:
   components/ images/ ...
 ```
 
-The 10-character id length is load-bearing: `populateCodeSelector` and `exportAllCode` enumerate `/code` and treat any entry of exactly length 10 as a snippet. `migrateOldSnippets` converts the v1.x format (raw code stored at a top-level 10-char localStorage key, optionally prefixed `@=Name=@`) into this structure and deletes the old key.
+The 10-character id length is load-bearing: `populateCodeSelector` and `exportAllCode` enumerate `/code` and treat any entry of exactly length 10 as a snippet.
+
+### Three storage generations
+
+Snippets have been stored three different ways, and startup has to cope with all of them:
+
+1. **v1.x** — raw code at a top-level 10-character `localStorage` key, optionally prefixed `@=Name=@`. Handled by `migrateOldSnippets()` in `src/snippets.ts`, which runs from `populateCodeSelector`.
+2. **v2.0–2.1.7** — a ZenFS **1.11.4** filesystem over `localStorage`. ZenFS 2.x cannot read it *at all*: inodes went from 72 to 4096 bytes and 2.0.0 dropped the upgrade path, so `readdirSync("/code")` throws `EIO` against that data. Handled by `src/legacy-storage.ts`.
+3. **current** — ZenFS 2.5.6 over IndexedDB.
+
+`src/legacy-storage.ts` bridges 2 → 3 on startup, guarded by a `brsFiddle.fsVersion` marker. It **dynamically imports** `zenfs-legacy-core` (an npm alias for `@zenfs/core@1.11.4`) so webpack splits ZenFS 1.x into its own ~177 KB chunk that only migrating users download — keep that import dynamic. The old `localStorage` bytes are deliberately left in place as a backup; a future release can delete them. On failure it leaves the marker unset so a fixed build retries.
+
+**The marker is only set when `isStoragePersistent()` is true.** If IndexedDB is blocked, the snippets are copied into the `InMemory` store so the session is usable, but setting the marker then would make a later session with working storage skip the migration and strand the data in `localStorage` forever. `migrateLegacyStorage()` returns `{ migrated, persisted }`; `main()` uses it to show `offerExportIfNotPersisted()` — a dialog explaining the limitation and offering `exportAllCode()` — because losing work deserves more than a toast.
+
+Two things this depends on: `webpack.config.js` sets `resolve.modules` to `["node_modules", ...]` (relative, not absolute) so the nested `utilium@1.x` that the legacy copy needs is resolvable; and nothing may write snippet data back into `localStorage`, or `legacyDataPresent()` would misread live data as needing migration.
 
 **Run mode is decided by `hasManifest(currentId)`**: with a manifest the whole snippet tree is zipped in memory with `fflate` and executed as a SceneGraph app; without one, the editor buffer is executed directly as a Draw2D `main.brs`.
 
@@ -86,13 +104,17 @@ Export/import uses a JSON envelope (`{ [id]: { name, files: { path: content } } 
 
 ## Testing — `test/`
 
-Vitest on jsdom, covering `src/snippets.ts`, `src/util.ts`, and `src/template-list.ts`. Tests run against the **real** ZenFS stack (WebStorage over jsdom's `localStorage`, the `Zip` backend, the actual files in `src/templates/`) — `fs` is never mocked, because storage is the thing under test. Only leaf side effects are stubbed: `toastify-js`, `file-saver`, and `URL.createObjectURL`.
+Vitest on jsdom, covering `src/snippets.ts`, `src/util.ts`, `src/template-list.ts`, and `src/legacy-storage.ts`. Tests run against the **real** ZenFS stack (the IndexedDB backend over `fake-indexeddb`, the `Zip` backend, the actual files in `src/templates/`) — `fs` is never mocked, because storage is the thing under test. Only leaf side effects are stubbed: `toastify-js`, `file-saver`, and `URL.createObjectURL`.
 
-Three constraints in `test/setup.ts` that are easy to break:
+`test/fixtures/zenfs-1.11.4-localstorage.json` is a verbatim capture of what ZenFS 1.11.4 wrote, produced by driving a real 1.11.4 install rather than written by hand. `test/storage-migration.test.ts` replays it to prove the bridge works against the format that actually shipped. Regenerate it only from a real 1.11.4 install.
+
+Four constraints in `test/setup.ts` and `test/fs-helpers.ts` that are easy to break:
+
+0. **`fake-indexeddb/auto` must be imported first** — jsdom has no IndexedDB at all.
 
 1. **The DOM fixture must exist before `src/snippets.ts` is imported** — that module captures `#code-selector`, `#file-system`, `.folder-structure`, `#image-panel`, `#image-preview` at module scope. `setupFiles` runs before test-file evaluation, which is what makes this work. For the same reason `resetDom()` resets those nodes *in place*; assigning `document.body.innerHTML` would detach the handles the module is holding.
-2. **Binary globals are realigned with Node's** (`globalThis.Uint8Array`, `globalThis.ArrayBuffer`). jsdom is a separate V8 realm, so its `Uint8Array` is not the one Node's `Buffer`/`TextEncoder` produce; ZenFS's `instanceof Uint8Array` guard then fails and surfaces as a spurious `"Storage is full."`. Browsers have one realm, so this is test-only.
-3. **`resetFs()` must unmount before re-configuring** — `fs.mount()` throws `EINVAL` on an occupied mount point, so calling `initializeFileSystem()` twice without unmounting `/code` (and `/mnt/zip`) fails.
+2. **Binary globals are realigned with Node's** (`globalThis.Uint8Array`, `globalThis.ArrayBuffer`). jsdom is a separate V8 realm, so those are not the constructors Node's `Buffer` and undici's `Response.arrayBuffer()` produce; `getSource()` in `@zenfs/archives` does `input instanceof ArrayBuffer` and rejects the fetched template zip. Both assignments are load-bearing — dropping either fails 15 template tests. Browsers have one realm, so this is test-only.
+3. **`resetFs()` must close the IDB connection, then unmount, then delete the database** — `fs.mount()` throws `EINVAL` on an occupied mount point, and `deleteDatabase()` blocks forever while a connection is open. `remountFs()` deliberately does *not* delete the database; that is what makes it a real durability check.
 
 `src/snippets.ts` keeps module-level state that leaks between tests in the same file: `currSelectedPath` (the save target, seeded by `loadCodeSnippet`/`highlightSelectedFile`) and `codeMap` (rebuilt by `populateCodeSelector`, read by `codeNameExists`). Set both explicitly rather than relying on test order.
 

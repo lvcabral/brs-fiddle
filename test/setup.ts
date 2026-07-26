@@ -5,17 +5,20 @@
  *
  *  Licensed under the MIT License. See LICENSE in the repository root for license information.
  *--------------------------------------------------------------------------------------------*/
+// jsdom has no IndexedDB; this installs `indexedDB`, `IDBFactory` and friends as globals.
+// Must come before anything that touches the storage layer.
+import "fake-indexeddb/auto";
 import { Buffer as NodeBuffer } from "node:buffer";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { vi } from "vitest";
 
-// jsdom lives in its own V8 realm, so `globalThis.Uint8Array` is not the constructor that
-// Node's Buffer, TextEncoder and undici's Response produce values from. ZenFS guards its
-// store with `input instanceof Uint8Array` (see `decodeRaw` in @zenfs/core), which fails
-// across that boundary and surfaces as a bogus "Storage is full." error. Realigning the
-// binary globals with Node's makes the cross-realm checks hold. This is purely a test
-// environment artifact -- a browser has a single realm.
+// jsdom lives in its own V8 realm, so `globalThis.ArrayBuffer` and `globalThis.Uint8Array` are
+// not the constructors that Node's Buffer and undici's `Response.arrayBuffer()` produce values
+// from. ZenFS branches on `instanceof` in places -- notably `getSource()` in @zenfs/archives,
+// which rejects a foreign ArrayBuffer and makes every template load fail -- so the binary
+// globals are realigned with Node's. Both assignments are required: dropping either one fails
+// 15 template tests. This is purely a test environment artifact; a browser has a single realm.
 globalThis.Uint8Array = Object.getPrototypeOf(NodeBuffer) as Uint8ArrayConstructor;
 globalThis.ArrayBuffer = NodeBuffer.from("").buffer.constructor as ArrayBufferConstructor;
 

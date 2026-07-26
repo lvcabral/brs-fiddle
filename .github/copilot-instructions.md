@@ -11,7 +11,8 @@ BrightScript Fiddle is a web-based code playground for the BrightScript language
 - **Syntax Highlighting**: Implemented once per backend — `src/editor/brightscript-monaco.ts` (Monarch tokenizer + theme) and `src/editor/brightscript-codemirror.ts` (CodeMirror mode)
 - **Snippet Management** (`src/snippets.ts`): ZenFS-based virtual file system for code storage and zip handling
 - **BrightScript Engine**: External `brs-engine` library for code execution via web workers, with `brs-scenegraph` loaded as the SceneGraph extension
-- **Virtual File System**: ZenFS with localStorage backend for persistent code storage
+- **Virtual File System**: ZenFS 2.5.6 with the IndexedDB backend for persistent code storage
+- **Legacy Bridge** (`src/legacy-storage.ts`): one-time migration from the pre-2.2 ZenFS-1.x-over-localStorage store
 
 ### Key Dependencies
 - `brs-engine`: BrightScript simulation engine (external, loaded via webpack)
@@ -28,8 +29,13 @@ BrightScript Fiddle is a web-based code playground for the BrightScript language
 - **Code Storage**: Virtual file system at `/code/{10-char-id}/` with `.snippet` metadata files holding the display name
 - **Snippet Layout**: `source/main.brs` is the entry point; a `manifest` file marks a SceneGraph project (alongside `components/`, `images/`, …)
 - **Template System**: Pre-built BrightScript examples in `src/templates/` (both `.brs` and `.zip` formats), copied to `app/templates/` and fetched at runtime
-- **Migration Logic**: Automatic conversion from v1.x localStorage format to ZenFS structure
+- **Three storage generations**, all handled at startup:
+  1. v1.x raw 10-char localStorage keys (optionally `@=Name=@`-prefixed) — `migrateOldSnippets()` in `src/snippets.ts`
+  2. v2.0–2.1.7 ZenFS **1.11.4** over localStorage — unreadable by 2.x (inodes went 72 → 4096 bytes and the upgrade path was dropped, so `readdirSync("/code")` throws EIO). Bridged by `src/legacy-storage.ts`
+  3. current: ZenFS 2.5.6 over IndexedDB (database `brsFiddle`)
+- The `brsFiddle.fsVersion` marker is set **only** when storage is persistent. If IndexedDB is blocked the snippets are copied into `InMemory` so the session works, but marking it done would make a later working session skip the migration. `migrateLegacyStorage()` returns `{ migrated, persisted }` and `main()` shows a dialog offering an export when `persisted` is false
 - The 10-character id length is load-bearing: `/code` enumeration treats any entry of exactly that length as a snippet
+- Nothing may write snippet data back into localStorage, or `legacyDataPresent()` misreads live data as needing migration
 
 ### Build System
 ```bash
@@ -72,7 +78,7 @@ In both cases the code goes to `brs-engine` via web worker (`brs.worker.js`); th
 `src/index.ejs` is the HTML template and `src/index.ts` grabs every DOM handle at module scope. Adding a control means editing both files. New code templates must be added to `src/templates/` **and** the registry in `src/template-list.ts` — `test/template-list.test.ts` fails if the two drift apart.
 
 ### Testing
-Vitest on jsdom in `test/`, covering `src/snippets.ts`, `src/util.ts`, and `src/template-list.ts`. Tests run against the real ZenFS stack and the real template files rather than mocking `fs`; only `toastify-js`, `file-saver`, and `URL.createObjectURL` are stubbed. `test/setup.ts` documents three environment constraints that are easy to break: the DOM fixture must exist before `src/snippets.ts` is imported (it captures handles at module scope), the binary globals are realigned with Node's to survive jsdom's separate realm, and `resetFs()` must unmount `/code` before re-configuring. `src/index.ts` and the editor modules are not covered.
+Vitest on jsdom in `test/`, covering `src/snippets.ts`, `src/util.ts`, `src/template-list.ts`, and `src/legacy-storage.ts`. Tests run against the real ZenFS stack (IndexedDB via `fake-indexeddb`) and the real template files rather than mocking `fs`; only `toastify-js`, `file-saver`, and `URL.createObjectURL` are stubbed. `test/setup.ts` and `test/fs-helpers.ts` document the environment constraints that are easy to break: `fake-indexeddb/auto` must be imported first, the DOM fixture must exist before `src/snippets.ts` is imported (it captures handles at module scope), the binary globals are realigned with Node's to survive jsdom's separate realm, and `resetFs()` must close the IDB connection before unmounting or `deleteDatabase()` blocks forever. `test/fixtures/zenfs-1.11.4-localstorage.json` is a verbatim capture from a real 1.11.4 install, replayed by `test/storage-migration.test.ts`. `src/index.ts` and the editor modules are not covered.
 
 ### Deployment Process
 - **GitHub Pages**: Automatic deployment via `.github/workflows/build-github.yml` on master push (`npm install && npm run release`, publishes `app/`)
@@ -125,12 +131,14 @@ GitHub Pages cannot set these, so `coi-serviceworker` installs a service worker 
 Network calls from BrightScript go through the proxy configured as `corsProxy` in `main()`; it is disabled when running on `localhost`.
 
 ### File System Abstraction
-ZenFS provides Node.js-like filesystem APIs in browser:
+ZenFS provides Node.js-like filesystem APIs in browser. `/code` is mounted on **IndexedDB**; `src/snippets.ts` stays fully synchronous because `IndexedDB.create()` preloads the store into memory before resolving — so nothing may call `fs.*Sync` before `await initializeFileSystem()`. If IndexedDB is unavailable it falls back to `InMemory` with a warning toast (`isStoragePersistent()` reports which).
 ```typescript
 fs.readdirSync("/code")           // List code snippets
 fs.writeFileSync(path, content)   // Save files
 await fs.configure({ mounts: ... }) // Setup virtual mounts
 ```
 Template zips are temporarily mounted at `/mnt/zip` with the `Zip` backend and copied out into `/code/{id}/`.
+
+The legacy bridge imports `zenfs-legacy-core` (npm alias for `@zenfs/core@1.11.4`) **dynamically**, so webpack splits ZenFS 1.x into its own ~177 KB chunk that only migrating users download. Keep that import dynamic, and keep `resolve.modules` in `webpack.config.js` relative (`"node_modules"`, not an absolute path) so the nested `utilium@1.x` it needs resolves.
 
 This architecture enables a full BrightScript development environment in the browser while maintaining compatibility with Roku's ecosystem and providing seamless code sharing capabilities.

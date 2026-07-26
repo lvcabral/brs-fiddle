@@ -102,7 +102,12 @@ module.exports = (env) => {
                 ],
             },
             resolve: {
-                modules: [path.resolve("./node_modules"), path.resolve("./src")],
+                // "node_modules" (relative) rather than an absolute path, so webpack does the
+                // standard upward walk and can find nested dependencies. The legacy ZenFS copy
+                // used by the storage migration needs its own utilium 1.x, which lives in
+                // node_modules/zenfs-legacy-core/node_modules and is invisible to an
+                // absolute-only lookup.
+                modules: ["node_modules", path.resolve("./src")],
                 extensions: [".tsx", ".ts", ".js"],
             },
             output: {
