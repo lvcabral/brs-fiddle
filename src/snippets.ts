@@ -315,8 +315,13 @@ export function codeSnippetExists(codeId: string): boolean {
     return fs.existsSync(`/code/${codeId}`);
 }
 
-export function codeNameExists(codeName: string) {
-    return Array.from(codeMap.values()).includes(codeName);
+export function codeNameExists(codeName: string): string | undefined {
+    for (const [id, name] of codeMap.entries()) {
+        if (name === codeName) {
+            return id;
+        }
+    }
+    return undefined;
 }
 
 export function hasManifest(codeId: string) {

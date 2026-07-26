@@ -535,8 +535,21 @@ function populateTemplatesMenu() {
             // The menu lives inside the button; without this the toggle handler reopens it.
             event.stopPropagation();
             closeHeaderMenus();
-            if (codeNameExists(template.name)) {
-                showToast("There is already a code snippet with this Name!", 3000, true);
+            const existingId = codeNameExists(template.name);
+            if (existingId) {
+                // Snippet with this name already exists — switch to it
+                if (isCodeChanged) {
+                    const confirmed = await showDialog(
+                        "There are unsaved changes, do you want to save before switching?"
+                    );
+                    if (confirmed) {
+                        saveCode(false);
+                    }
+                }
+                populateCodeSelector(existingId);
+                loadCode(existingId);
+                editorManager.clearHistory();
+                editorManager.focus();
                 return;
             }
             currentId = generateId();
