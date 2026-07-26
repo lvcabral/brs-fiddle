@@ -153,8 +153,8 @@ describe("snippet persistence", () => {
             renameCodeSnippet(ID, "New Name");
 
             expect(readFileContent(`/code/${ID}/.snippet`)).toBe("New Name");
-            expect(codeNameExists("New Name")).toBe(true);
-            expect(codeNameExists("Old Name")).toBe(false);
+            expect(codeNameExists("New Name")).toBe(ID);
+            expect(codeNameExists("Old Name")).toBeUndefined();
         });
 
         it("does not move the snippet directory", () => {
@@ -213,13 +213,15 @@ describe("snippet persistence", () => {
             expect(hasManifest(OTHER_ID)).toBe(true);
         });
 
-        it("codeNameExists reflects what populateCodeSelector last loaded", () => {
+        // Returns the id rather than a boolean so callers can switch to the
+        // snippet that already owns the name instead of just rejecting it.
+        it("codeNameExists returns the matching id, and only what populateCodeSelector last loaded", () => {
             saveCodeSnippetMaster(ID, "My Code", "print 1");
 
-            expect(codeNameExists("My Code")).toBe(false); // codeMap not populated yet
+            expect(codeNameExists("My Code")).toBeUndefined(); // codeMap not populated yet
             populateCodeSelector(ID);
-            expect(codeNameExists("My Code")).toBe(true);
-            expect(codeNameExists("Missing")).toBe(false);
+            expect(codeNameExists("My Code")).toBe(ID);
+            expect(codeNameExists("Missing")).toBeUndefined();
         });
     });
 
