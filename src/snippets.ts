@@ -11,7 +11,12 @@ import { Zip } from "@zenfs/archives";
 import { IndexedDB } from "@zenfs/dom";
 // `Buffer` is a Node global, not a browser one, and webpack does not provide it. Importing it
 // explicitly keeps base64 image decoding working in the bundle.
-import { Buffer } from "buffer";
+//
+// This must stay unprefixed: `node:buffer` resolves to the Node builtin, which webpack refuses to
+// bundle for the browser ("UnhandledSchemeError: Reading from node:buffer is not handled by
+// plugins"). The bare specifier is what picks up the `buffer` npm polyfill instead. Sonar's
+// prefer-node-protocol rule assumes a Node runtime and does not apply here.
+import { Buffer } from "buffer"; // NOSONAR
 import { zipSync, strToU8, Zippable } from "fflate";
 import { saveAs } from "file-saver";
 import {
@@ -70,7 +75,7 @@ export async function initializeFileSystem() {
 async function indexedDbAvailable() {
     // `isAvailable` does `idbFactory instanceof IDBFactory`, which throws rather than returning
     // false when the environment has no IndexedDB at all, so check for it first.
-    if (!globalThis.indexedDB || typeof globalThis.IDBFactory === "undefined") {
+    if (!globalThis.indexedDB || globalThis.IDBFactory === undefined) {
         return false;
     }
     try {

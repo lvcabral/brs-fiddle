@@ -43,7 +43,9 @@ function deleteDatabase() {
     return new Promise<void>((resolve, reject) => {
         const request = indexedDB.deleteDatabase(STORE_NAME);
         request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
+        // `request.error` is a nullable DOMException; wrap it so the rejection is always an Error.
+        request.onerror = () =>
+            reject(new Error(`deleteDatabase failed: ${request.error?.message ?? "unknown"}`));
         request.onblocked = () =>
             reject(new Error("deleteDatabase blocked: an IDB connection is still open"));
     });
@@ -87,9 +89,14 @@ export function resetDom() {
     select.length = 0;
     select.options[0] = new Option("Select a code snippet", "0");
     (document.getElementById("file-system") as HTMLDivElement).innerHTML = "";
-    (document.querySelector(".folder-structure") as HTMLDivElement)
-        .querySelectorAll("li")
-        .forEach((li) => li.remove());
+    // Array.from because `lib` omits DOM.Iterable, so a NodeList is not typed as iterable.
+    // The list is static either way, so removing while iterating is safe.
+    const treeItems = (
+        document.querySelector(".folder-structure") as HTMLDivElement
+    ).querySelectorAll("li");
+    for (const li of Array.from(treeItems)) {
+        li.remove();
+    }
     (document.getElementById("image-panel") as HTMLDivElement).style.display = "";
     (document.getElementById("image-preview") as HTMLImageElement).src = "";
 }
@@ -111,6 +118,6 @@ export function writeTree(codeId: string, files: Record<string, string | Uint8Ar
         const full = `/code/${codeId}/${path}`;
         const dir = full.slice(0, full.lastIndexOf("/"));
         fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(full, content as never);
+        fs.writeFileSync(full, content);
     }
 }

@@ -74,7 +74,7 @@ function createLegacyStore(legacy: any, storage: Storage) {
             return new legacy.SyncMapTransaction(this);
         },
         keys() {
-            return Object.keys(storage).map((k) => Number(k));
+            return Object.keys(storage).map(Number);
         },
         get(key: number) {
             const data = storage.getItem(key.toString());

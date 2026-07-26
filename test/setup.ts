@@ -47,7 +47,7 @@ globalThis.URL.revokeObjectURL = vi.fn();
 
 /** The most recent blob passed to `URL.createObjectURL()`. */
 export function lastCreatedBlob(): Blob {
-    return createdBlobs[createdBlobs.length - 1];
+    return createdBlobs.at(-1) as Blob;
 }
 
 export function clearCreatedBlobs() {
@@ -79,7 +79,15 @@ const TEMPLATE_DIR = resolve(__dirname, "../src/templates");
  */
 export function installFetchStub() {
     const fetchStub = vi.fn(async (input: RequestInfo | URL) => {
-        const url = typeof input === "string" ? input : input.toString();
+        // A Request stringifies to "[object Request]", so read its .url rather than toString()ing it.
+        let url: string;
+        if (typeof input === "string") {
+            url = input;
+        } else if (input instanceof URL) {
+            url = input.href;
+        } else {
+            url = input.url;
+        }
         const match = /templates\/([^/?#]+)$/.exec(url);
         if (match) {
             try {
@@ -91,7 +99,7 @@ export function installFetchStub() {
         }
         return new Response(null, { status: 404, statusText: "Not Found" });
     });
-    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    globalThis.fetch = fetchStub as typeof fetch;
     return fetchStub;
 }
 

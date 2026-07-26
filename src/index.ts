@@ -426,9 +426,9 @@ function logToTerminal(data: any) {
     } else if (data?.level !== "beacon" && typeof data?.content === "string") {
         let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         if (data.level === "print") {
-            const promptLen = `${prompt}&gt; `.length;
-            if (output.slice(-promptLen) === `${prompt}&gt; `) {
-                output = output.slice(0, output.length - promptLen);
+            const promptSuffix = `${prompt}&gt; `;
+            if (output.endsWith(promptSuffix)) {
+                output = output.slice(0, -promptSuffix.length);
             }
         } else if (data.level === "warning") {
             output = "<span style='color: #d7ba7d;'>" + output + "</span>";

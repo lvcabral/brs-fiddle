@@ -38,7 +38,7 @@ export const getOS = () => {
  * like Safari and is deliberately not matched here.
  */
 export function isFirefox(): boolean {
-    return /\bFirefox\/\d/.test(window.navigator.userAgent);
+    return /\bFirefox\/\d/.test(globalThis.navigator.userAgent);
 }
 
 /**

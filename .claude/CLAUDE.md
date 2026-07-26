@@ -23,7 +23,7 @@ npm run clean        # rimraf ./types ./app
 
 Single file: `npx vitest run test/snippets-save.test.ts`. Single test: `npx vitest run -t "deep-copies"`.
 
-`npm run lint` reports 6 **pre-existing** errors (`src/index.ts`, `src/util.ts`, `src/editor/`), and `src/index.ts` + `src/editor/codemirror.ts` are not Prettier-clean. Both were already true on `master`, which is why CI runs tests and the build but not lint — check against `master` before treating either as your regression.
+`npm run lint` passes clean (exit 0) as of v2.2.0 — the 6 errors that used to be pre-existing are gone, so a lint error now *is* your regression. `src/index.ts`, `src/editor/codemirror.ts` and the CSS under `src/styles/` + `src/themes/` are still not Prettier-clean (the last two groups are vendored); that was already true on `master`, so check against `master` before treating it as yours. CI runs tests and the build, not lint.
 
 `app/` is the build output and is gitignored — never edit files there; edit `src/` and rebuild.
 
@@ -128,6 +128,23 @@ Not covered: `src/index.ts` (share links, state, hotkeys, engine events) — its
 - The `.snippet` name, not the directory name, is the user-visible snippet title; a leading `• ` in the selector marks unsaved changes and is stripped with `.replace(/^• /, "")` wherever the name is read back.
 - User feedback goes through `showToast()` from `src/util.ts`; errors pass `true` as the third argument.
 - CORS-restricted fetches from BrightScript go through a proxy (`corsProxy` in `main()`), disabled on `localhost`.
+
+### Style rules SonarCloud enforces that the linter cannot
+
+SonarCloud gates every PR (`new_reliability_rating` and `new_security_rating` must be 1, i.e. **zero** new bugs and vulnerabilities). tslint has been deprecated since 2019 and has none of the rules below, so nothing catches these before the PR turns red — apply them by hand. Of the set, only `no-unnecessary-type-assertion` is machine-checked, and only over `src/` (`tsconfig.json` sets `include: ["./src/"]`, so `test/` is linted and typechecked by nothing).
+
+- Prefer `globalThis` over `window` (S7764). The codebase already uses `globalThis.innerWidth` and friends.
+- Compare with `undefined` directly instead of `typeof x === "undefined"` (S7741). Safe on `globalThis.Foo` — a property access never throws on an undeclared name.
+- `String#endsWith`/`startsWith` instead of comparing a `slice()` (S6557).
+- `.map(Number)`, not `.map((x) => Number(x))` (S7770). Safe for `Number`, which ignores the extra index/array args — *not* for `parseInt`, whose second parameter is the radix.
+- `.at(-1)` instead of `arr[arr.length - 1]` (S7755). It returns `T | undefined`, so a cast is usually needed and is *not* a redundant assertion.
+- `for…of` instead of `.forEach()` (S7728). `lib` omits `DOM.Iterable`, so a `NodeList` needs `Array.from()` first.
+- Reject with an `Error`, never a bare `DOMException` or string (S6671) — e.g. wrap `request.error`, which is also nullable.
+- Never `String()`/template-interpolate a `Request`; it stringifies to `[object Request]` (S6551). Read `.url`, or `.href` for a `URL`.
+- No redundant type assertions (S4325) — this one `npm run lint` now catches.
+- Prefer `node:`-prefixed builtin imports (S7772) **only in `test/`**, which runs under Node. In `src/` the bare specifier is load-bearing: `node:buffer` resolves to the Node builtin, which webpack refuses to bundle for the browser (`UnhandledSchemeError`), while `"buffer"` picks up the npm polyfill. The import in `src/snippets.ts` carries a `// NOSONAR` for exactly this reason; don't "fix" it.
+
+Sonar reports against **new** code, so these bite on the lines a PR touches. `// NOSONAR` on the offending line is the escape hatch, and it needs a comment saying why.
 
 ## Release & deploy
 
