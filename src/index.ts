@@ -179,6 +179,14 @@ for (const element of Array.from(indentSizeElements)) {
 let currentApp = { id: "", running: false };
 let consoleLogsContainer = document.getElementById("console-logs") as HTMLDivElement;
 let isResizing = false;
+// Widths set by dragging the column separator, reapplied when the layout returns
+// to two columns (the stacked layout forces both to 100%).
+let draggedCodeWidth = "";
+let draggedRightWidth = "";
+// Must match the .display-header/.console-header height and #console-logs
+// min-height in default.css.
+const HEADER_HEIGHT = 44;
+const MIN_CONSOLE_HEIGHT = 60;
 let editorManager: IEditorManager;
 let currentId = generateId();
 let isCodeChanged = false;
@@ -938,34 +946,36 @@ function resizeColumn() {
 }
 
 function resizeCanvas() {
-    let width = displayCanvas.width;
-    let height = displayCanvas.height;
-    if (globalThis.innerWidth >= 1220) {
-        const rightRect = rightContainer.getBoundingClientRect();
-        width = rightRect.width;
-        height = Math.trunc((width * 9) / 16);
-    } else {
-        height = globalThis.innerHeight / 3;
+    const rightRect = rightContainer.getBoundingClientRect();
+    let width = rightRect.width;
+    let height = Math.trunc((width * 9) / 16);
+    // The display shares its column with the console, so cap its height and let
+    // the 16:9 ratio give back the width. Stacked layout gets the tighter cap
+    // because the column is only half as tall to begin with. The column is
+    // `flex: 1 1 0`, so its height doesn't depend on the canvas — measuring it
+    // here can't feed back into the size we're computing.
+    const maxHeight =
+        globalThis.innerWidth < 1220
+            ? Math.trunc(rightRect.height / 2)
+            : rightRect.height - 2 * HEADER_HEIGHT - MIN_CONSOLE_HEIGHT;
+    if (height > maxHeight) {
+        height = Math.max(maxHeight, 0);
         width = Math.trunc((height * 16) / 9);
-        if (width > globalThis.innerWidth) {
-            width = globalThis.innerWidth;
-            height = Math.trunc((width * 9) / 16);
-        }
     }
     brs.redraw(false, width, height);
 }
 
 function onResize() {
+    if (globalThis.innerWidth < 1220) {
+        codeColumn.style.width = "100%";
+    } else {
+        // Restore whatever the separator was last dragged to (empty string falls
+        // back to the stylesheet default).
+        codeColumn.style.width = draggedCodeWidth;
+        rightContainer.style.width = draggedRightWidth;
+    }
     resizeCanvas();
     editorManager.layout();
-    if (globalThis.innerWidth >= 1220) {
-        consoleLogsContainer.style.height = `100%`;
-    } else {
-        codeColumn.style.width = "100%";
-        const consoleRect = consoleLogsContainer.getBoundingClientRect();
-        const logHeight = globalThis.innerHeight - consoleRect.top;
-        consoleLogsContainer.style.height = `${logHeight}px`;
-    }
     scrollToBottom();
 }
 
@@ -980,8 +990,10 @@ function onMouseMove(e: any) {
         const codeColumnWidth = `${width - separatorPosition}px`;
 
         const rightRect = rightContainer.getBoundingClientRect();
-        codeColumn.style.width = codeColumnWidth;
-        rightContainer.style.width = `${rightRect.width}px`;
+        draggedCodeWidth = codeColumnWidth;
+        draggedRightWidth = `${rightRect.width}px`;
+        codeColumn.style.width = draggedCodeWidth;
+        rightContainer.style.width = draggedRightWidth;
         resizeCanvas();
 
         setTimeout(() => {
