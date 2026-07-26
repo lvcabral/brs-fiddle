@@ -240,7 +240,7 @@ async function main() {
             {
                 developerId: appId,
                 corsProxy: corsProxy,
-                extensions: new Map([[brs.SupportedExtension.SceneGraph, "./brs-sg.js"]]),
+                extensions: new Map([[brs.SupportedExtension.SceneGraph, `./brs-sg.js?v=${packageInfo.version}`]]),
             },
             {
                 debugToConsole: false,
