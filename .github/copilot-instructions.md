@@ -36,10 +36,15 @@ BrightScript Fiddle is a web-based code playground for the BrightScript language
 npm run build      # Development build
 npm run release    # Production build (minified)
 npm start          # Dev server with hot reload on :8500
+npm test           # Vitest, single run (npx vitest run <file> for one file)
+npm run test:watch # Vitest in watch mode
+npm run test:coverage
 npm run lint       # tslint (legacy config, still the linter of record)
 npm run prettier   # Format check; prettier:write to fix
 ```
-There is no test suite — verification is manual via `npm start`. `app/` is build output and is gitignored; never edit it directly.
+`app/` is build output and is gitignored; never edit it directly.
+
+`npm run lint` has 6 **pre-existing** errors and two files are not Prettier-clean, both already true on `master` — CI runs tests and the build, not lint. Check against `master` before assuming a lint failure is yours.
 
 ### Code Editor Integration
 - Language changes usually need mirroring in **both** `brightscript-monaco.ts` and `brightscript-codemirror.ts`
@@ -64,7 +69,10 @@ Run mode is decided by `hasManifest(currentId)`:
 In both cases the code goes to `brs-engine` via web worker (`brs.worker.js`); the engine provides terminal output through `@lvcabral/terminal` and renders graphics/media on the display canvas. Engine events (`loaded`/`started`/`debug`/`closed`/`error`) arrive via `brs.subscribe` and drive the Run/Break/Resume/End buttons. Cross-Origin Isolation (COOP/COEP headers) is required for SharedArrayBuffer support.
 
 ### UI Changes
-`src/index.ejs` is the HTML template and `src/index.ts` grabs every DOM handle at module scope. Adding a control means editing both files. New code templates must be added to `src/templates/` **and** the `templates` array in `src/index.ts`.
+`src/index.ejs` is the HTML template and `src/index.ts` grabs every DOM handle at module scope. Adding a control means editing both files. New code templates must be added to `src/templates/` **and** the registry in `src/template-list.ts` — `test/template-list.test.ts` fails if the two drift apart.
+
+### Testing
+Vitest on jsdom in `test/`, covering `src/snippets.ts`, `src/util.ts`, and `src/template-list.ts`. Tests run against the real ZenFS stack and the real template files rather than mocking `fs`; only `toastify-js`, `file-saver`, and `URL.createObjectURL` are stubbed. `test/setup.ts` documents three environment constraints that are easy to break: the DOM fixture must exist before `src/snippets.ts` is imported (it captures handles at module scope), the binary globals are realigned with Node's to survive jsdom's separate realm, and `resetFs()` must unmount `/code` before re-configuring. `src/index.ts` and the editor modules are not covered.
 
 ### Deployment Process
 - **GitHub Pages**: Automatic deployment via `.github/workflows/build-github.yml` on master push (`npm install && npm run release`, publishes `app/`)

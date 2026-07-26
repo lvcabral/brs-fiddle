@@ -43,6 +43,7 @@ import {
 import { CodeMirrorManager } from "./editor/codemirror";
 import { MonacoManager } from "./editor/monaco";
 import { IEditorManager } from "./editor/types";
+import { templates } from "./template-list";
 import packageInfo from "../package.json";
 
 const appId = "brsFiddle";
@@ -85,21 +86,6 @@ const folderStructure = document.querySelector(".folder-structure") as HTMLDivEl
 const fileSystemDiv = document.getElementById("file-system") as HTMLDivElement;
 const simpleFileSystem = fileSystemDiv.innerHTML;
 const templateDialog = document.getElementById("template-dialog") as HTMLDialogElement;
-
-// Code Templates
-const templates = [
-    { name: "Hello World (Draw2D)", path: "hello-world.brs" },
-    { name: "Snake Game (Draw2D)", path: "snake-game.brs" },
-    { name: "Ball Boing (Draw2D)", path: "ball-boing.brs" },
-    { name: "Collisions (Draw2D)", path: "collisions.zip" },
-    { name: "Hello World (SceneGraph)", path: "hello-world.zip" },
-    { name: "Simple Task (SceneGraph)", path: "simple-task.zip" },
-    { name: "Bounding Rect (SceneGraph)", path: "bounding-rect.zip" },
-    { name: "Label List (SceneGraph)", path: "label-list.zip" },
-    { name: "Markup Grid (SceneGraph)", path: "markup-grid.zip" },
-    { name: "Keyboard Dlg (SceneGraph)", path: "keyboard-dialog.zip" },
-    { name: "Video List (SceneGraph)", path: "video-list.zip" },
-];
 
 // Restore Last State
 const lastState = loadState();

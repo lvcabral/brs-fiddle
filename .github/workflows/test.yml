@@ -1,0 +1,26 @@
+name: Test
+
+on:
+  push:
+    branches-ignore:
+      - old
+  pull_request:
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get latest code
+      uses: actions/checkout@v4
+
+    - name: Install Node.js and NPM
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+
+    - run: npm ci
+    - run: npm test
+    - run: npm run build

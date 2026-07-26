@@ -13,12 +13,17 @@ npm install          # setup
 npm run build        # development build -> app/
 npm run release      # production (minified) build -> app/
 npm start            # webpack dev server on http://localhost:8500 (opens browser)
+npm test             # vitest, single run
+npm run test:watch   # vitest in watch mode
+npm run test:coverage
 npm run lint         # tslint (legacy config, still the linter of record)
 npm run prettier     # check formatting; `npm run prettier:write` to fix
 npm run clean        # rimraf ./types ./app
 ```
 
-There is no test suite and no test runner configured. Verification is manual: `npm start`, then run a snippet in the browser.
+Single file: `npx vitest run test/snippets-save.test.ts`. Single test: `npx vitest run -t "deep-copies"`.
+
+`npm run lint` reports 6 **pre-existing** errors (`src/index.ts`, `src/util.ts`, `src/editor/`), and `src/index.ts` + `src/editor/codemirror.ts` are not Prettier-clean. Both were already true on `master`, which is why CI runs tests and the build but not lint — check against `master` before treating either as your regression.
 
 `app/` is the build output and is gitignored — never edit files there; edit `src/` and rebuild.
 
@@ -45,7 +50,7 @@ Notable behaviors:
 - **State** persists under `localStorage["brsFiddle.state"]` (`loadState`/`saveState`): selected snippet id, audio/keyboard/gamepad switches, dark theme, file-tree visibility, indentation type/size.
 - **Engine events** arrive through `brs.subscribe(appId, handleEngineEvents)` — `loaded`/`started`/`debug`/`closed`/`error` toggle the Run/Break/Resume/End buttons and pipe debug output into the `@lvcabral/terminal` console. Terminal input that the terminal doesn't handle is forwarded to `brs.debug(...)`.
 - **Share links** compress `[id, code]` with `json-url`'s LZMA codec into a `?code=` query param. When a snippet has a name it is prefixed inline as `@=Name=@<code>`. Decoding writes into `localStorage` and reloads the base URL. Links over 2048 bytes warn the user.
-- **Templates** are declared in the `templates` array at the top of the file, with files under `src/templates/` (copied to `app/templates/` and fetched at runtime). `.brs` templates load as a single source file; `.zip` templates are full SceneGraph projects. A new template must be added to both places.
+- **Templates** are declared in `src/template-list.ts`, with files under `src/templates/` (copied to `app/templates/` and fetched at runtime). `.brs` templates load as a single source file; `.zip` templates are full projects. A new template must be added to both places — `test/template-list.test.ts` fails if the registry and the directory drift apart.
 - **Layout** is manually managed: `resizeCanvas` keeps the display canvas 16:9, the drag separator resizes the code column, and `editorManager.layout()` must be called after any size change.
 
 ### Editors — `src/editor/`
@@ -78,6 +83,20 @@ The 10-character id length is load-bearing: `populateCodeSelector` and `exportAl
 **Run mode is decided by `hasManifest(currentId)`**: with a manifest the whole snippet tree is zipped in memory with `fflate` and executed as a SceneGraph app; without one, the editor buffer is executed directly as a Draw2D `main.brs`.
 
 Export/import uses a JSON envelope (`{ [id]: { name, files: { path: content } } }`) with images inlined as `data:image/…;base64` — not the same format as the zip used for execution.
+
+## Testing — `test/`
+
+Vitest on jsdom, covering `src/snippets.ts`, `src/util.ts`, and `src/template-list.ts`. Tests run against the **real** ZenFS stack (WebStorage over jsdom's `localStorage`, the `Zip` backend, the actual files in `src/templates/`) — `fs` is never mocked, because storage is the thing under test. Only leaf side effects are stubbed: `toastify-js`, `file-saver`, and `URL.createObjectURL`.
+
+Three constraints in `test/setup.ts` that are easy to break:
+
+1. **The DOM fixture must exist before `src/snippets.ts` is imported** — that module captures `#code-selector`, `#file-system`, `.folder-structure`, `#image-panel`, `#image-preview` at module scope. `setupFiles` runs before test-file evaluation, which is what makes this work. For the same reason `resetDom()` resets those nodes *in place*; assigning `document.body.innerHTML` would detach the handles the module is holding.
+2. **Binary globals are realigned with Node's** (`globalThis.Uint8Array`, `globalThis.ArrayBuffer`). jsdom is a separate V8 realm, so its `Uint8Array` is not the one Node's `Buffer`/`TextEncoder` produce; ZenFS's `instanceof Uint8Array` guard then fails and surfaces as a spurious `"Storage is full."`. Browsers have one realm, so this is test-only.
+3. **`resetFs()` must unmount before re-configuring** — `fs.mount()` throws `EINVAL` on an occupied mount point, so calling `initializeFileSystem()` twice without unmounting `/code` (and `/mnt/zip`) fails.
+
+`src/snippets.ts` keeps module-level state that leaks between tests in the same file: `currSelectedPath` (the save target, seeded by `loadCodeSnippet`/`highlightSelectedFile`) and `codeMap` (rebuilt by `populateCodeSelector`, read by `codeNameExists`). Set both explicitly rather than relying on test order.
+
+Not covered: `src/index.ts` (share links, state, hotkeys, engine events) — its module scope builds a `WebTerminal` and calls `brs.getVersion()`, so it cannot be imported without a wider refactor. The editor modules need a live Monaco/CodeMirror instance.
 
 ## Conventions
 

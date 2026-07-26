@@ -8,6 +8,9 @@
 import * as fs from "@zenfs/core";
 import { Zip } from "@zenfs/archives";
 import { WebStorage } from "@zenfs/dom";
+// `Buffer` is a Node global, not a browser one, and webpack does not provide it. Importing it
+// explicitly keeps base64 image decoding working in the bundle.
+import { Buffer } from "buffer";
 import { zipSync, strToU8, Zippable } from "fflate";
 import { saveAs } from "file-saver";
 import { generateId, getIcon, getMimeType, isImageFile, showToast } from "./util";
