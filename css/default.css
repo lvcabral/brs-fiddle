@@ -105,6 +105,8 @@ pre {
 }
 .index-page {
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
     max-height: -moz-available;
     /* WebKit-based browsers will ignore this. */
@@ -113,7 +115,8 @@ pre {
     max-height: fill-available;
     background: var(--background-color);
 }
-.more-options {
+.more-options,
+.menu-button {
     position: relative;
 }
 .dropdown {
@@ -194,6 +197,11 @@ pre {
     width: 12px;
     font-size: 12px;
 }
+/* The template registry grows over time, so this menu scrolls instead of overflowing the page. */
+.templates-dropdown {
+    max-height: 60vh;
+    overflow-y: auto;
+}
 .console {
     width: 100%;
     display: contents;
@@ -201,6 +209,7 @@ pre {
 }
 .console .console-header {
     height: 44px;
+    flex: 0 0 auto;
     background: var(--header-background-color);
     display: flex;
     justify-content: space-between;
@@ -263,14 +272,27 @@ pre {
     box-shadow: none;
     padding-top: 5px !important;
 }
+/* flex-basis 0 wins over `height` for the main size, so the log pane fills the
+   leftover space regardless of any inline height left over from a resize. */
 .editor .console #console-logs {
     font-size: 12px;
     height: 100%;
     overflow: auto;
+    flex: 1 1 0;
+    min-height: 60px;
 }
+/* `.console` is `display: contents`, so the display block, the console header and
+   the log pane are all direct flex children of #right-container: the first two are
+   sized by their content and the logs absorb the remainder. */
 .simulator-display {
     width: 100%;
     background: var(--background-color);
+    /* Sized by the canvas, but allowed to shrink: #console-logs has flex-basis 0
+       and so contributes no shrink factor, which means an oversized canvas is
+       clipped here instead of pushing the console out of the column. */
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 .simulator-display .display-header {
     width: 100%;
@@ -323,16 +345,22 @@ pre {
     display: flex;
     flex: 1 1 0%;
     flex-direction: column;
-    height: calc(100vh - 55px);
+    height: 100%;
     min-width: 482px;
+    min-height: 0;
 }
 #display {
     width: 100%;
     height: 100%;
+    max-width: 100%;
     object-fit: contain;
     background-color: black;
     opacity: 1;
     z-index: 20;
+    /* The engine sets an explicit pixel size; centre it when it is narrower
+       than the column (happens in the stacked layout). */
+    display: block;
+    margin: 0 auto;
 }
 #player {
     opacity: 0;
@@ -341,11 +369,12 @@ pre {
 }
 .code {
     background: var(--background-color);
-    height: calc(100vh - 72px);
+    height: 100%;
     width: 60%;
     min-width: 750px;
     display: flex;
     flex-direction: column;
+    min-height: 0;
 }
 .code .code-header {
     background: var(--header-background-color);
@@ -484,14 +513,23 @@ pre {
     height: 100%;
 }
 
+/* The header is fixed-size; the editor takes whatever vertical space is left.
+   This is what gives every descendant a *definite* height to resolve against —
+   without it the percentage heights below collapse to content size. */
 .editor {
     display: flex;
     width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 .editor .console {
     height: auto;
     display: contents;
 }
+/* Single-column layout: code on top, display + console below. Both halves are
+   flex-sized (never content-sized) so the file tree can't stretch the code column
+   and push the display and console off-screen. */
 @media (max-width: 1220px) {
     .code {
         min-width: unset;
@@ -502,16 +540,34 @@ pre {
     #right-container {
         width: 100% !important;
         min-width: unset;
+        height: auto;
+        flex: 1 1 0;
     }
     .editor {
         flex-direction: column;
     }
     .editor .code,
     .editor .console {
-        width: 100%;
+        width: 100% !important;
     }
     .editor .code {
-        height: 50%;
+        height: auto;
+        flex: 1 1 0;
+        min-height: 132px;
+    }
+    /* Dragging the column divider is meaningless once the panes are stacked. */
+    .layout-separator {
+        display: none;
+    }
+    /* Keep the tree from crowding out the editor on a narrow screen. */
+    .folder-structure {
+        max-width: 45%;
+        overflow-x: auto;
+    }
+    /* Drop the "Code" label so the snippet selector shifts left and leaves more
+       room for the buttons. Scoped to this header so "Display" is untouched. */
+    .code .code-header h4 > span {
+        display: none;
     }
     button {
         font-size: 14px;
@@ -696,24 +752,6 @@ select {
     margin-top: 10px;
 }
 
-.template-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.template-list li {
-    padding: 10px;
-    margin: 5px 0;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.template-list li:hover {
-    background-color: var(--button-background-color);
-}
-
 /*!
    * Toastify js 1.11.1
    * https://github.com/apvarun/toastify-js
@@ -795,6 +833,7 @@ select {
 .header {
     background: var(--background-color);
     color: var(--header-color);
+    flex: 0 0 auto;
 }
 @media (max-width: 560px) {
     .header {
