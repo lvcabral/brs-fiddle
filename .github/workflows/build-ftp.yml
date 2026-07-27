@@ -16,7 +16,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 22
-    - run: npm install
+    - run: npm ci --ignore-scripts
     - run: npm run release
     - name: Push files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4

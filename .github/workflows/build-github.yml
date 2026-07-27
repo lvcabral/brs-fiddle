@@ -22,7 +22,7 @@ jobs:
       with:
         node-version: 22
 
-    - run: npm install
+    - run: npm ci --ignore-scripts
     - run: npm run release
 
     - name: Deploy to GitHub Pages
