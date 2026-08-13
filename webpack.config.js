@@ -44,7 +44,7 @@ module.exports = (env) => {
             plugins: [
                 new MonacoWebpackPlugin({
                     // Only include built-in languages - BrightScript is registered manually
-                    languages: ["xml", "ini"],
+                    languages: ["xml", "ini", "json"],
                     // Disable features we don't need to reduce bundle size
                     features: [
                         "!gotoSymbol",

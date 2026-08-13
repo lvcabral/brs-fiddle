@@ -7,9 +7,14 @@ import "codemirror/addon/edit/closebrackets.js";
 import "codemirror/addon/edit/matchbrackets.js";
 import "codemirror/mode/xml/xml.js";
 import "codemirror/mode/properties/properties.js";
+import "codemirror/mode/javascript/javascript.js";
 import { defineMode } from "./brightscript-codemirror";
 import { getOS } from "../util";
 import { IEditorManager } from "./types";
+
+// CodeMirror's javascript mode only registers the "application/json" MIME type;
+// alias it to "json" so it matches the mode name used by Monaco.
+CodeMirror.defineMIME("json", { name: "javascript", json: true });
 
 export class CodeMirrorManager implements IEditorManager {
     public editor: CodeMirror.Editor;
