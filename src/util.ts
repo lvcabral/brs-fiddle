@@ -93,6 +93,7 @@ export function getIcon(filePath: string): string {
             return "icon-file-image";
         case "brs":
         case "xml":
+        case "json":
             return "icon-file-code";
         default:
             return "icon-doc-text";

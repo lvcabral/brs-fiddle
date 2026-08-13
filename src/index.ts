@@ -1198,6 +1198,9 @@ function loadFile(filePath: string) {
         case "xml":
             mode = "xml";
             break;
+        case "json":
+            mode = "json";
+            break;
         case "":
             mode = "ini"; // Monaco uses "ini" for properties files
             break;
