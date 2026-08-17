@@ -11,12 +11,12 @@
         url="https://www.peach.themazzone.com/durian/movies/sintel-1280-surround.mp4"/>
     <item title="The Biker (HLS)"
         description="Biker rides along the coast"
-        hdposterurl="http://localhost:8500/images/the_biker.png"
+        hdposterurl="https://brsfiddle.net/images/the_biker.png"
         streamformat="hls"
         url="https://content.jwplatform.com/manifests/yp34SRmf.m3u8"/>
     <item title="Elephants Dream (DASH)"
         description="The first open movie made with Blender"
-        hdposterurl="http://localhost:8500/images/elephants-dream.png"
+        hdposterurl="https://brsfiddle.net/images/elephants-dream.png"
         streamformat="dash"
         url="https://rdmedia.bbc.co.uk/elephants_dream/1/client_manifest-all.mpd"/>
     <item title="Star Trek Clip (Multi-track HLS)"
