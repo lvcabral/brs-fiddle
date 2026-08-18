@@ -240,6 +240,25 @@ pre {
     font-size: 16px;
     margin-right: 0.2em;
 }
+.console .console-header label span {
+    font-family: Asap, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    margin-right: 0.2em;
+    color: var(--check-label-color);
+}
+.console .console-header label i {
+    font-size: 20px;
+    color: var(--check-label-color);
+    cursor: pointer;
+}
+.console .console-header label {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+    cursor: pointer;
+}
 .console iframe {
     border: none;
     width: 0;

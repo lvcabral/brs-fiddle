@@ -68,6 +68,7 @@ const rightContainer = document.getElementById("right-container") as HTMLDivElem
 const displayCanvas = document.getElementById("display") as HTMLCanvasElement;
 const keyboardSwitch = document.getElementById("keyboard") as HTMLInputElement;
 const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
+const rendezvousSwitch = document.getElementById("rendezvousLog") as HTMLInputElement;
 const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
 const audioIcon = document.getElementById("audio-icon") as HTMLElement;
 const themeSwitch = document.getElementById("darkTheme") as HTMLInputElement;
@@ -93,6 +94,7 @@ const lastState = loadState();
 audioSwitch.checked = lastState.audio;
 keyboardSwitch.checked = lastState.keys;
 gamePadSwitch.checked = lastState.gamePads;
+rendezvousSwitch.checked = lastState.logRendezvous;
 themeSwitch.checked = lastState.darkTheme;
 
 // Terminal Setup
@@ -822,6 +824,7 @@ function runCode() {
                 clearDisplayOnExit: false,
                 debugOnCrash: true,
                 muteSound: !audioSwitch.checked,
+                logRendezvous: rendezvousSwitch.checked,
             });
         } catch (e: any) {
             console.log(e); // Check EvalError object
@@ -841,6 +844,7 @@ function runZip(pkg: string, zipData: ArrayBufferLike) {
             clearDisplayOnExit: false,
             debugOnCrash: true,
             muteSound: !audioSwitch.checked,
+            logRendezvous: rendezvousSwitch.checked,
         },
         new Map([["source", "auto-run-dev"]])
     );
@@ -884,6 +888,12 @@ audioSwitch.addEventListener("click", (e) => {
     audioIcon.className = audioSwitch.checked ? "icon-sound-on" : "icon-sound-off";
     lastState.audio = audioSwitch.checked;
     brs.setAudioMute(!lastState.audio);
+    saveState();
+});
+
+rendezvousSwitch.addEventListener("click", (e) => {
+    lastState.logRendezvous = rendezvousSwitch.checked;
+    brs.setRendezvousLog(lastState.logRendezvous);
     saveState();
 });
 
@@ -1062,6 +1072,7 @@ function loadState() {
         audio: true,
         keys: true,
         gamePads: true,
+        logRendezvous: false,
         darkTheme: isDarkTheme(),
         showFileTree: true,
         indentationType: "spaces" as "spaces" | "tabs",
