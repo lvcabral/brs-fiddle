@@ -37,6 +37,15 @@ Font license info
    Homepage:  http://somerandomdude.com/work/iconic/
 
 
+## Maki
+
+   Copyright (C) Mapbox, LCC
+
+   Author:    Mapbox
+   License:   BSD (https://github.com/mapbox/maki/blob/gh-pages/LICENSE.txt)
+   Homepage:  http://mapbox.com/maki/
+
+
 ## MFG Labs
 
    Copyright (C) 2012 by Daniel Bruce
