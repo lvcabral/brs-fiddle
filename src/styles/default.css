@@ -280,7 +280,7 @@ pre {
 .WebTerm output pre {
     color: var(--console-color) !important;
 }
-.WebTerm output span {
+.WebTerm output > span {
     color: var(--console-color) !important;
 }
 .WebTerm .command {

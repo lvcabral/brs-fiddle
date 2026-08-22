@@ -7,7 +7,8 @@
  *--------------------------------------------------------------------------------------------*/
 import * as brs from "brs-engine";
 import Codec from "json-url";
-import WebTerminal from "@lvcabral/terminal";
+import WebTerminal, { COLOR_THEMES } from "@lvcabral/terminal";
+import { getBrsConsolePatterns } from "./consoleColors";
 import {
     initializeFileSystem,
     hideImage,
@@ -69,6 +70,7 @@ const displayCanvas = document.getElementById("display") as HTMLCanvasElement;
 const keyboardSwitch = document.getElementById("keyboard") as HTMLInputElement;
 const gamePadSwitch = document.getElementById("gamepad") as HTMLInputElement;
 const rendezvousSwitch = document.getElementById("rendezvousLog") as HTMLInputElement;
+const consoleColorsSwitch = document.getElementById("consoleColors") as HTMLInputElement;
 const audioSwitch = document.getElementById("audioSwitch") as HTMLInputElement;
 const audioIcon = document.getElementById("audio-icon") as HTMLElement;
 const themeSwitch = document.getElementById("darkTheme") as HTMLInputElement;
@@ -95,6 +97,7 @@ audioSwitch.checked = lastState.audio;
 keyboardSwitch.checked = lastState.keys;
 gamePadSwitch.checked = lastState.gamePads;
 rendezvousSwitch.checked = lastState.logRendezvous;
+consoleColorsSwitch.checked = lastState.colorizeConsole;
 themeSwitch.checked = lastState.darkTheme;
 
 // Terminal Setup
@@ -107,6 +110,8 @@ const commands = {
         terminal.output(`<br />BrightScript Simulation Engine v${brs.getVersion()}<br />`);
     },
 };
+let activeTheme = lastState.darkTheme ? "dark" : "light";
+let colorizeConsoleLogs = lastState.colorizeConsole;
 const terminal = new WebTerminal({
     welcome: `<span style='color: #2e71ff'>BrightScript Console - ${packageInfo.name} v${
         packageInfo.version
@@ -116,6 +121,9 @@ const terminal = new WebTerminal({
     prompt: prompt,
     ignoreBadCommand: true,
     autoFocus: false,
+    colorTheme: activeTheme,
+    customPatterns: getBrsConsolePatterns(activeTheme, COLOR_THEMES),
+    useDefaultPatterns: false,
 });
 terminal.idle();
 
@@ -421,23 +429,36 @@ function logToTerminal(data: any) {
         terminal.idle();
         resumeButton.style.display = "none";
         breakButton.style.display = "inline";
-    } else if (data?.level === "beacon") {
-        console.info(`%c${data.content}`, "color: #4A90E2");
-    } else if (data?.level === "debug") {
-        console.debug(`%c${data.content}`, "color: #888888");
-    } else if (data?.level !== "beacon" && typeof data?.content === "string") {
-        let output: string = data.content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-        if (data.level === "print") {
-            const promptSuffix = `${prompt}&gt; `;
-            if (output.endsWith(promptSuffix)) {
-                output = output.slice(0, -promptSuffix.length);
-            }
-        } else if (data.level === "warning") {
-            output = "<span style='color: #d7ba7d;'>" + output + "</span>";
-        } else if (data.level === "error") {
-            output = "<span style='color: #e95449;'>" + output + "</span>";
+    } else if (typeof data?.content === "string") {
+        updateTerminal(data.content, data.level);
+    }
+}
+
+function updateTerminal(text: string, level = "print") {
+    let output = text.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    if (level === "print" || level === "debug") {
+        const promptLen = `${prompt}&gt; `.length;
+        if (output.endsWith(`${prompt}&gt; `)) {
+            output = output.slice(0, output.length - promptLen);
         }
-        terminal.output(`<pre>${output}</pre>`);
+    }
+    output = output.replaceAll(" ", "&nbsp;");
+    const lines = output.trim().split(/\r?\n/);
+    for (const rawLine of lines) {
+        let line = rawLine || "&zwnj;";
+        if (colorizeConsoleLogs) {
+            if (level === "print" || level === "beacon") {
+                line = terminal.highlight(line);
+            } else if (level === "debug") {
+                line = `<span style="color: ${COLOR_THEMES[activeTheme].debug}">${terminal.highlight(line)}</span>`;
+            } else if (level === "warning") {
+                line = terminal.colorize(line, COLOR_THEMES[activeTheme].warning);
+            } else if (level === "error") {
+                line = terminal.colorize(line, COLOR_THEMES[activeTheme].error);
+            }
+        }
+        terminal.outputHTML(line);
+        terminal.resetCommand();
     }
 }
 
@@ -897,6 +918,12 @@ rendezvousSwitch.addEventListener("click", (e) => {
     saveState();
 });
 
+consoleColorsSwitch.addEventListener("click", (e) => {
+    colorizeConsoleLogs = consoleColorsSwitch.checked;
+    lastState.colorizeConsole = colorizeConsoleLogs;
+    saveState();
+});
+
 keyboardSwitch.addEventListener("click", controlModeSwitch);
 gamePadSwitch.addEventListener("click", controlModeSwitch);
 
@@ -1073,6 +1100,7 @@ function loadState() {
         keys: true,
         gamePads: true,
         logRendezvous: false,
+        colorizeConsole: true,
         darkTheme: isDarkTheme(),
         showFileTree: true,
         indentationType: "spaces" as "spaces" | "tabs",
@@ -1137,6 +1165,9 @@ function setTheme(dark: boolean) {
     codeColumn.style.colorScheme = theme;
     consoleColumn.style.colorScheme = theme;
     rightContainer.style.colorScheme = theme;
+    activeTheme = theme;
+    terminal.setColorTheme(activeTheme);
+    terminal.setCustomPatterns(getBrsConsolePatterns(activeTheme, COLOR_THEMES), false);
     if (editorManager) {
         editorManager.setTheme(theme);
     }
