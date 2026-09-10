@@ -75,6 +75,11 @@
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^6.0.0"
   },
+  "overrides": {
+    "pkijs": {
+      "@noble/hashes": "^2.4.0"
+    }
+  },
   "prettier": {
     "trailingComma": "es5",
     "tabWidth": 4,
