@@ -30,4 +30,5 @@ export const templates: CodeTemplate[] = [
     { name: "Keyboard Dlg (SceneGraph)", path: "keyboard-dialog.zip" },
     { name: "Animated Image (SceneGraph)", path: "animated-image.zip" },
     { name: "Video List (SceneGraph)", path: "video-list.zip" },
+    { name: "Effect Node (SceneGraph)", path: "effect-node.zip" },
 ];
